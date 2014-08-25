@@ -106,6 +106,7 @@ public class JPiereADWindow extends ADWindow
          }
     }
 
+
     private void init()
     {
         windowContent = new JPiereADWindowContent(ctx, windowNo, adWindowId);

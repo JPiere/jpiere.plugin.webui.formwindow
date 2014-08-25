@@ -17,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -269,7 +268,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				Cell div = null;
 				while (div == null && child != null) {
 					Component parent = child.getParent();
-					if (parent instanceof Cell && parent.getParent() instanceof Row)
+					if (parent instanceof Cell && parent.getParent().getParent() instanceof Row)
 						div = (Cell)parent;
 					else
 						child = parent;
@@ -290,8 +289,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 							checkBox.setChecked(false);
 					}
 				}
-				if (row == null)
-					row = ((Row)(div.getParent().getParent()));
+//				if (row == null)
+//					row = (Row)(div.getParent().getParent());
 
 				entry.getValue().getComponent().detach();
 				entry.getKey().removePropertyChangeListener(entry.getValue());
@@ -464,6 +463,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			}else{
 				vbox = new Vbox();
+				vbox.setWidth("100%");//TODO
 				vbox.addEventListener(Events.ON_CLICK, rowListener);
 				vbox.appendChild(div);
 				row.appendChild(vbox);
@@ -565,7 +565,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			&& grid != null && grid.isVisible() && grid.getParent() != null && grid.getParent().isVisible()) {
 			GridField[] gridPanelFields = gridPanel.getFields();
 			int columnCount = gridPanelFields.length;
-			org.zkoss.zul.Columns columns = grid.getColumns();
+//			org.zkoss.zul.Columns columns = grid.getColumns();
 
 			//skip selection and indicator column
 			int colIndex = 1;
@@ -607,8 +607,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	            }
 
 
-	            Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab, gridTab.getCurrentRow())
-	            	: gridPanelFields[i].getVO().ctx;
+//	            Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab, gridTab.getCurrentRow())
+//	            	: gridPanelFields[i].getVO().ctx;
 	            //check context
 //				if (!gridPanelFields[i].isDisplayedGrid() ||
 //					!gridPanelFields[i].isDisplayed(ctx, true))

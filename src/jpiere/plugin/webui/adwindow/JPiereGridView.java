@@ -851,7 +851,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		{
 			JPiereADWindow adwindow = JPiereADWindow.findADWindow(adtabpanel);
 			if (adwindow != null) {
-				IADTabpanel selectedADTabpanel = adwindow.getADWindowContent().getADTab().getSelectedTabpanel();
+				IADTabpanel selectedADTabpanel = adwindow.getJPiereADWindowContent().getADTab().getSelectedTabpanel();
 				if (selectedADTabpanel != adtabpanel)
 					setFocus = false;
 			}

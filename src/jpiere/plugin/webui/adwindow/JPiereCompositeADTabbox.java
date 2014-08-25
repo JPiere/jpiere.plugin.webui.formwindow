@@ -30,7 +30,6 @@ import org.adempiere.webui.adwindow.AbstractADWindowContent;
 import org.adempiere.webui.adwindow.BreadCrumb;
 import org.adempiere.webui.adwindow.BreadCrumbLink;
 import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.component.ADTabListModel;
 import org.adempiere.webui.component.ADTabListModel.ADTabLabel;
@@ -620,7 +619,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
         if (back != null && back.booleanValue()) {
         	if (headerTab.isGridView()) {
         		RowRenderer<Object[]> renderer = headerTab.getJPiereGridView().getListbox().getRowRenderer();
-        		GridTabRowRenderer gtr = (GridTabRowRenderer)renderer;
+        		JPiereGridTabRowRenderer gtr = (JPiereGridTabRowRenderer)renderer;
         		Row row = gtr.getCurrentRow();
         		if (row != null)
         			gtr.setCurrentRow(row);

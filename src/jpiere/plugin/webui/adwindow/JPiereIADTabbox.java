@@ -56,11 +56,11 @@ public interface JPiereIADTabbox extends IADTabbox,UIPart {
 	/**
 	 * @return the currently selected detail adtabpanel
 	 */
-	JPiereIADTabpanel getSelectedDetailADTabpanel();
+	public JPiereIADTabpanel getSelectedDetailADTabpanel();
 
 	/**
 	 * @return dirty adtabpanel that need save ( if any )
 	 */
-	JPiereIADTabpanel getDirtyADTabpanel();
+	public JPiereIADTabpanel getDirtyADTabpanel();
 
 }

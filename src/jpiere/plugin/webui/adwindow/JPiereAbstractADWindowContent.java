@@ -1717,7 +1717,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     	JPiereIADTabpanel iadtabpanel = getADTab().getSelectedTabpanel();
 		if (iadtabpanel instanceof JPiereADTabpanel) {
 			JPiereADTabpanel adtabpanel = (JPiereADTabpanel) iadtabpanel;
-			Grid grid = adtabpanel.getGridView().getListbox();
+			Grid grid = adtabpanel.getJPiereGridView().getListbox();
 			Columns columns = grid.getColumns();
 			if (columns != null) {
 				List<?> list = columns.getChildren();
@@ -3117,7 +3117,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			gridFieldIds.add(fields[i].getAD_Field_ID());
 
 		}
-		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());
+		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());//TODO JPIERE-XXX getJPiereGridView
 	}
 
 	/**
