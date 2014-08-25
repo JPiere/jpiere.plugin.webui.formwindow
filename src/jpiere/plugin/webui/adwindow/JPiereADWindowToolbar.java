@@ -690,7 +690,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		dynamicDisplay();
 		// If no workflow set for the table => disable btnWorkflow
 		if (!btnActiveWorkflows.isDisabled()) {
-			GridTab gridTab = adwindow.getADWindowContent().getActiveGridTab();
+			GridTab gridTab = adwindow.getJPiereADWindowContent().getActiveGridTab();
 			if (gridTab != null)
 				btnActiveWorkflows.setDisabled(!hasWorkflow(gridTab));
 		}
@@ -718,7 +718,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		}
 
 		JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
-		GridTab gridTab = adwindow.getADWindowContent().getActiveGridTab();
+		GridTab gridTab = adwindow.getJPiereADWindowContent().getActiveGridTab();
 		if (gridTab != null) {
 			int AD_Tab_ID = gridTab.getAD_Tab_ID();
 			List<String> restrictionList = adwindow.getTabToolbarRestrictList(AD_Tab_ID);

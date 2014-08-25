@@ -30,8 +30,6 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
 import jpiere.plugin.webui.panel.action.JPiereExportAction;
 import jpiere.plugin.webui.panel.action.JPiereFileImportAction;
 import jpiere.plugin.webui.panel.action.JPiereReportAction;
@@ -51,7 +49,9 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -1751,8 +1751,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_NEW.getName());
-			    	JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
+					WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_NEW.getName());
+			    	WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
 				}
 			}
 		};
@@ -1765,8 +1765,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 
-		JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_NEW.getName());
-    	JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
+		WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_NEW.getName());
+    	WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
     }
 
     private void onNewCallback(final Callback<Boolean> postCallback)
@@ -1834,8 +1834,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_COPY.getName());
-			    	JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
+					WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_COPY.getName());
+			    	WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
 				}
 			}
 		};
@@ -1848,8 +1848,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 
-		JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_COPY.getName());
-    	JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
+		WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_COPY.getName());
+    	WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
     }
 
 	// Elaine 2008/11/19
@@ -1971,8 +1971,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_IGNORE.getName());
-					JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
+					WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_IGNORE.getName());
+					WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
 				}
 			}
 		};
@@ -1985,8 +1985,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 
-		JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_IGNORE.getName());
-		JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
+		WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_IGNORE.getName());
+		WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
     }
 
     private void onIgnoreCallback(Callback<Boolean> postCallback)
@@ -2059,8 +2059,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_SAVE.getName());
-					JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, callback);
+					WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_SAVE.getName());
+					WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, callback);
 				} else {
 					callback.onCallback(result);
 				}
@@ -2078,8 +2078,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 
-		JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_SAVE.getName());
-		JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
+		WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_SAVE.getName());
+		WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
 	}
 
 	public void onSavePayment()
@@ -2266,8 +2266,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_DELETE.getName());
-					JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
+					WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_DELETE.getName());
+					WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
 				}
 			}
 		};
@@ -2280,8 +2280,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 
-		JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_DELETE.getName());
-		JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
+		WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_DELETE.getName());
+		WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
 	}
 
     private void onDeleteCallback(final Callback<Boolean> postCallback)
@@ -2377,8 +2377,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_PRINT.getName());
-					JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
+					WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.AFTER_PRINT.getName());
+					WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, null);
 				}
 			}
 		};
@@ -2391,8 +2391,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 
-		JPiereWindowValidatorEvent event = new JPiereWindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_PRINT.getName());
-		JPiereWindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
+		WindowValidatorEvent event = new WindowValidatorEvent(adwindow, WindowValidatorEventType.BEFORE_PRINT.getName());
+		WindowValidatorManager.getInstance().fireWindowValidatorEvent(event, preCallback);
     }
 
 	private void onPrintCallback(final Callback<Boolean> postCallback) {

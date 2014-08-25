@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.ADWindowToolbar;
 import org.adempiere.webui.desktop.IDesktop;
 import org.adempiere.webui.exception.ApplicationException;
-import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.session.SessionManager;
 import org.compiere.model.MImage;
 import org.compiere.model.MQuery;
@@ -47,9 +47,9 @@ import org.zkoss.zk.ui.Component;
  * @date    Feb 25, 2007
  * @version $Revision: 0.10 $
  */
-public class JPiereADWindow extends AbstractUIPart
+public class JPiereADWindow extends ADWindow
 {
-    public static final String AD_WINDOW_ATTRIBUTE_KEY = "org.adempiere.webui.adwindow";
+    public static final String AD_WINDOW_ATTRIBUTE_KEY = "jpiere.plugin.webui.JPiereADWindow";
 	private JPiereADWindowContent windowContent;
     private Properties ctx;
     private int adWindowId;
@@ -88,6 +88,8 @@ public class JPiereADWindow extends AbstractUIPart
      */
     public JPiereADWindow(Properties ctx, int adWindowId, MQuery query)
     {
+    	super(ctx,adWindowId,query);
+
     	 if(adWindowId <= 0)
              throw new IllegalArgumentException("Window Id is invalid");
 
@@ -171,7 +173,7 @@ public class JPiereADWindow extends AbstractUIPart
 	/**
 	 * @return ADWindowContent
 	 */
-	public JPiereADWindowContent getADWindowContent() {
+	public JPiereADWindowContent getJPiereADWindowContent() {
 		return windowContent;
 	}
 

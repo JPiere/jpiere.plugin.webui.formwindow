@@ -28,6 +28,7 @@ import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.adwindow.DetailPane;
 import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.GridTableListModel;
+import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.IFieldEditorContainer;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Checkbox;
@@ -850,7 +851,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		{
 			JPiereADWindow adwindow = JPiereADWindow.findADWindow(adtabpanel);
 			if (adwindow != null) {
-				JPiereIADTabpanel selectedADTabpanel = adwindow.getADWindowContent().getADTab().getSelectedTabpanel();
+				IADTabpanel selectedADTabpanel = adwindow.getADWindowContent().getADTab().getSelectedTabpanel();
 				if (selectedADTabpanel != adtabpanel)
 					setFocus = false;
 			}

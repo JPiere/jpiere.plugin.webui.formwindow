@@ -364,7 +364,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 
 
-		Grid grid = (Grid) row.getParent().getParent();
+//		Grid grid = (Grid) row.getParent().getParent();
 
 		int rowIndex = index;
 		if (paging != null && paging.getPageSize() > 0) {
