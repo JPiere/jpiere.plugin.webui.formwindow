@@ -611,7 +611,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 
         JPiereADWindow adwindow = JPiereADWindow.findADWindow(layout);
         if (adwindow != null) {
-        	adwindow.getADWindowContent().getToolbar().enableTabNavigation(getBreadCrumb().hasParentLink(),
+        	adwindow.getJPiereADWindowContent().getToolbar().enableTabNavigation(getBreadCrumb().hasParentLink(),
         			headerTab.getJPiereDetailPane() != null && headerTab.getJPiereDetailPane().getTabcount() > 0);
         }
 

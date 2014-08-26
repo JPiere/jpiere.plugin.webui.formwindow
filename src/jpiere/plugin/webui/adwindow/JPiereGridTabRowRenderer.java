@@ -453,6 +453,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			div.setStyle(divStyle);
 			div.setWidth("100%");
+			div.setHeight("21px");
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);
 
