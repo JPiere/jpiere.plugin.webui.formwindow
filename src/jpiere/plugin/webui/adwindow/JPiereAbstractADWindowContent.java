@@ -1355,7 +1355,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	        if (Util.isEmpty(header))
 	        	header = AEnv.getDialogHeader(Env.getCtx(), curWindowNo, prefix);
 
-	        SessionManager.getAppDesktop().setTabTitle(header);
+//	        SessionManager.getAppDesktop().setTabTitle(header);
     	}
     	else if (adTabbox.getSelectedDetailADTabpanel() == null)
     	{

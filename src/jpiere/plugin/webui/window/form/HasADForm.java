@@ -18,9 +18,6 @@ public class HasADForm implements IFormController{
     	JPiereADWindow adw = new JPiereADWindow(Env.getCtx(),1000014,null);
     	adw.createPart(form);
 
-//    	ADWindow adw = new ADWindow(Env.getCtx(),1000014,null);
-//    	adw.createPart(form);
-
     }
 
 
@@ -29,4 +26,6 @@ public class HasADForm implements IFormController{
 	{
 		return form;
 	}
+
+
 }

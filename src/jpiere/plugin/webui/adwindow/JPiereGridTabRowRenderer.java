@@ -261,7 +261,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		} else {
 			editing = false;
 		}
-		Row row = null;
+
 		for (Entry<GridField, WEditor> entry : editors.entrySet()) {
 			if (entry.getValue().getComponent().getParent() != null) {
 				Component child = entry.getValue().getComponent();
@@ -397,7 +397,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		row.appendChild(cell);
 
 		Boolean isActive = null;
-		Vbox vbox = null;//TODO Hideaki Hagiwara
+		Vbox vbox = null;
 		int sameLineCounter = 0;
 		for (int i = 0; i < columnCount; i++) {
 			if (editors.get(gridPanelFields[i]) == null) {
@@ -465,7 +465,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			}else{
 				vbox = new Vbox();
-				vbox.setWidth("100%");//TODO
+				vbox.setWidth("100%");
 				vbox.addEventListener(Events.ON_CLICK, rowListener);
 				vbox.appendChild(div);
 				row.appendChild(vbox);
@@ -571,27 +571,29 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			//skip selection and indicator column
 			int colIndex = 1;
-			int isSameLine = 0;//TODO Hideaki Hagiwara
+			int sameLineCounter = 0;
+			int cellCounter = 0;
 			for (int i = 0; i < columnCount; i++) {
 				if (!gridPanelFields[i].isDisplayedGrid() || gridPanelFields[i].isToolbarButton()) {
 					continue;
 				}
 				colIndex ++;
 
-				if(gridPanelFields[i].isSameLine()){
-					isSameLine = 1;
+				if(gridPanelFields[i].isSameLine() && sameLineCounter == 1){
+					sameLineCounter  = 0;
+					cellCounter = 1;
 					colIndex--;
 				}else{
-					isSameLine=0;
+					sameLineCounter =1;
+					cellCounter = 0;
 				}
 
 				if (editors.get(gridPanelFields[i]) == null)
 					editors.put(gridPanelFields[i], WebEditorFactory.getEditor(gridPanelFields[i], true));
 
 				Vbox vbox = (Vbox) currentRow.getChildren().get(colIndex);
-//				List<Component> test = currentRow.getChildren();//TODO デバッグ用
 
-				Cell div = (Cell)vbox.getChildren().get(isSameLine);
+				Cell div = (Cell)vbox.getChildren().get(cellCounter);
 				WEditor editor = getEditorCell(gridPanelFields[i]);
 				if (div.getChildren().isEmpty() || !(div.getChildren().get(0) instanceof Button))
 					div.getChildren().clear();

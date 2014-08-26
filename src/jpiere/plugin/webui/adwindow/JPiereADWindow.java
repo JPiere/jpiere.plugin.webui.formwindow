@@ -119,6 +119,7 @@ public class JPiereADWindow extends ADWindow
      *
      * @return title of window
      */
+    @Override
     public String getTitle()
     {
         return _title;
