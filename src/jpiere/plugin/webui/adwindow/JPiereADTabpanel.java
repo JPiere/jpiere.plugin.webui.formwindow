@@ -247,7 +247,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         form.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "form");
 
         listPanel = new JPiereGridView();
-        listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
+//        listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
     }
 
 

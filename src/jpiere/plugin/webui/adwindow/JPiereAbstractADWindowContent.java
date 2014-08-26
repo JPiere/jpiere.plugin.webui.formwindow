@@ -3117,6 +3117,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			gridFieldIds.add(fields[i].getAD_Field_ID());
 
 		}
+
+
+
 		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());//TODO JPIERE-XXX getJPiereGridView
 	}
 

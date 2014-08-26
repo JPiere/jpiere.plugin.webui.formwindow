@@ -512,7 +512,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 	}
 
 	private void onPostTabSelectionChanged(Boolean back) {
-		if (headerTab instanceof ADTabpanel && !headerTab.getGridTab().isSortTab()) {
+		if (headerTab instanceof JPiereADTabpanel && !headerTab.getGridTab().isSortTab()) {
 			List<Object[]> list = new ArrayList<Object[]>();
 			int tabIndex = -1;
 			int currentLevel = headerTab.getTabLevel();
@@ -550,7 +550,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 	}
 
 	private void onTabSelectionChangedEcho(Boolean back) {
-		if (headerTab instanceof ADTabpanel) {
+		if (headerTab instanceof JPiereADTabpanel) {
 			JPiereDetailPane detailPane = headerTab.getJPiereDetailPane();
 
 			if (detailPane != null) {

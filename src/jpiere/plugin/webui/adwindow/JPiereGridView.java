@@ -28,7 +28,6 @@ import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.adwindow.DetailPane;
 import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.GridTableListModel;
-import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.IFieldEditorContainer;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Checkbox;
@@ -79,7 +78,7 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  */
 public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
 {
-	private static final String HEADER_GRID_STYLE = "border: none; margin:0; padding: 0;";
+	private static final String HEADER_GRID_STYLE = "border: node; margin:0; padding: 0;";
 
 	private static final int DEFAULT_DETAIL_PAGE_SIZE = 10;
 
@@ -662,9 +661,9 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				else
 				{
 					AbstractComponent cmp = (AbstractComponent) data;
-					if (cmp.getParent() instanceof org.zkoss.zul.Row)
+					if (cmp.getParent().getParent() instanceof org.zkoss.zul.Row)
 					{
-						row = (Row) cmp.getParent();
+						row = (Row) cmp.getParent().getParent();
 						columnName = (String) cmp.getAttribute("columnName");
 					}
 				}
@@ -851,7 +850,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		{
 			JPiereADWindow adwindow = JPiereADWindow.findADWindow(adtabpanel);
 			if (adwindow != null) {
-				IADTabpanel selectedADTabpanel = adwindow.getJPiereADWindowContent().getADTab().getSelectedTabpanel();
+				JPiereIADTabpanel selectedADTabpanel = adwindow.getJPiereADWindowContent().getADTab().getSelectedTabpanel();
 				if (selectedADTabpanel != adtabpanel)
 					setFocus = false;
 			}

@@ -315,6 +315,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	 */
 	@Override
 	public void render(Row row, Object[] data, int index) throws Exception {
+
 		//don't render if not visible
 		int columnCount = 0;
 		GridField[] gridPanelFields = null;
@@ -476,7 +477,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			setCurrentRow(row);
 		}
 
-		row.setStyle("cursor:pointer");
+		row.setStyle("border: solid 1px #eeeeee; cursor:pointer");
 		row.addEventListener(Events.ON_CLICK, rowListener);
 		row.addEventListener(Events.ON_OK, rowListener);
 

@@ -522,7 +522,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
     public void enableCustomize(boolean enabled)
     {
-    	btnCustomize.setDisabled(!enabled);
+    	btnCustomize.setDisabled(true);//
     }
 
     public void enableArchive(boolean enabled)

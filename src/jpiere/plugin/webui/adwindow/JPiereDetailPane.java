@@ -372,7 +372,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 		org.zkoss.zul.Tabpanel tabPanel = tabbox.getTabpanel(index);
 		for(Component c : tabPanel.getChildren()) {
-			if (c instanceof JPiereIADTabpanel)
+			if (c instanceof IADTabpanel)
 				return (JPiereIADTabpanel)c;
 		}
 		return null;
