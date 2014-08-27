@@ -76,9 +76,10 @@ import org.zkoss.zul.impl.XulElement;
 public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRendererExt, RendererCtrl, EventListener<Event> {
 
 	public static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
-	private static final String CELL_DIV_STYLE = "border: none; height: 100%; cursor: pointer; ";
+	private static final String CELL_DIV_STYLE = "border: dotted 1px #dddddd; height: 100%; cursor: pointer; ";
 	private static final String CELL_DIV_STYLE_ALIGN_CENTER = CELL_DIV_STYLE + "text-align:center; ";
 	private static final String CELL_DIV_STYLE_ALIGN_RIGHT = CELL_DIV_STYLE + "text-align:right; ";
+	private static final String ROW_STYLE = "border: solid 1px #dddddd; cursor:pointer";
 
 	private static final int MAX_TEXT_LENGTH = 60;
 	private GridTab gridTab;
@@ -398,7 +399,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 		Boolean isActive = null;
 		Vbox vbox = null;
-		int sameLineCounter = 0;
+		int auxheads_size = JPiereGridView.DEFAULT_AUXHEADS_SIZE;//TODO
+		int sameLineColumnCounter = 0;
 		for (int i = 0; i < columnCount; i++) {
 			if (editors.get(gridPanelFields[i]) == null) {
 				WEditor editor = WebEditorFactory.getEditor(gridPanelFields[i], true);
@@ -457,20 +459,35 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);
 
-			if(gridPanelFields[i].isSameLine()  && sameLineCounter == 1)
-			{
-				vbox.appendChild(div);
-				row.appendChild(vbox);
-				sameLineCounter = 0;
 
-			}else{
+			//TODO:マルチ列表示ロジック
+			if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
+
 				vbox = new Vbox();
+//				vbox.setStyle("border: dotted 1px;");
 				vbox.setWidth("100%");
 				vbox.addEventListener(Events.ON_CLICK, rowListener);
 				vbox.appendChild(div);
 				row.appendChild(vbox);
-				sameLineCounter = 1;
-			}
+				sameLineColumnCounter = 1;
+
+			}else{												//2段目以降の処理
+
+				if(sameLineColumnCounter <= auxheads_size){	//追加タイトル行以下のカラム数の場合
+					vbox.appendChild(div);
+					row.appendChild(vbox);
+					sameLineColumnCounter++;
+
+				}else{									//追加タイトル行を超える場合は、次のカラムを追加する。
+					vbox = new Vbox();
+					vbox.setWidth("100%");
+					vbox.addEventListener(Events.ON_CLICK, rowListener);
+					vbox.appendChild(div);
+					row.appendChild(vbox);
+					sameLineColumnCounter = 1;
+				}
+
+			}//マルチ列表示ロジック終わり
 
 		}
 
@@ -478,7 +495,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			setCurrentRow(row);
 		}
 
-		row.setStyle("border: solid 1px #eeeeee; cursor:pointer");
+		row.setStyle(ROW_STYLE);
 		row.addEventListener(Events.ON_CLICK, rowListener);
 		row.addEventListener(Events.ON_OK, rowListener);
 
@@ -571,22 +588,33 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			//skip selection and indicator column
 			int colIndex = 1;
-			int sameLineCounter = 0;
+
+			//TODO:マルチ列表示ロジック
+			int auxheads_size = JPiereGridView.DEFAULT_AUXHEADS_SIZE;
+			int sameLineColumnCounter = 0;
 			int cellCounter = 0;
+
 			for (int i = 0; i < columnCount; i++) {
 				if (!gridPanelFields[i].isDisplayedGrid() || gridPanelFields[i].isToolbarButton()) {
 					continue;
 				}
 				colIndex ++;
 
-				if(gridPanelFields[i].isSameLine() && sameLineCounter == 1){
-					sameLineCounter  = 0;
-					cellCounter = 1;
-					colIndex--;
-				}else{
-					sameLineCounter =1;
+				//TODO:マルチ列表示ロジック
+				if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
+					sameLineColumnCounter =1;
 					cellCounter = 0;
+				}else{
+					if(sameLineColumnCounter <= auxheads_size){	//追加タイトル行以下のカラム数の場合
+						sameLineColumnCounter++;
+						cellCounter++;
+						colIndex--;
+					}else{//追加タイトル行を超える場合は、次のカラムを追加する。
+						sameLineColumnCounter =1;
+						cellCounter = 0;
+					}
 				}
+
 
 				if (editors.get(gridPanelFields[i]) == null)
 					editors.put(gridPanelFields[i], WebEditorFactory.getEditor(gridPanelFields[i], true));
@@ -631,16 +659,16 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 	}
 
-	private boolean isDetailPane() {
-		Component parent = grid.getParent();
-		while (parent != null) {
-			if (parent instanceof DetailPane) {
-				return true;
-			}
-			parent = parent.getParent();
-		}
-		return false;
-	}
+//	private boolean isDetailPane() {
+//		Component parent = grid.getParent();
+//		while (parent != null) {
+//			if (parent instanceof DetailPane) {
+//				return true;
+//			}
+//			parent = parent.getParent();
+//		}
+//		return false;
+//	}
 
 	/**
 	 * @see RowRendererExt#getControls()

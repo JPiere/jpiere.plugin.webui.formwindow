@@ -78,11 +78,13 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  */
 public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
 {
-	private static final String HEADER_GRID_STYLE = "border: node; margin:0; padding: 0;";
+	private static final String HEADER_GRID_STYLE = "border: none; margin:0; padding: 0;";
 
 	private static final int DEFAULT_DETAIL_PAGE_SIZE = 10;
 
 	private static final int DEFAULT_PAGE_SIZE = 20;
+
+	public static final int DEFAULT_AUXHEADS_SIZE = 2; //TODO:マルチ列表示ロジック
 
 	/**
 	 * generated serial version ID
@@ -481,16 +483,22 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		columns.setMenupopup("none");
 		columns.setColumnsgroup(false);
 
-		Auxhead auxhead = new Auxhead();//TODO Hideaki Hagiwara
-		listbox.appendChild(auxhead); //TODO Hideaki Hagiwara
-		Auxheader selection_indicator = new Auxheader();
-		selection_indicator.setColspan(2);
-		auxhead.appendChild(selection_indicator);
+
+		//TODO:マルチ列表示ロジック
+		int auxheads_size = DEFAULT_AUXHEADS_SIZE;
+		Auxhead[] auxheads = new Auxhead[auxheads_size];
+		for(int i = 0 ; i < auxheads.length; i++){
+			auxheads[i]= new Auxhead();
+			listbox.appendChild(auxheads[i]);
+			Auxheader selection_indicator = new Auxheader();
+			selection_indicator.setColspan(2);
+			auxheads[i].appendChild(selection_indicator);
+		}
 
 
 		Map<Integer, String> colnames = new HashMap<Integer, String>();
 		int index = 0;
-		int sameLineCounter = 0;
+		int sameLineColumnCounter = 0;
 		for (int i = 0; i < numColumns; i++)
 		{
 			if (gridField[i].isDisplayedGrid() && !gridField[i].isToolbarButton())
@@ -567,25 +575,46 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 					}
 				}
 
-				if(gridField[i].isSameLine() && sameLineCounter == 1)//TODO Hideaki
-				{
-					if(column.isVisible()){
-						Auxheader auxheader = new Auxheader(gridField[i].getHeader());
-						auxhead.appendChild(auxheader);
-						sameLineCounter = 0;
-					}
-				}else{
+
+				//TODO:マルチ列表示ロジック
+				if(!gridField[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
 					if(column.isVisible()){
 						columns.appendChild(column);
-						sameLineCounter = 1;
-						if(i+1 !=  numColumns  && !gridField[i+1].isSameLine()){//2段目に該当するデータが無い場合の処理
-							Auxheader auxheader = new Auxheader("");
-							auxhead.appendChild(auxheader);
-							sameLineCounter = 0;
+						sameLineColumnCounter = 1;
+						if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//2段目以降に該当するデータが無い場合の処理
+							for(int j = 0 ; j < auxheads_size; j++){
+								auxheads[j].appendChild(new Auxheader(""));
+							}
+							sameLineColumnCounter = 0;
 						}
-
 					}
-				}//TODO Hideaki
+				}else{												//2段目以降の処理
+					if(column.isVisible()){
+						if(sameLineColumnCounter <= auxheads_size){	//追加タイトル行以下のカラム数の場合
+							Auxheader auxheader = new Auxheader(gridField[i].getHeader());
+							auxheads[sameLineColumnCounter-1].appendChild(auxheader);
+							if(i+1 ==  numColumns ||!gridField[i+1].isSameLine()){//3段目以降に該当するデータが無い場合の処理は空白行で埋める。
+								for(int j = sameLineColumnCounter ; j < auxheads_size; j++){
+									auxheads[j].appendChild(new Auxheader(""));
+								}
+								sameLineColumnCounter = 0;
+							}else{
+								sameLineColumnCounter++;
+							}
+						}else{									//追加タイトル行を超える場合は、次のカラムを追加する。
+							columns.appendChild(column);
+							if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//2段目以降に該当するデータが無い場合は空白行で埋める。
+								for(int j = 0 ; j < auxheads_size; j++){
+									auxheads[j].appendChild(new Auxheader(""));
+								}
+								sameLineColumnCounter = 0;
+							}else{
+								sameLineColumnCounter = 1;
+							}
+						}
+					}
+				}//マルチ列表示ロジック終わり
+
 			}
 		}
 	}
@@ -626,7 +655,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		if (renderer != null && renderer.isEditing())
 			renderer.stopEditing(false);
 		renderer = new JPiereGridTabRowRenderer(gridTab, windowNo);
-		renderer.setGridPanel(this);//TODO JPIERE-XXX
+		renderer.setGridPanel(this);
 		renderer.setADWindowPanel(windowPanel);
 		if (pageSize > 0 && paging != null)
 			renderer.setPaging(paging);

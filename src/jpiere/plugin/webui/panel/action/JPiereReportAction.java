@@ -366,7 +366,7 @@ public class JPiereReportAction implements EventListener<Event>
 	{
 		winReport.onClose();
 //		ReportCtl.preview(re);//TODO JPIERE-XXX Webui
-		Tabpanel tabPanel = (Tabpanel) panel.getComponent().getParent();
+		Tabpanel tabPanel = (Tabpanel) panel.getComponent().getParent().getParent();
 		tabPanel.getLinkedTab().setSelected(true);
 	}
 
