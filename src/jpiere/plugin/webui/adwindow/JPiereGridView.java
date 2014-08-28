@@ -84,7 +84,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 	private static final int DEFAULT_PAGE_SIZE = 20;
 
-	public static final int DEFAULT_AUXHEADS_SIZE = 2; //TODO:マルチ列表示ロジック
+	public static final int DEFAULT_AUXHEADS_SIZE = 1; //TODO:マルチ列表示ロジック
 
 	/**
 	 * generated serial version ID
