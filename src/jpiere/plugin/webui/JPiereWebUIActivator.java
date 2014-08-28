@@ -13,7 +13,8 @@
  *****************************************************************************/
 package jpiere.plugin.webui;
 
-import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -31,7 +32,7 @@ public class JPiereWebUIActivator implements BundleActivator {
 	@Override
 	public void start(BundleContext context) throws Exception {
 		bundleContext = context;
-		WindowValidatorManager validatorMgr = new WindowValidatorManager();
+		JPiereWindowValidatorManager validatorMgr = new JPiereWindowValidatorManager();
 		validatorMgr.start(context);
 	}
 
@@ -41,7 +42,7 @@ public class JPiereWebUIActivator implements BundleActivator {
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		bundleContext = null;
-		WindowValidatorManager.getInstance().stop(context);
+		JPiereWindowValidatorManager.getInstance().stop(context);
 	}
 
 	public static BundleContext getBundleContext() {

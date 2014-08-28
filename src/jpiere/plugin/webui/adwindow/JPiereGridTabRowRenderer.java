@@ -76,7 +76,9 @@ import org.zkoss.zul.impl.XulElement;
 public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRendererExt, RendererCtrl, EventListener<Event> {
 
 	public static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
-	private static final String CELL_DIV_STYLE = "border: dotted 1px #dddddd; height: 100%; cursor: pointer; ";
+	private static final String CELL_BORDER_STYLE_DEFAULT = "border: dotted 1px #dddddd;";
+	private static final String CELL_BORDER_STYLE_NONE = "border: none;";
+	private static final String CELL_DIV_STYLE = "height: 100%; cursor: pointer; ";
 	private static final String CELL_DIV_STYLE_ALIGN_CENTER = CELL_DIV_STYLE + "text-align:center; ";
 	private static final String CELL_DIV_STYLE_ALIGN_RIGHT = CELL_DIV_STYLE + "text-align:right; ";
 	private static final String ROW_STYLE = "border: solid 1px #dddddd; cursor:pointer";
@@ -399,7 +401,9 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 		Boolean isActive = null;
 		Vbox vbox = null;
-		int auxheads_size = JPiereGridView.DEFAULT_AUXHEADS_SIZE;//TODO
+		int auxheadSize = gridPanel.getAuxheadSize();//TODO
+
+
 		int sameLineColumnCounter = 0;
 		for (int i = 0; i < columnCount; i++) {
 			if (editors.get(gridPanelFields[i]) == null) {
@@ -438,18 +442,21 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			}
 
 			Cell div = new Cell();
-			String divStyle = CELL_DIV_STYLE;
+			String divStyle = CELL_DIV_STYLE + CELL_BORDER_STYLE_DEFAULT ;
 
 			Component component = getDisplayComponent(rowIndex, currentValues[i], gridPanelFields[i]);
 			div.appendChild(component);
 			div.setAttribute("display.component", component);
 
 			if (DisplayType.YesNo == gridPanelFields[i].getDisplayType() || DisplayType.Image == gridPanelFields[i].getDisplayType()) {
-				divStyle = CELL_DIV_STYLE_ALIGN_CENTER;
+				divStyle = CELL_DIV_STYLE_ALIGN_CENTER + CELL_BORDER_STYLE_NONE;
 			}
 			else if (DisplayType.isNumeric(gridPanelFields[i].getDisplayType())) {
-				divStyle = CELL_DIV_STYLE_ALIGN_RIGHT;
+				divStyle = CELL_DIV_STYLE_ALIGN_RIGHT + CELL_BORDER_STYLE_DEFAULT ;
+			}else if( DisplayType.Button == gridPanelFields[i].getDisplayType()){
+				divStyle = CELL_DIV_STYLE + CELL_BORDER_STYLE_NONE ;
 			}
+
 			GridRowCtx ctx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 			component.setVisible(gridPanelFields[i].isDisplayed(ctx, true));
 
@@ -473,7 +480,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			}else{												//2段目以降の処理
 
-				if(sameLineColumnCounter <= auxheads_size){	//追加タイトル行以下のカラム数の場合
+				if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行以下のカラム数の場合
 					vbox.appendChild(div);
 					row.appendChild(vbox);
 					sameLineColumnCounter++;
@@ -590,7 +597,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			int colIndex = 1;
 
 			//TODO:マルチ列表示ロジック
-			int auxheads_size = JPiereGridView.DEFAULT_AUXHEADS_SIZE;
+			int auxheadSize = gridPanel.getAuxheadSize();
 			int sameLineColumnCounter = 0;
 			int cellCounter = 0;
 
@@ -605,7 +612,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 					sameLineColumnCounter =1;
 					cellCounter = 0;
 				}else{
-					if(sameLineColumnCounter <= auxheads_size){	//追加タイトル行以下のカラム数の場合
+					if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行以下のカラム数の場合
 						sameLineColumnCounter++;
 						cellCounter++;
 						colIndex--;

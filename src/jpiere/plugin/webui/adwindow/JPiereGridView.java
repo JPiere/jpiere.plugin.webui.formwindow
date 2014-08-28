@@ -42,6 +42,7 @@ import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridTable;
 import org.compiere.model.MSysConfig;
+import org.compiere.model.MTab;
 import org.compiere.model.StateChangeEvent;
 import org.compiere.model.StateChangeListener;
 import org.compiere.util.DisplayType;
@@ -84,7 +85,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 	private static final int DEFAULT_PAGE_SIZE = 20;
 
-	public static final int DEFAULT_AUXHEADS_SIZE = 1; //TODO:マルチ列表示ロジック
+	public static final int DEFAULT_AUXHEADS_SIZE = 0; //TODO:マルチ列表示ロジック
 
 	/**
 	 * generated serial version ID
@@ -444,6 +445,12 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		this.getChildren().clear();
 	}
 
+	private int auxheadSize = 0;
+
+	public int getAuxheadSize(){
+		return auxheadSize;
+	}
+
 	private void setupColumns()
 	{
 		if (init) return;
@@ -485,8 +492,12 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 
 		//TODO:マルチ列表示ロジック
-		int auxheads_size = DEFAULT_AUXHEADS_SIZE;
-		Auxhead[] auxheads = new Auxhead[auxheads_size];
+		int AD_Tab_ID = gridTab.getAD_Tab_ID();
+		MTab mtab = new MTab(Env.getCtx(),AD_Tab_ID,null);
+		Object oo = mtab.get_Value("AdditionalHeaderLine");
+		auxheadSize = new Integer(oo.toString()).intValue();
+
+		Auxhead[] auxheads = new Auxhead[auxheadSize];
 		for(int i = 0 ; i < auxheads.length; i++){
 			auxheads[i]= new Auxhead();
 			listbox.appendChild(auxheads[i]);
@@ -582,7 +593,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 						columns.appendChild(column);
 						sameLineColumnCounter = 1;
 						if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//2段目以降に該当するデータが無い場合の処理
-							for(int j = 0 ; j < auxheads_size; j++){
+							for(int j = 0 ; j < auxheadSize; j++){
 								auxheads[j].appendChild(new Auxheader(""));
 							}
 							sameLineColumnCounter = 0;
@@ -590,11 +601,11 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 					}
 				}else{												//2段目以降の処理
 					if(column.isVisible()){
-						if(sameLineColumnCounter <= auxheads_size){	//追加タイトル行以下のカラム数の場合
+						if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行以下のカラム数の場合
 							Auxheader auxheader = new Auxheader(gridField[i].getHeader());
 							auxheads[sameLineColumnCounter-1].appendChild(auxheader);
 							if(i+1 ==  numColumns ||!gridField[i+1].isSameLine()){//3段目以降に該当するデータが無い場合の処理は空白行で埋める。
-								for(int j = sameLineColumnCounter ; j < auxheads_size; j++){
+								for(int j = sameLineColumnCounter ; j < auxheadSize; j++){
 									auxheads[j].appendChild(new Auxheader(""));
 								}
 								sameLineColumnCounter = 0;
@@ -604,7 +615,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 						}else{									//追加タイトル行を超える場合は、次のカラムを追加する。
 							columns.appendChild(column);
 							if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//2段目以降に該当するデータが無い場合は空白行で埋める。
-								for(int j = 0 ; j < auxheads_size; j++){
+								for(int j = 0 ; j < auxheadSize; j++){
 									auxheads[j].appendChild(new Auxheader(""));
 								}
 								sameLineColumnCounter = 0;
