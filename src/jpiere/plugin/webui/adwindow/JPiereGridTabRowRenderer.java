@@ -471,7 +471,6 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
 
 				vbox = new Vbox();
-//				vbox.setStyle("border: dotted 1px;");
 				vbox.setWidth("100%");
 				vbox.addEventListener(Events.ON_CLICK, rowListener);
 				vbox.appendChild(div);
@@ -480,7 +479,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			}else{												//2段目以降の処理
 
-				if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行以下のカラム数の場合
+				if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行数以下の表示カラム数の場合
 					vbox.appendChild(div);
 					row.appendChild(vbox);
 					sameLineColumnCounter++;

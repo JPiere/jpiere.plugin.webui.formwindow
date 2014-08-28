@@ -45,6 +45,7 @@ import org.compiere.model.MSysConfig;
 import org.compiere.model.MTab;
 import org.compiere.model.StateChangeEvent;
 import org.compiere.model.StateChangeListener;
+import org.compiere.util.CCache;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -86,6 +87,10 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private static final int DEFAULT_PAGE_SIZE = 20;
 
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //TODO:マルチ列表示ロジック
+
+	/**	Cache						*/
+	private static CCache<Integer,MTab> s_cache	= new CCache<Integer,MTab>("AD_Tab", 40, 10);	//	10 minutes
+
 
 	/**
 	 * generated serial version ID
@@ -493,7 +498,13 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 		//TODO:マルチ列表示ロジック
 		int AD_Tab_ID = gridTab.getAD_Tab_ID();
-		MTab mtab = new MTab(Env.getCtx(),AD_Tab_ID,null);
+		Integer key = new Integer (AD_Tab_ID);
+		MTab mtab = (MTab) s_cache.get (key);
+		if (mtab == null)
+			mtab = new MTab(Env.getCtx(),AD_Tab_ID,null);
+		if (mtab.get_ID () != 0)
+			s_cache.put (key, mtab);
+
 		Object oo = mtab.get_Value("AdditionalHeaderLine");
 		auxheadSize = new Integer(oo.toString()).intValue();
 
