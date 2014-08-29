@@ -4,22 +4,23 @@ import jpiere.plugin.webui.adwindow.JPiereADWindow;
 
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
-import org.adempiere.webui.panel.IFormController;
 import org.compiere.util.Env;
 
-public class HasADForm implements IFormController{
+public class JPiereFormWindow extends AbstractJPiereFormWindow {
 
 	private CustomForm form;
 
-    public HasADForm()
+    public JPiereFormWindow()
     {
     	form = new CustomForm();
-
-    	JPiereADWindow adw = new JPiereADWindow(Env.getCtx(),1000014,null);
-    	adw.createPart(form);
-
     }
 
+    @Override
+    public void createFormWindow(int AD_Window_ID){
+    	
+    	JPiereADWindow adw = new JPiereADWindow(Env.getCtx(), AD_Window_ID, null);
+    	adw.createPart(form);
+    }
 
 	@Override
 	public ADForm getForm()

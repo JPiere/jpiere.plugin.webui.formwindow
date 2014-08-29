@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 import org.adempiere.webui.factory.IFormFactory;
 import org.adempiere.webui.panel.ADForm;
-import org.adempiere.webui.panel.IFormController;
 import org.compiere.util.CLogger;
 
 /**
@@ -39,15 +38,18 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 	 */
 	@Override
 	public ADForm newFormInstance(String formName) {
-
+		
 		Object form = null;
-		if(formName.startsWith("jpiere.plugin.webui.window.form")){
+		if(formName.startsWith("jpiere.plugin.webui.window.")){
+					
+			int AD_Window_ID = new Integer(formName.substring("jpiere.plugin.webui.window.".length())).intValue();
+			
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
 			Class<?> clazz = null;
 			if (loader != null) {
 	    		try
 	    		{
-	        		clazz = loader.loadClass(formName);
+	        		clazz = loader.loadClass("jpiere.plugin.webui.window.form.JPiereFormWindow");
 	    		}
 	    		catch (Exception e)
 	    		{
@@ -60,7 +62,7 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 				try
 	    		{
 	    			//	Create instance w/o parameters
-	        		clazz = loader.loadClass(formName);
+	        		clazz = loader.loadClass("jpiere.plugin.webui.window.form.JPiereFormWindow");
 	    		}
 	    		catch (Exception e)
 	    		{
@@ -68,6 +70,7 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 	    				log.log(Level.INFO, e.getLocalizedMessage(), e);
 	    		}
 			}
+			
 			if (clazz != null) {
 				try
 	    		{
@@ -81,10 +84,9 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 			}
 
 			if (form != null) {
-				if (form instanceof ADForm) {
-					return (ADForm)form;
-				} else if (form instanceof IFormController) {
-					IFormController controller = (IFormController) form;
+				if (form instanceof AbstractJPiereFormWindow ) {
+					AbstractJPiereFormWindow  controller = (AbstractJPiereFormWindow) form;
+					controller.createFormWindow(AD_Window_ID);
 					ADForm adForm = controller.getForm();
 					adForm.setICustomForm(controller);
 					return adForm;
