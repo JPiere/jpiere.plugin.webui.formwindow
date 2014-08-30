@@ -20,10 +20,8 @@ package jpiere.plugin.webui.adwindow;
 import static org.compiere.model.SystemIDs.*;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -76,7 +74,6 @@ import org.adempiere.webui.panel.WDocActionPanel;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
-import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -3103,24 +3100,24 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	/**
      * @see ToolbarListener#onCustomize()
      */
-	public void onCustomize() {
-		JPiereADTabpanel tabPanel = (JPiereADTabpanel) getADTab().getSelectedTabpanel();
-		Columns columns = tabPanel.getJPiereGridView().getListbox().getColumns();
-		List<Component> columnList = columns.getChildren();
-		GridField[] fields = tabPanel.getJPiereGridView().getFields();
-		Map<Integer, String> columnsWidth = new HashMap<Integer, String>();
-		ArrayList<Integer> gridFieldIds = new ArrayList<Integer>();
-		for (int i = 0; i < fields.length; i++) {
-			Column column = (Column) columnList.get(i+2);
-			String width = column.getWidth();
-			columnsWidth.put(fields[i].getAD_Field_ID(), width);
-			gridFieldIds.add(fields[i].getAD_Field_ID());
-
-		}
-
-
-
-		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());//TODO JPIERE-XXX getJPiereGridView
+	public void onCustomize() {//JPIERE-14 Not Active;
+//		JPiereADTabpanel tabPanel = (JPiereADTabpanel) getADTab().getSelectedTabpanel();
+//		Columns columns = tabPanel.getJPiereGridView().getListbox().getColumns();
+//		List<Component> columnList = columns.getChildren();
+//		GridField[] fields = tabPanel.getJPiereGridView().getFields();
+//		Map<Integer, String> columnsWidth = new HashMap<Integer, String>();
+//		ArrayList<Integer> gridFieldIds = new ArrayList<Integer>();
+//		for (int i = 0; i < fields.length; i++) {
+//			Column column = (Column) columnList.get(i+2);
+//			String width = column.getWidth();
+//			columnsWidth.put(fields[i].getAD_Field_ID(), width);
+//			gridFieldIds.add(fields[i].getAD_Field_ID());
+//
+//		}
+//
+//
+//
+//		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());
 	}
 
 	/**

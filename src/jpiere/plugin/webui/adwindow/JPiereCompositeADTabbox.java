@@ -966,13 +966,9 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 
 	@Override
 	public void addTab(GridTab tab, IADTabpanel tabPanel) {
-		// TODO 自動生成されたメソッド・スタブ
-
 	}
 
 	@Override
 	public void setADWindowPanel(AbstractADWindowContent abstractADWindowPanel) {
-		// TODO 自動生成されたメソッド・スタブ
-
 	}
 }

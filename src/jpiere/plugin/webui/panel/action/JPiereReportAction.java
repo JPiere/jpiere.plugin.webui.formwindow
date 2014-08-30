@@ -48,6 +48,7 @@ import org.compiere.model.MRole;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.MPrintFormat;
 import org.compiere.print.ReportEngine;
+import org.compiere.print.ReportCtl;
 import org.compiere.process.ProcessInfo;
 import org.compiere.process.ServerProcessCtl;
 import org.compiere.util.CLogger;
@@ -365,7 +366,7 @@ public class JPiereReportAction implements EventListener<Event>
 	private void print(ReportEngine re)
 	{
 		winReport.onClose();
-//		ReportCtl.preview(re);//TODO JPIERE-XXX Webui
+		ReportCtl.preview(re);
 		Tabpanel tabPanel = (Tabpanel) panel.getComponent().getParent().getParent();
 		tabPanel.getLinkedTab().setSelected(true);
 	}

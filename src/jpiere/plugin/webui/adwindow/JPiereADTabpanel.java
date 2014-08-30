@@ -1668,20 +1668,18 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	@Override
 	public GridView getGridView() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+		GridView noUse = new GridView();
+		return noUse;
 	}
 
 	@Override
 	public void setDetailPane(DetailPane detailPane) {
-		// TODO 自動生成されたメソッド・スタブ
-
 	}
 
 	@Override
 	public DetailPane getDetailPane() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+		DetailPane noUse = new DetailPane();
+		return noUse;
 	}
 
 	@Override

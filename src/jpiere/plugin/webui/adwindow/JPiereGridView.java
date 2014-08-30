@@ -598,34 +598,35 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				}
 
 
-				//TODO:マルチ列表示ロジック
-				if(!gridField[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
+				//JPIERE-14 Title of Form Window
+				if(!gridField[i].isSameLine() || sameLineColumnCounter== 0){//First line of Title
 					if(column.isVisible()){
 						columns.appendChild(column);
 						sameLineColumnCounter = 1;
-						if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//2段目以降に該当するデータが無い場合の処理
+						if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//NO Data after Second line of Title
 							for(int j = 0 ; j < auxheadSize; j++){
-								auxheads[j].appendChild(new Auxheader(""));
+								auxheads[j].appendChild(new Auxheader(""));//Blank line fo Title
 							}
 							sameLineColumnCounter = 0;
 						}
 					}
-				}else{												//2段目以降の処理
+				}else{												//After Second line of Title
 					if(column.isVisible()){
-						if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行以下のカラム数の場合
+						if(sameLineColumnCounter <= auxheadSize){
 							Auxheader auxheader = new Auxheader(gridField[i].getHeader());
 							auxheads[sameLineColumnCounter-1].appendChild(auxheader);
-							if(i+1 ==  numColumns ||!gridField[i+1].isSameLine()){//3段目以降に該当するデータが無い場合の処理は空白行で埋める。
-								for(int j = sameLineColumnCounter ; j < auxheadSize; j++){
+							if(i+1 ==  numColumns ||!gridField[i+1].isSameLine()){ ///NO Data after third line of Title
+								for(int j = sameLineColumnCounter ; j < auxheadSize; j++){//Blank line fo Title
 									auxheads[j].appendChild(new Auxheader(""));
 								}
 								sameLineColumnCounter = 0;
 							}else{
 								sameLineColumnCounter++;
 							}
-						}else{									//追加タイトル行を超える場合は、次のカラムを追加する。
+						}else{									//If over the line of Title, Add to next Column of Title.
 							columns.appendChild(column);
-							if(i+1 ==  numColumns || !gridField[i+1].isSameLine()){//2段目以降に該当するデータが無い場合は空白行で埋める。
+							if(i+1 ==  numColumns || !gridField[i+1].isSameLine())//Blank line fo Title
+							{
 								for(int j = 0 ; j < auxheadSize; j++){
 									auxheads[j].appendChild(new Auxheader(""));
 								}
@@ -635,7 +636,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 							}
 						}
 					}
-				}//マルチ列表示ロジック終わり
+				}//JPIERE-14 Title of Form Window
 
 			}
 		}
