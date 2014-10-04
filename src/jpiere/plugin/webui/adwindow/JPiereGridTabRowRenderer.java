@@ -466,7 +466,6 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);
 
-
 			//TODO:マルチ列表示ロジック
 			if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
 
