@@ -242,4 +242,5 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 			} catch (Exception e){}
 		}
 	}
+
 }

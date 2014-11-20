@@ -71,6 +71,7 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+import org.adempiere.webui.panel.action.CSVImportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
@@ -2625,6 +2626,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 	}
 
+	@Override
+	public void onCSVImport() {
+		;
+	}
+	
 	/**************************************************************************
 	 *	Start Button Process
 	 * @param col
