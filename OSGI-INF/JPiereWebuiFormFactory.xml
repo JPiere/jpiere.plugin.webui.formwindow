@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="JPiereWebuiFormFactory">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="false" name="JPiereWebuiFormFactory">
    <implementation class="jpiere.plugin.webui.window.form.JPiereWebuiFormFactory"/>
    <property name="service.ranking" type="Integer" value="1"/>
    <service>
       <provide interface="org.adempiere.webui.factory.IFormFactory"/>
-   </service>
+   </service>>
 </scr:component>

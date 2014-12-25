@@ -505,7 +505,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		if (mtab.get_ID () != 0)
 			s_cache.put (key, mtab);
 
-		Object oo = mtab.get_Value("AdditionalHeaderLine");
+		Object oo = mtab.get_Value("JPAdditionalHeaderLine");
 		auxheadSize = new Integer(oo.toString()).intValue();
 
 		Auxhead[] auxheads = new Auxhead[auxheadSize];

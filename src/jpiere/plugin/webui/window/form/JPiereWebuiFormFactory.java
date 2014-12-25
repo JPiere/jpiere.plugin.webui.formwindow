@@ -20,7 +20,7 @@ import org.adempiere.webui.panel.ADForm;
 import org.compiere.util.CLogger;
 
 /**
- * @author hengsin
+ * @author Hideaki Hagiwara
  *
  */
 public class JPiereWebuiFormFactory implements IFormFactory {
@@ -38,12 +38,12 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 	 */
 	@Override
 	public ADForm newFormInstance(String formName) {
-		
+
 		Object form = null;
-		if(formName.startsWith("jpiere.plugin.webui.window.")){
-					
-			int AD_Window_ID = new Integer(formName.substring("jpiere.plugin.webui.window.".length())).intValue();
-			
+		if(formName.startsWith("jpiere.plugin.webui.formwindow.")){
+
+			int AD_Window_ID = new Integer(formName.substring("jpiere.plugin.webui.formwindow.".length())).intValue();
+
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
 			Class<?> clazz = null;
 			if (loader != null) {
@@ -70,7 +70,7 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 	    				log.log(Level.INFO, e.getLocalizedMessage(), e);
 	    		}
 			}
-			
+
 			if (clazz != null) {
 				try
 	    		{

@@ -1,14 +1,15 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: jpiere.plugin.webui.window
-Bundle-SymbolicName: jpiere.plugin.webui.window;singleton:=true
+Bundle-Name: jpiere.plugin.webui.formwindow
+Bundle-SymbolicName: jpiere.plugin.webui.formwindow;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Require-Bundle: org.adempiere.base;bundle-version="2.0.0",
- org.adempiere.ui;bundle-version="2.0.0",
- org.adempiere.ui.zk;bundle-version="2.0.0",
+Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
+ org.adempiere.ui;bundle-version="2.1.0",
+ org.adempiere.ui.zk;bundle-version="2.1.0",
  org.zkoss.zk.library;bundle-version="6.0.0",
- org.eclipse.osgi
+ org.eclipse.osgi;bundle-version="3.7.2"
 Service-Component: OSGI-INF/JPiereWebuiFormFactory.xml
 Bundle-Activator: jpiere.plugin.webui.JPiereWebUIActivator
 Bundle-ActivationPolicy: lazy
+Bundle-Vendor: OSS ERP Solutions

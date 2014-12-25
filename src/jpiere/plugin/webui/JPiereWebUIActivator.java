@@ -39,7 +39,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
- * @author hengsin
+ * @author Hideaki Hagiwara
  *
  */
 public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCustomizer<IDictionaryService, IDictionaryService>  {
@@ -48,7 +48,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 	private static BundleContext bundleContext = null;
 	private ServiceTracker<IDictionaryService, IDictionaryService> serviceTracker;
 	private IDictionaryService service;
-	
+
 	/* (non-Javadoc)
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
@@ -57,7 +57,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 		bundleContext = context;
 		JPiereWindowValidatorManager validatorMgr = new JPiereWindowValidatorManager();
 		validatorMgr.start(context);
-		
+
 		serviceTracker = new ServiceTracker<IDictionaryService, IDictionaryService>(context, IDictionaryService.class.getName(), this);
 		serviceTracker.open();
 		start();
@@ -75,7 +75,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 	public static BundleContext getBundleContext() {
 		return bundleContext;
 	}
-	
+
 	protected void packIn(String trxName) {
 		URL packout = bundleContext.getBundle().getEntry("/META-INF/2Pack.zip");
 		if (packout != null && bundleContext  != null) {
@@ -102,7 +102,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 					} catch (Exception e2) {}
 				}
 			}
-		} 
+		}
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 			ServiceReference<IDictionaryService> reference) {
 		service = bundleContext.getService(reference);
 		if (Adempiere.getThreadPoolExecutor() != null) {
-			Adempiere.getThreadPoolExecutor().execute(new Runnable() {			
+			Adempiere.getThreadPoolExecutor().execute(new Runnable() {
 				@Override
 				public void run() {
 					ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -126,7 +126,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 				}
 			});
 		} else {
-			Adempiere.addServerStateChangeListener(new ServerStateChangeListener() {				
+			Adempiere.addServerStateChangeListener(new ServerStateChangeListener() {
 				@Override
 				public void stateChange(ServerStateChangeEvent event) {
 					if (event.getEventType() == ServerStateChangeEvent.SERVER_START && service != null) {
@@ -140,32 +140,32 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 							service = null;
 							Thread.currentThread().setContextClassLoader(cl);
 						}
-					}					
+					}
 				}
 			});
 		}
 		return null;
 	}
-	
-	
+
+
 	@Override
-	public void modifiedService(ServiceReference<IDictionaryService> reference, IDictionaryService service) {		
+	public void modifiedService(ServiceReference<IDictionaryService> reference, IDictionaryService service) {
 	}
 
 	@Override
 	public void removedService(ServiceReference<IDictionaryService> reference, IDictionaryService service) {
-		
+
 	}
-	
+
 	protected void setupPackInContext() {
 		Properties serverContext = new Properties();
 		ServerContext.setCurrentInstance(serverContext);
 	};
-	
+
 	private void installPackage() {
 		String trxName = Trx.createTrxName();
 		try {
-			
+
 			// e.g. 1.0.0.qualifier, check only the "1.0.0" part
 			String version = getVersion();
 			if (version != null)
@@ -176,19 +176,19 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 				{
 					if(version.charAt(i) == '.')
 						count++;
-					
+
 					if (count == 3)
 					{
 						index = i;
 						break;
 					}
 				}
-				
+
 				if (index == -1)
 					index = version.length();
 				version = version.substring(0,  index);
 			}
-			
+
 			String where = "Name=? AND PK_Version LIKE ?";
 			Query q = new Query(Env.getCtx(), X_AD_Package_Imp.Table_Name,
 					where.toString(), null);
@@ -210,7 +210,7 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 			}
 		}
 	}
-	
+
 
 	protected void install() {
 	};
@@ -220,14 +220,14 @@ public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCusto
 
 	protected void stop() {
 	};
-	
+
 	public String getName() {
 		return bundleContext.getBundle().getSymbolicName();
 	}
-	
+
 	public String getVersion() {
 		return (String) bundleContext.getBundle().getHeaders().get("Bundle-Version");
 	}
 
-	
+
 }

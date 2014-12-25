@@ -33,9 +33,7 @@ import org.compiere.util.Evaluator;
 import org.compiere.util.Util;
 /**
  *
- * @author  <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
- * @author  <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
- * @date    Feb 25, 2007
+ * @author  Hideaki Hagiwara
  * @version $Revision: 0.10 $
  */
 public abstract class JPiereAbstractADTabbox extends AbstractUIPart implements JPiereIADTabbox
