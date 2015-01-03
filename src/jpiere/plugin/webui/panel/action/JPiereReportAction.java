@@ -1,21 +1,20 @@
 /******************************************************************************
- * Copyright (C) 2012 Elaine Tan                                              *
- * Copyright (C) 2012 Trek Global
- * This program is free software; you can redistribute it and/or modify it    *
- * under the terms version 2 of the GNU General Public License as published   *
- * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
- * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program; if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
+ * Product: JPiere(ジェイピエール) - JPiere Plugins Form Window               *
+ * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
+ * このプラグラムの著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保持しており、 *
+ * このプログラムを使用する場合には著作権の使用料をお支払頂く必要があります。 *
+ * 著作権の使用料の支払い義務は、このプログラムから派生して作成された         *
+ * プログラムにも発生します。 サポートサービスは                              *
+ * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
+ * 提供しています。サポートをご希望の際には、                                 *
+ * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
+ * http://www.oss-erp.co.jp/                                                  *
  *****************************************************************************/
 
 
 package jpiere.plugin.webui.panel.action;
 
-import static org.compiere.model.SystemIDs.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -47,8 +46,8 @@ import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.MPrintFormat;
-import org.compiere.print.ReportEngine;
 import org.compiere.print.ReportCtl;
+import org.compiere.print.ReportEngine;
 import org.compiere.process.ProcessInfo;
 import org.compiere.process.ServerProcessCtl;
 import org.compiere.util.CLogger;
@@ -68,6 +67,9 @@ import org.zkoss.zul.Vbox;
 /**
  * @author Elaine
  * @date September 6, 2012
+ *
+ * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *
  */
 public class JPiereReportAction implements EventListener<Event>
 {
