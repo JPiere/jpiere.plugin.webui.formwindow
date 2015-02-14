@@ -11,9 +11,9 @@
  * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
  * http://www.oss-erp.co.jp/                                                  *
  *****************************************************************************/
-
 package jpiere.plugin.webui.adwindow;
 
+import org.compiere.model.GridTab;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.compiere.util.Evaluatee;
 import org.zkoss.zk.ui.Component;

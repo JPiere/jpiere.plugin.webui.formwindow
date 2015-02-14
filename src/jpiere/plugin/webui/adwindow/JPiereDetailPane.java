@@ -37,6 +37,7 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.zkoss.zhtml.Text;
+import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Execution;
 import org.zkoss.zk.ui.Executions;
@@ -45,6 +46,7 @@ import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zk.ui.event.KeyEvent;
 import org.zkoss.zk.ui.sys.ExecutionCtrl;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Div;
@@ -61,6 +63,11 @@ import org.zkoss.zul.Toolbar;
  *
  */
 public class JPiereDetailPane extends Panel implements EventListener<Event>, IdSpace {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7914602940626352282L;
 
 	private static final String BTN_PROCESS_ID = "BtnProcess";
 
@@ -83,10 +90,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	private static final String NEW_IMAGE = "images/New16.png";
 	private static final String PROCESS_IMAGE = "images/Process16.png";
 
-	/**
-	 * generated serial id
-	 */
-	private static final long serialVersionUID = -7914602940626352282L;
+	private ToolBarButton btnNew;
+	private long prevKeyEventTime = 0;
+	private KeyEvent prevKeyEvent;
+	
 
 	private Tabbox tabbox;
 
@@ -267,19 +274,19 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		tp.setSclass("adwindow-detailpane-tabpanel");
 		ToolBar toolbar = new ToolBar();
 		tp.appendChild(toolbar);
-		ToolBarButton button = new ToolBarButton();
-
-		button = new ToolBarButton();
-		button.setImage(ThemeManager.getThemeResource(NEW_IMAGE));
-		button.setId(BTN_NEW_ID);
-		toolbar.appendChild(button);
-		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
+		btnNew = new ToolBarButton();		
+		btnNew.setImage(ThemeManager.getThemeResource(NEW_IMAGE));
+		btnNew.setId(BTN_NEW_ID);
+		toolbar.appendChild(btnNew);
+		btnNew.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
 				onNew();
 			}
 		});
-		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "New")));
+		btnNew.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "New")) + "    Shift+Alt+N");
+
+		ToolBarButton button = new ToolBarButton();
 
 		button = new ToolBarButton();
 		button.setImage(ThemeManager.getThemeResource(EDIT_IMAGE));
@@ -499,6 +506,24 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 				return;
 			}
 			LayoutUtils.redraw(this);
+        } else if (event.getName().equals(Events.ON_CTRL_KEY)) {
+        	KeyEvent keyEvent = (KeyEvent) event;
+        	if (LayoutUtils.isReallyVisible(this)) {
+	        	//filter same key event that is too close
+	        	//firefox fire key event twice when grid is visible
+	        	long time = System.currentTimeMillis();
+	        	if (prevKeyEvent != null && prevKeyEventTime > 0 &&
+	        			prevKeyEvent.getKeyCode() == keyEvent.getKeyCode() &&
+	    				prevKeyEvent.getTarget() == keyEvent.getTarget() &&
+	    				prevKeyEvent.isAltKey() == keyEvent.isAltKey() &&
+	    				prevKeyEvent.isCtrlKey() == keyEvent.isCtrlKey() &&
+	    				prevKeyEvent.isShiftKey() == keyEvent.isShiftKey()) {
+	        		if ((time - prevKeyEventTime) <= 300) {
+	        			return;
+	        		}
+	        	}
+	        	this.onCtrlKeyEvent(keyEvent);
+        	}
 		}
 	}
 
@@ -534,8 +559,19 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		super.onPageDetached(page);
 		if (msgPopup != null)
 			msgPopup.detach();
+		try {
+			SessionManager.getSessionApplication().getKeylistener().removeEventListener(Events.ON_CTRL_KEY, this);
+		} catch (Exception e){}
 	}
-
+	
+	@Override
+	public void onPageAttached(Page newpage, Page oldpage) {
+		super.onPageAttached(newpage, oldpage);
+		if (newpage != null) {
+			SessionManager.getSessionApplication().getKeylistener().addEventListener(Events.ON_CTRL_KEY, this);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.zkoss.zk.ui.HtmlBasedComponent#setVflex(java.lang.String)
 	 */
@@ -731,4 +767,28 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		Event openEvent = new Event(ON_NEW_EVENT, JPiereDetailPane.this);
 		eventListener.onEvent(openEvent);
 	}
+	
+
+    public static final int VK_N              = 0x4E;
+	private void onCtrlKeyEvent(KeyEvent keyEvent) {
+		ToolBarButton btn = null;
+		if (keyEvent.isAltKey() && !keyEvent.isCtrlKey() && keyEvent.isShiftKey()) { // Shift+Alt key
+			if (keyEvent.getKeyCode() == VK_N) { // Shift+Alt+N
+				btn = btnNew;
+			}
+		}
+		if (btn != null) {
+			prevKeyEventTime = System.currentTimeMillis();
+        	prevKeyEvent = keyEvent;
+			keyEvent.stopPropagation();
+			if (!btn.isDisabled() && btn.isVisible()) {
+				Events.sendEvent(btn, new Event(Events.ON_CLICK, btn));
+				//client side script to close combobox popup
+				String script = "var w=zk.Widget.$('#" + btn.getUuid()+"'); " +
+						"zWatch.fire('onFloatUp', w);";
+				Clients.response(new AuScript(script));
+			}
+		}
+	}
+	
 }

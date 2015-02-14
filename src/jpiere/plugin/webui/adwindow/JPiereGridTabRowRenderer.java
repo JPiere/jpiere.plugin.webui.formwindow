@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -81,11 +82,11 @@ import org.zkoss.zul.impl.XulElement;
 public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRendererExt, RendererCtrl, EventListener<Event> {
 
 	public static final String GRID_ROW_INDEX_ATTR = "grid.row.index";
-	private static final String CELL_BORDER_STYLE_DEFAULT = "border: dotted 1px #dddddd;";
-	private static final String CELL_BORDER_STYLE_NONE = "border: none;";
 	private static final String CELL_DIV_STYLE = "height: 100%; cursor: pointer; ";
 	private static final String CELL_DIV_STYLE_ALIGN_CENTER = CELL_DIV_STYLE + "text-align:center; ";
 	private static final String CELL_DIV_STYLE_ALIGN_RIGHT = CELL_DIV_STYLE + "text-align:right; ";
+	private static final String CELL_BORDER_STYLE_DEFAULT = "border: dotted 1px #dddddd;";
+	private static final String CELL_BORDER_STYLE_NONE = "border: none;";
 	private static final String ROW_STYLE = "border: solid 1px #dddddd; cursor:pointer";
 
 	private static final int MAX_TEXT_LENGTH = 60;
@@ -106,7 +107,11 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	private int currentRowIndex = -1;
 	private JPiereAbstractADWindowContent m_windowPanel;
 	private ActionListener buttonListener;
-
+	/**
+	 * Flag detect this view has customized column or not
+	 * value is set at {@link #render(Row, Object[], int)}
+	 */
+	private boolean isGridViewCustomized = false;
 	/** DefaultFocusField		*/
 	private WEditor	defaultFocusField = null;
 
@@ -176,14 +181,33 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		return checkBox;
 	}
 
-	private String getDisplayText(Object value, GridField gridField, int rowIndex)
+	/**
+	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
+	 * @param value
+	 * @param gridField
+	 * @param rowIndex
+	 * @return
+	 */
+	private String getDisplayText(Object value, GridField gridField, int rowIndex){
+		return getDisplayText(value, gridField, rowIndex, false);
+	}
+	
+	/**
+	 * Get display text of a field. when field have isDisplay = false always return empty string, except isForceGetValue = true
+	 * @param value
+	 * @param gridField
+	 * @param rowIndex
+	 * @param isForceGetValue
+	 * @return
+	 */
+	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
 	{
 		if (value == null)
 			return "";
 
 		if (rowIndex >= 0) {
 			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
-			if (!gridField.isDisplayed(gridRowCtx, true)) {
+			if (!isForceGetValue && !gridField.isDisplayed(gridRowCtx, true)) {
 				return "";
 			}
 		}
@@ -201,7 +225,17 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
     		return value.toString();
 	}
 
-	private Component getDisplayComponent(int rowIndex, Object value, GridField gridField) {
+	/**
+	 * get component to display value of a field.
+	 * when display is boolean or button, return correspond component
+	 * other return a label with text get from {@link #getDisplayText(Object, GridField, int, boolean)} 
+	 * @param rowIndex
+	 * @param value
+	 * @param gridField
+	 * @param isForceGetValue
+	 * @return
+	 */
+	private Component getDisplayComponent(int rowIndex, Object value, GridField gridField, boolean isForceGetValue) {
 		Component component;
 		if (gridField.getDisplayType() == DisplayType.YesNo) {
 			component = createReadonlyCheckbox(value);
@@ -214,7 +248,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			editor.addActionListener(buttonListener);
 			component = editor.getComponent();
 		} else {
-			String text = getDisplayText(value, gridField, rowIndex);
+			String text = getDisplayText(value, gridField, rowIndex, isForceGetValue);
 
 			Label label = new Label();
 			setLabelText(text, label);
@@ -269,7 +303,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		} else {
 			editing = false;
 		}
-
+//		Row row = null;
 		for (Entry<GridField, WEditor> entry : editors.entrySet()) {
 			if (entry.getValue().getComponent().getParent() != null) {
 				Component child = entry.getValue().getComponent();
@@ -328,7 +362,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		int columnCount = 0;
 		GridField[] gridPanelFields = null;
 		GridField[] gridTabFields = null;
-		boolean isGridViewCustomized = false;
+		isGridViewCustomized = false;
 
 		if (gridPanel != null) {
 			if (!gridPanel.isVisible()) {
@@ -449,7 +483,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			Cell div = new Cell();
 			String divStyle = CELL_DIV_STYLE + CELL_BORDER_STYLE_DEFAULT ;
 
-			Component component = getDisplayComponent(rowIndex, currentValues[i], gridPanelFields[i]);
+			Component component = getDisplayComponent(rowIndex, currentValues[i], gridPanelFields[i],isGridViewCustomized);
 			div.appendChild(component);
 			div.setAttribute("display.component", component);
 
@@ -467,7 +501,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			div.setStyle(divStyle);
 			div.setWidth("100%");
-			div.setHeight("21px");
+			div.setHeight("28px");//TODO:非表示データのカラムの高さを指定したいので埋め込みpx指定
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);
 
@@ -538,7 +572,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		currentRow = row;
 		Cell cell = (Cell) currentRow.getChildren().get(1);
 		if (cell != null) {
-			cell.setSclass("row-indicator-seld");
+			cell.setSclass("row-indicator-selected");
 		}
 		currentRowIndex = gridTab.getCurrentRow();
 
@@ -855,7 +889,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	public void onEvent(Event event) throws Exception {
 		if (event.getTarget() instanceof Cell) {
 			Cell cell = (Cell) event.getTarget();
-			if (cell.getSclass() != null && cell.getSclass().indexOf("row-indicator-seld") >= 0)
+			if (cell.getSclass() != null && cell.getSclass().indexOf("row-indicator-selected") >= 0)
 				Events.sendEvent(gridPanel, new Event(DetailPane.ON_EDIT_EVENT, gridPanel));
 			else
 				Events.sendEvent(event.getTarget().getParent(), event);

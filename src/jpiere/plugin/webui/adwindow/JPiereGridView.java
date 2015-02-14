@@ -84,22 +84,16 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  */
 public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7151423393713654553L;
+
 	private static final String HEADER_GRID_STYLE = "border: none; margin:0; padding: 0;";
 
 	private static final int DEFAULT_DETAIL_PAGE_SIZE = 10;
 
 	private static final int DEFAULT_PAGE_SIZE = 20;
-
-	public static final int DEFAULT_AUXHEADS_SIZE = 0; //TODO:マルチ列表示ロジック
-
-	/**	Cache						*/
-	private static CCache<Integer,MTab> s_cache	= new CCache<Integer,MTab>("AD_Tab", 40, 10);	//	10 minutes
-
-
-	/**
-	 * generated serial version ID
-	 */
-	private static final long serialVersionUID = -7151423393713654553L;
 
 	private static final int MIN_COLUMN_WIDTH = 100;
 
@@ -115,6 +109,10 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 	private int pageSize = DEFAULT_PAGE_SIZE;
 
+	/**
+	 * list field display in grid mode, in case user customize grid
+	 * this list container only customize list.
+	 */
 	private GridField[] gridField;
 	private AbstractTableModel tableModel;
 
@@ -147,6 +145,12 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private boolean detailPaneMode;
 
 	protected Checkbox selectAll;
+	
+	public static final int DEFAULT_AUXHEADS_SIZE = 0; //TODO:マルチ列表示ロジック
+
+	/**	Cache						*/
+	private static CCache<Integer,MTab> s_cache	= new CCache<Integer,MTab>("AD_Tab", 40, 10);	//	10 minutes
+
 
 	public JPiereGridView()
 	{
@@ -193,15 +197,16 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		gridFooter.setStyle(HEADER_GRID_STYLE);
 
 		addEventListener("onSelectRow", this);
+//		addEventListener("onCustomizeGrid", this);
 	}
 
 	protected void createListbox() {
 		listbox = new Grid();
-		listbox.setEmptyMessage(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "FindZeroRecords")));
 		listbox.setSizedByContent(false);
 		listbox.setVflex("1");
 		listbox.setHflex("1");
 		listbox.setSclass("adtab-grid");
+		listbox.setEmptyMessage(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Processing")));
 	}
 
 	public void setDetailPaneMode(boolean detailPaneMode) {
@@ -338,6 +343,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		} else {
 			showRecordsCount();
 		}
+		if (this.isVisible())
+			Clients.resize(listbox);
 	}
 
 	/**
@@ -370,6 +377,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	 */
 	public void updateListIndex() {
 		if (gridTab == null || !gridTab.isOpen()) return;
+		
+		updateEmptyMessage();		
 
 		int rowIndex  = gridTab.getCurrentRow();
 		if (pageSize > 0) {
@@ -476,7 +485,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		}
 
 		org.zkoss.zul.Column selection = new Column();
-		selection.setWidth("28px");
+		selection.setWidth("22px");
 		try{
 			selection.setSort("none");
 		} catch (Exception e) {}
@@ -488,7 +497,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		columns.appendChild(selection);
 
 		org.zkoss.zul.Column indicator = new Column();
-		indicator.setWidth("18px");
+		indicator.setWidth("22px");
 		try {
 			indicator.setSort("none");
 		} catch (Exception e) {}
@@ -648,6 +657,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 	private void render()
 	{
+		updateEmptyMessage();
+		
 		listbox.addEventListener(Events.ON_CLICK, this);
 
 		updateModel();
@@ -675,8 +686,21 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		}
 
 	}
+	
+	private void updateEmptyMessage() {
+		if (gridTab.getRowCount() == 0)
+		{
+			listbox.setEmptyMessage(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "FindZeroRecords")));
+		}
+		else
+		{
+			listbox.setEmptyMessage(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Processing")));
+		}
+	}
 
 	private void updateModel() {
+		if (listModel != null)
+			((GridTable)tableModel).removeTableModelListener(listModel);
 		listModel = new GridTableListModel((GridTable)tableModel, windowNo);
 		listModel.setPageSize(pageSize);
 		if (renderer != null && renderer.isEditing())
@@ -757,6 +781,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				listModel.setPage(pgNo);
 				onSelectedRowChange(0);
 				gridTab.clearSelection();
+				Clients.resize(listbox);
 			}
 		}
 		else if (event.getTarget() == selectAll)
@@ -781,6 +806,10 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				if (selectAll.isChecked())
 					selectAll.setChecked(false);
 			}
+		}
+		else if (event.getName().equals("onCustomizeGrid"))
+		{
+			reInit();
 		}
 	}
 
@@ -1119,20 +1148,31 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	}
 
 	public void reInit() {
-		this.setupFields(gridTab);
-		if(listbox.getFrozen()!=null)
-		{
-			listbox.removeChild(listbox.getFrozen());
+		listbox.getChildren().clear();
+		listbox.detach();
+		
+		if (paging != null) {
+			paging.detach();
+			paging = null;
 		}
-		if (listbox.getColumns() != null) {
-			listbox.removeChild(listbox.getColumns());
-		}
+		
+		renderer = null;
 		init = false;
-		setupColumns();
-		init = true;
-		updateModel();
+		
+		Grid tmp = listbox;
+		createListbox();
+		tmp.copyEventListeners(listbox);
+		insertBefore(listbox, gridFooter);
+		
+		refresh(gridTab);
+		scrollToCurrentRow();
+		Clients.resize(listbox);
 	}
 
+	/**
+	 * list field display in grid mode, in case user customize grid
+	 * this list container only customize list.
+	 */
 	public GridField[] getFields() {
 		return gridField;
 	}

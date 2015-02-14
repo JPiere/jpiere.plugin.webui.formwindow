@@ -17,8 +17,10 @@ package jpiere.plugin.webui.adwindow;
 import static org.compiere.model.SystemIDs.*;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -38,6 +40,7 @@ import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.WArchive;
 import org.adempiere.webui.WRequest;
 import org.adempiere.webui.WZoomAcross;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.ADSortTab;
 import org.adempiere.webui.adwindow.ADTabpanel;
 import org.adempiere.webui.adwindow.BreadCrumb;
@@ -47,6 +50,7 @@ import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -68,9 +72,14 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+import org.adempiere.webui.panel.action.CSVImportAction;
+import org.adempiere.webui.panel.action.ExportAction;
+import org.adempiere.webui.panel.action.FileImportAction;
+import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
+import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -857,6 +866,23 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		};
 		saveAndNavigate(callback);
+    }
+    
+    /**
+     * @see ToolbarListener#onPrevious()
+     */
+    public void onTreeNavigate(final int rowIndex)
+    {
+    	Callback<Boolean> callback = new Callback<Boolean>() {
+    		@Override
+    		public void onCallback(Boolean result) {
+    			if (result) {
+    				adTabbox.getSelectedGridTab().navigate(rowIndex);
+    				focusToActivePanel();
+    			}
+    		}
+    	};
+    	saveAndNavigate(callback);
     }
 
     // Elaine 2008/12/04
