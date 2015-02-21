@@ -1085,7 +1085,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private boolean isDetailPane() {
 		Component parent = this.getParent();
 		while (parent != null) {
-			if (parent instanceof DetailPane) {
+			if (parent instanceof JPiereDetailPane) {
 				return true;
 			}
 			parent = parent.getParent();

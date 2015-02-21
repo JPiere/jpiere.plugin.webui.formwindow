@@ -33,6 +33,7 @@ public class JPiereFormWindow extends AbstractJPiereFormWindow {
     public JPiereFormWindow()
     {
     	form = new CustomForm();
+    	form.setHeight("100%");
     }
 
     @Override
