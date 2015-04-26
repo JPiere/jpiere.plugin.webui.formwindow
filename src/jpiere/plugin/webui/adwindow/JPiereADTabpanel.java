@@ -12,7 +12,7 @@
  * http://www.oss-erp.co.jp/                                                  *
  *****************************************************************************/
 
-package jpiere.plugin.webui.adwindow;
+package jpiere.plugin.webui.adwindow;		//JPIERE
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +26,7 @@ import org.adempiere.base.Core;
 import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
+import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ADTabpanel;
 import org.adempiere.webui.adwindow.ADTreePanel;
@@ -56,6 +57,7 @@ import org.adempiere.webui.editor.WPaymentEditor;
 import org.adempiere.webui.editor.WebEditorFactory;
 import org.adempiere.webui.event.ContextMenuListener;
 import org.adempiere.webui.panel.HelpController;
+import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.util.GridTabDataBinder;
 import org.adempiere.webui.util.TreeUtils;
 import org.adempiere.webui.window.FDialog;
@@ -69,6 +71,7 @@ import org.compiere.model.I_AD_Preference;
 import org.compiere.model.MLookup;
 import org.compiere.model.MPreference;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MTab;
 import org.compiere.model.MTable;
 import org.compiere.model.MToolBarButton;
@@ -91,6 +94,7 @@ import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.IdSpace;
+import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
@@ -151,7 +155,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
     static
     {
-        logger = CLogger.getCLogger(JPiereADTabpanel.class);
+        logger = CLogger.getCLogger(JPiereADTabpanel.class);	//JPIERE
     }
 
     private GridTab           gridTab;
@@ -159,7 +163,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     @SuppressWarnings("unused")
 	private GridWindow        gridWindow;
 
-    private JPiereAbstractADWindowContent      windowPanel;
+    private JPiereAbstractADWindowContent      windowPanel;		//JPIERE
 
     private int               windowNo;
 
@@ -175,7 +179,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
     private boolean			  uiCreated = false;
 
-    private JPiereGridView		  listPanel;
+    private JPiereGridView		  listPanel;	//JPIERE
 
     private Map<String, List<Row>> fieldGroupContents = new HashMap<String, List<Row>>();
 
@@ -195,7 +199,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	private Group currentGroup;
 
-	private JPiereDetailPane JPieredetailPane;
+	private JPiereDetailPane JPieredetailPane;	//JPIERE
 
 	private boolean detailPaneMode;
 
@@ -214,7 +218,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		private SouthEvent() {}
     }
 
-	public JPiereADTabpanel()
+	public JPiereADTabpanel()		//JPIERE
 	{
         init();
     }
@@ -225,10 +229,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         addEventListener(ON_DEFER_SET_SELECTED_NODE, this);
         addEventListener(WPaymentEditor.ON_SAVE_PAYMENT, this);
 
-        addEventListener(IADTabpanel.ON_ACTIVATE_EVENT, new EventListener<Event>() {
+        addEventListener(ON_ACTIVATE_EVENT, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
-				removeAttribute(IADTabpanel.ATTR_ON_ACTIVATE_POSTED);
+				removeAttribute(ATTR_ON_ACTIVATE_POSTED);
 			}
 		});
         addEventListener(ON_POST_INIT_EVENT, this);
@@ -248,8 +252,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         form.setSclass("grid-layout adwindow-form");
         form.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "form");
 
-        listPanel = new JPiereGridView();
-//        listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
+        listPanel = new JPiereGridView();			//JPIERE
+        listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
     }
 
 
@@ -290,6 +294,22 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		south.setSplittable(true);
 		south.setOpen(isOpenDetailPane());
 		south.setSclass("adwindow-gridview-detail");
+		String height = heigthDetailPane();
+		if (! Util.isEmpty(height)) {
+			try {
+				ClientInfo browserInfo = SessionManager.getAppDesktop().getClientInfo();
+				int browserHeight = browserInfo.desktopHeight;
+				int prefHeight = Integer.valueOf(height.replace("px", ""));
+				int topmarginpx = MSysConfig.getIntValue("TOP_MARGIN_PIXELS_FOR_HEADER", 222);
+				int maxHeight = browserHeight - topmarginpx;
+				if (prefHeight <= maxHeight) {
+					height = Integer.toString(prefHeight) + "px";
+					formContainer.getSouth().setHeight(height);
+				}
+			} catch (Exception e) {
+				// just ignore exception is harmless here, consequence is just not setting height so it will assume the default of theme
+			}
+		}
     }
 
 
@@ -1092,19 +1112,19 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     		int windowId = getGridTab().getAD_Window_ID();
     		int adTabId = getGridTab().getAD_Tab_ID();
     		if (windowId > 0 && adTabId > 0) {
-    			Query query = new Query(Env.getCtx(), MTable.get(Env.getCtx(), I_AD_Preference.Table_ID), "AD_Window_ID=? AND Attribute=? AND AD_Process_ID IS NULL AND PreferenceFor = 'W'", null);
+    			Query query = new Query(Env.getCtx(), MTable.get(Env.getCtx(), I_AD_Preference.Table_ID), "AD_Window_ID=? AND Attribute=? AND AD_User_ID=? AND AD_Process_ID IS NULL AND PreferenceFor = 'W'", null);
+    			int userId = Env.getAD_User_ID(Env.getCtx());
     			MPreference preference = query.setOnlyActiveRecords(true)
     										  .setApplyAccessFilter(true)
-    										  .setParameters(windowId, adTabId+"|DetailPane.IsOpen")
+    										  .setParameters(windowId, adTabId+"|DetailPane.IsOpen", userId)
     										  .first();
-    			if (preference != null && preference.getAD_Preference_ID() > 0) {
-    				preference.setValue(value ? "Y" : "N");
-    			} else {
+    			if (preference == null || preference.getAD_Preference_ID() <= 0) {
     				preference = new MPreference(Env.getCtx(), 0, null);
     				preference.setAD_Window_ID(windowId);
+    				preference.setAD_User_ID(userId);
     				preference.setAttribute(adTabId+"|DetailPane.IsOpen");
-    				preference.setValue(value ? "Y" : "N");
     			}
+				preference.setValue(value ? "Y" : "N");
     			preference.saveEx();
     			//update current context
     			Env.getCtx().setProperty("P"+windowId+"|"+adTabId+"|DetailPane.IsOpen", value ? "Y" : "N");
@@ -1147,6 +1167,16 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	return open;
     }
 
+    private String heigthDetailPane() {
+    	String height = null;
+    	int windowId = getGridTab().getAD_Window_ID();
+		int adTabId = getGridTab().getAD_Tab_ID();
+		if (windowId > 0 && adTabId > 0) {
+			height = Env.getPreference(Env.getCtx(), windowId, adTabId+"|DetailPane.Height", false);
+		}
+    	return height;
+    }
+
     private void navigateTo(DefaultTreeNode<MTreeNode> value) {
     	MTreeNode treeNode = value.getData();
     	//  We Have a TreeNode
@@ -1177,7 +1207,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			throw new AdempiereException(Msg.getMsg(Env.getCtx(),"RecordIsNotInCurrentSearch"));
 		}
 
-//		windowPanel.onTreeNavigate(row);	
+//		windowPanel.onTreeNavigate(row);
 		gridTab.navigate(row);
 	}
 
@@ -1256,9 +1286,14 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
             			refresh = false;
             		}
 				}
+        		// Remove the node if driven by value; will be re-added right after
+           		if ("Saved".equals(e.getAD_Message()) && model.find(null, gridTab.getRecord_ID())!=null && isTreeDrivenByValue())
+        			model.removeNode(model.find(null, gridTab.getRecord_ID()));
         		if ("Saved".equals(e.getAD_Message()) && model.find(null, gridTab.getRecord_ID())==null)
         		{
 					addNewNode();
+        			if (isTreeDrivenByValue())
+        				treePanel.prepareForRefresh();
 				}
         		if (refresh)
         		{
@@ -1289,7 +1324,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         if (listPanel.isVisible()) {
         	listPanel.updateListIndex();
         	listPanel.dynamicDisplay(col);
-        	if (GridTable.DATA_REFRESH_MESSAGE.equals(e.getAD_Message()) || 
+        	if (GridTable.DATA_REFRESH_MESSAGE.equals(e.getAD_Message()) ||
             		"Sorted".equals(e.getAD_Message())) {
             		Clients.resize(listPanel.getListbox());
             }
@@ -1513,6 +1548,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	 *
 	 * @return JPiereGridPanel
 	 */
+	@Override
 	public JPiereGridView getJPiereGridView() {
 		return listPanel;
 	}
@@ -1698,7 +1734,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			listPanel.onADTabPanelParentChanged();
 		}
 	}
-	
+
 	private boolean isTreeDrivenByValue() {
 		SimpleTreeModel model = (SimpleTreeModel)(TreeModel<?>) treePanel.getTree().getModel();
 		boolean retValue = false;
@@ -1706,6 +1742,38 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		return retValue;
 	}
 
+
+	@Override
+	public void onPageDetached(Page page) {
+		if (formContainer.getSouth() != null) {
+			if (formContainer.getSouth().isVisible() && formContainer.getSouth().isOpen()) {
+				String height = formContainer.getSouth().getHeight();
+				if (! Util.isEmpty(height)) {
+		    		int windowId = getGridTab().getAD_Window_ID();
+		    		int adTabId = getGridTab().getAD_Tab_ID();
+		    		if (windowId > 0 && adTabId > 0) {
+		    			Query query = new Query(Env.getCtx(), MTable.get(Env.getCtx(), I_AD_Preference.Table_ID), "AD_Window_ID=? AND Attribute=? AND AD_User_ID=? AND AD_Process_ID IS NULL AND PreferenceFor = 'W'", null);
+		    			int userId = Env.getAD_User_ID(Env.getCtx());
+		    			MPreference preference = query.setOnlyActiveRecords(true)
+		    										  .setApplyAccessFilter(true)
+		    										  .setParameters(windowId, adTabId+"|DetailPane.Height", userId)
+		    										  .first();
+		    			if (preference == null || preference.getAD_Preference_ID() <= 0) {
+		    				preference = new MPreference(Env.getCtx(), 0, null);
+		    				preference.setAD_Window_ID(windowId);
+		    				preference.setAD_User_ID(userId);
+		    				preference.setAttribute(adTabId+"|DetailPane.Height");
+		    			}
+	    				preference.setValue(height);
+		    			preference.saveEx();
+		    			//update current context
+		    			Env.getCtx().setProperty("P"+windowId+"|"+adTabId+"|DetailPane.Height", height);
+		    		}
+				}
+			}
+		}
+		super.onPageDetached(page);
+	}
 
 	@Override
 	public GridView getGridView() {
@@ -1756,4 +1824,3 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	}
 
 }
-
