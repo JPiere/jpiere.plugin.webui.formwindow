@@ -15,7 +15,6 @@
 package jpiere.plugin.webui.adwindow;		//JPIERE
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -253,7 +252,6 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         form.setSclass("grid-layout adwindow-form");
         form.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "form");
 
-        Collection<Component> test = form.getHeads();
 
         listPanel = new JPiereGridView();			//JPIERE
 //        listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
