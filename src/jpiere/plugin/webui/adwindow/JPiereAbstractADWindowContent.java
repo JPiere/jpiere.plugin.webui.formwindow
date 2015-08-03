@@ -1,36 +1,23 @@
 /******************************************************************************
- * Product: JPiere(Localization Japan of iDempiere)   - Plugins               *
- * Plugin Name:Window X1(Multi‐Line Column Window)                           *
- * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * Product: JPiere(Japan + iDempiere)                                         *
+ * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
+ *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
  * under the terms version 2 of the GNU General Public License as published   *
  * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY, without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program, if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
- * For the text or an alternative of this public license, you may reach us    *
- * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
- * or via info@compiere.org or http://www.compiere.org/license.html           *
- *****************************************************************************/
-/******************************************************************************
- * JPiereはiDempiereの日本商慣習対応のディストリビューションであり、          *
- * プラグイン群です。                                                         *
- * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
- * このプログラムは自由に活用してもらう事を期待して公開していますが、         *
- * いかなる保証もしていません。                                               *
- * 著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保有し、サポートサービスは     *
- * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
- * 提供しています。サポートをご希望の際には、                                 *
- * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
- * http://www.oss-erp.co.jp/                                                  *
+ *                                                                            *
+ * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 
 package jpiere.plugin.webui.adwindow;
 
 import static org.compiere.model.SystemIDs.*;
+
+import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
+import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -62,7 +49,9 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -84,9 +73,14 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+import org.adempiere.webui.panel.action.CSVImportAction;
+import org.adempiere.webui.panel.action.ExportAction;
+import org.adempiere.webui.panel.action.FileImportAction;
+import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
+import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -546,8 +540,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     					{
     						setActiveTab(gridWindow.getTabIndex(gTab), null);
     						gTab.navigate(i);
-    						if (gc.isGridView())
-    							gc.switchRowPresentation();
     						return true;
     					}
     				}
@@ -885,7 +877,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     		public void onCallback(Boolean result) {
     			if (result) {
     				adTabbox.getSelectedGridTab().navigate(rowIndex);
-    				focusToActivePanel();
+    				//focusToActivePanel();
     			}
     		}
     	};
@@ -1583,10 +1575,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         {
         	GridTab gt = adTabbox.getSelectedGridTab();
 	        String trxInfo = gt.getStatusLine();
-	        if (trxInfo != null)
-	        {
-	            statusBar.setInfo(trxInfo);
-	        }
+	        if (trxInfo == null)
+	        	trxInfo = "";
+            statusBar.setInfo(trxInfo);
 	        SessionManager.getAppDesktop().updateHelpQuickInfo(gt);
         }
 
@@ -1657,9 +1648,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
         toolbar.enablePrint(adTabbox.getSelectedGridTab().isPrinted() && !isNewRow);
         toolbar.enableReport(!isNewRow);
-        toolbar.enableExport(!adTabbox.getSelectedGridTab().isSortTab());
-        toolbar.enableFileImport(!changed && !adTabbox.getSelectedGridTab().isSortTab() && adTabbox.getSelectedGridTab().isInsertRecord());
-
+        toolbar.enableExport(!isNewRow && !adTabbox.getSelectedGridTab().isSortTab());
+        toolbar.enableFileImport(toolbar.isNewEnabled());
+		toolbar.enableCSVImport(toolbar.isNewEnabled() && adTabbox.getSelectedGridTab().hasTemplate());
+  
         toolbar.enableTabNavigation(breadCrumb.hasParentLink(), adTabbox.getSelectedDetailADTabpanel() != null);
 
         //Deepak-Enabling customize button IDEMPIERE-364
@@ -2071,6 +2063,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		    		adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
 		    		adTabbox.getSelectedGridTab().refreshParentTabs();
 		    		statusBar.setStatusLine(statusLine);
+		    		if( adTabbox.getSelectedDetailADTabpanel() != null && 
+		    				adTabbox.getSelectedDetailADTabpanel().getGridTab() != null )
+		    			adTabbox.getSelectedDetailADTabpanel().getGridTab().dataRefreshAll(true, true);
 		    	}
 				if (dirtyTabpanel != null) {
 					if (dirtyTabpanel == adTabbox.getSelectedDetailADTabpanel())
@@ -2339,6 +2334,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				{
 		        	//error will be catch in the dataStatusChanged event
 		            adTabbox.getSelectedGridTab().dataDelete();
+		            adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
 		    		adTabbox.getSelectedGridTab().refreshParentTabs();
 
 		            adTabbox.getSelectedTabpanel().dynamicDisplay(0);
@@ -2383,6 +2379,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 								count++;
 							}
 						}
+						adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
 			    		adTabbox.getSelectedGridTab().refreshParentTabs();
 
 						adTabbox.getSelectedTabpanel().dynamicDisplay(0);
@@ -2446,7 +2443,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 					final ProcessModalDialog dialog = new ProcessModalDialog(JPiereAbstractADWindowContent.this, getWindowNo(), AD_Process_ID,table_ID, record_ID, true);
 					if (dialog.isValid()) {
-						dialog.setWidth("500px");
+						//dialog.setWidth("500px");
 						dialog.setBorder("normal");
 						getComponent().getParent().appendChild(dialog);
 						showBusyMask(dialog);
@@ -2611,6 +2608,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		JPiereFileImportAction action = new JPiereFileImportAction(this);
 		action.fileImport();
 	}
+	
+	@Override
+	public void onCSVImport() {
+		;
+	}
 
 	/**************************************************************************
 	 *	Start Button Process
@@ -2657,10 +2659,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 	}
 
-	@Override
-	public void onCSVImport() {
-		;
-	}
 
 	/**************************************************************************
 	 *	Start Button Process
@@ -2953,7 +2951,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 			if (dialog.isValid())
 			{
-				dialog.setWidth("500px");
+				//dialog.setWidth("500px");
 				dialog.setBorder("normal");
 				getComponent().getParent().appendChild(dialog);
 				showBusyMask(dialog);

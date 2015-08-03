@@ -1,31 +1,15 @@
 /******************************************************************************
- * Product: JPiere(Localization Japan of iDempiere)   - Plugins               *
- * Plugin Name:Window X1(Multi‐Line Column Window)                           *
- * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * Product: JPiere(Japan + iDempiere)                                         *
+ * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
+ *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
  * under the terms version 2 of the GNU General Public License as published   *
  * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY, without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program, if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
- * For the text or an alternative of this public license, you may reach us    *
- * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
- * or via info@compiere.org or http://www.compiere.org/license.html           *
- *****************************************************************************/
-/******************************************************************************
- * JPiereはiDempiereの日本商慣習対応のディストリビューションであり、          *
- * プラグイン群です。                                                         *
- * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
- * このプログラムは自由に活用してもらう事を期待して公開していますが、         *
- * いかなる保証もしていません。                                               *
- * 著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保有し、サポートサービスは     *
- * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
- * 提供しています。サポートをご希望の際には、                                 *
- * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
- * http://www.oss-erp.co.jp/                                                  *
+ *                                                                            *
+ * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 
 package jpiere.plugin.webui.adwindow;
@@ -35,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -74,6 +59,7 @@ import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Grid;
+import org.zkoss.zul.Html;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.Paging;
 import org.zkoss.zul.RendererCtrl;
@@ -264,11 +250,19 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			component = editor.getComponent();
 		} else {
 			String text = getDisplayText(value, gridField, rowIndex, isForceGetValue);
-
-			Label label = new Label();
-			setLabelText(text, label);
-
-			component = label;
+			WEditor editor = getEditorCell(gridField);
+			if (editor.getDisplayComponent() == null){
+				Label label = new Label();
+				setLabelText(text, label);
+				component = label;
+			}else{
+				component = editor.getDisplayComponent();
+				if (component instanceof Html){
+					((Html)component).setContent(text);
+				}else{
+					throw new UnsupportedOperationException("neet a componet has setvalue function");
+				}
+			}
 		}
 		return component;
 	}
@@ -344,6 +338,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 							checkBox.setChecked(true);
 						else
 							checkBox.setChecked(false);
+					} else if (component instanceof Html){
+						((Html)component).setContent(getDisplayText(entry.getValue().getValue(), entry.getValue().getGridField(), -1));
 					}
 				}
 //				if (row == null)

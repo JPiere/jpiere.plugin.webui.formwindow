@@ -1,31 +1,15 @@
 /******************************************************************************
- * Product: JPiere(Localization Japan of iDempiere)   - Plugins               *
- * Plugin Name:Window X1(Multi‐Line Column Window)                           *
- * Copyright (C) Hideaki Hagiwara All Rights Reserved.                        *
+ * Product: JPiere(Japan + iDempiere)                                         *
+ * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
+ *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
  * under the terms version 2 of the GNU General Public License as published   *
  * by the Free Software Foundation. This program is distributed in the hope   *
- * that it will be useful, but WITHOUT ANY WARRANTY, without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
- * You should have received a copy of the GNU General Public License along    *
- * with this program, if not, write to the Free Software Foundation, Inc.,    *
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
- * For the text or an alternative of this public license, you may reach us    *
- * ComPiere, Inc., 2620 Augustine Dr. #245, Santa Clara, CA 95054, USA        *
- * or via info@compiere.org or http://www.compiere.org/license.html           *
- *****************************************************************************/
-/******************************************************************************
- * JPiereはiDempiereの日本商慣習対応のディストリビューションであり、          *
- * プラグイン群です。                                                         *
- * このプログラムはGNU Gneral Public Licens Version2のもと公開しています。    *
- * このプログラムは自由に活用してもらう事を期待して公開していますが、         *
- * いかなる保証もしていません。                                               *
- * 著作権は萩原秀明(h.hagiwara@oss-erp.co.jp)が保有し、サポートサービスは     *
- * 株式会社オープンソース・イーアールピー・ソリューションズで                 *
- * 提供しています。サポートをご希望の際には、                                 *
- * 株式会社オープンソース・イーアールピー・ソリューションズまでご連絡下さい。 *
- * http://www.oss-erp.co.jp/                                                  *
+ *                                                                            *
+ * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 
 package jpiere.plugin.webui.adwindow;
@@ -39,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ADTreePanel;
 import org.adempiere.webui.adwindow.DetailPane;
@@ -129,8 +114,8 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 	//	UI variables
 	private Label noLabel = new Label();
 	private Label yesLabel = new Label();
-	private Button bAdd = ButtonFactory.createButton(null, ThemeManager.getThemeResource("images/MoveLeft16.png"), null);
-	private Button bRemove = ButtonFactory.createButton(null, ThemeManager.getThemeResource("images/MoveRight16.png"), null);
+	private Button bAdd = ButtonFactory.createButton(null, ThemeManager.getThemeResource("images/MoveRight16.png"), null);
+	private Button bRemove = ButtonFactory.createButton(null, ThemeManager.getThemeResource("images/MoveLeft16.png"), null);
 	private Button bUp = ButtonFactory.createButton(null, ThemeManager.getThemeResource("images/MoveUp16.png"), null);
 	private Button bDown = ButtonFactory.createButton(null, ThemeManager.getThemeResource("images/MoveDown16.png"), null);
 	//
@@ -285,6 +270,8 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 
 		yesList.setVflex(true);
 		noList.setVflex(true);
+		
+		setId(AdempiereIdGenerator.escapeId(gridTab.getName()));
 
 		EventListener<Event> mouseListener = new EventListener<Event>()
 		{
@@ -886,6 +873,8 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 	    	setAttribute(ATTR_ON_ACTIVATE_POSTED, Boolean.TRUE);
     	}
 
+		active = b;
+		
 		Event event = new Event(ON_ACTIVATE_EVENT, this, b);
         Events.postEvent(event);
 	}
