@@ -1,5 +1,5 @@
 /******************************************************************************
- * Product: JPiere(Japan + iDempiere)                                         *
+ * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
@@ -8,7 +8,7 @@
  * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
  *                                                                            *
- * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * JPiere is maintained by OSS ERP Solutions Co., Ltd.                        *
  * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 
@@ -475,7 +475,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     {
     	return !btnDelete.isDisabled();
     }
-    
+
 	public boolean isNewEnabled() {
     	return !btnNew.isDisabled();
 	}
@@ -653,7 +653,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		if (btnFileImport != null)
 			btnFileImport.setDisabled(!b);
 	}
-	
+
 	/**
 	 * Enable/disable CSV import button
 	 * @param b

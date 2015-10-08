@@ -1,5 +1,5 @@
 /******************************************************************************
- * Product: JPiere(Japan + iDempiere)                                         *
+ * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
  * This program is free software, you can redistribute it and/or modify it    *
@@ -8,16 +8,13 @@
  * that it will be useful, but WITHOUT ANY WARRANTY.                          *
  * See the GNU General Public License for more details.                       *
  *                                                                            *
- * JPiere supported by OSS ERP Solutions Co., Ltd.                            *
+ * JPiere is maintained by OSS ERP Solutions Co., Ltd.                        *
  * (http://www.oss-erp.co.jp)                                                 *
  *****************************************************************************/
 
 package jpiere.plugin.webui.adwindow;
 
 import static org.compiere.model.SystemIDs.*;
-
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -49,9 +46,7 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
-import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
-import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -73,14 +68,9 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
-import org.adempiere.webui.panel.action.CSVImportAction;
-import org.adempiere.webui.panel.action.ExportAction;
-import org.adempiere.webui.panel.action.FileImportAction;
-import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
-import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -1651,7 +1641,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableExport(!isNewRow && !adTabbox.getSelectedGridTab().isSortTab());
         toolbar.enableFileImport(toolbar.isNewEnabled());
 		toolbar.enableCSVImport(toolbar.isNewEnabled() && adTabbox.getSelectedGridTab().hasTemplate());
-  
+
         toolbar.enableTabNavigation(breadCrumb.hasParentLink(), adTabbox.getSelectedDetailADTabpanel() != null);
 
         //Deepak-Enabling customize button IDEMPIERE-364
@@ -2063,7 +2053,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		    		adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
 		    		adTabbox.getSelectedGridTab().refreshParentTabs();
 		    		statusBar.setStatusLine(statusLine);
-		    		if( adTabbox.getSelectedDetailADTabpanel() != null && 
+		    		if( adTabbox.getSelectedDetailADTabpanel() != null &&
 		    				adTabbox.getSelectedDetailADTabpanel().getGridTab() != null )
 		    			adTabbox.getSelectedDetailADTabpanel().getGridTab().dataRefreshAll(true, true);
 		    	}
@@ -2608,7 +2598,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		JPiereFileImportAction action = new JPiereFileImportAction(this);
 		action.fileImport();
 	}
-	
+
 	@Override
 	public void onCSVImport() {
 		;
