@@ -65,7 +65,7 @@ import org.zkoss.zul.Toolbarbutton;
  * @author Cristina Ghita, www.arhipac.ro
  * 				<li>FR [ 2076330 ] Add new methods in CWindowToolbar class
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
 public class JPiereADWindowToolbar extends FToolbar implements EventListener<Event>
 {

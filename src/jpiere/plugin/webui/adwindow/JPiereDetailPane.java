@@ -14,14 +14,19 @@
 
 package jpiere.plugin.webui.adwindow;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.adempiere.base.IServiceHolder;
 import org.adempiere.webui.LayoutUtils;
+import org.adempiere.webui.action.Actions;
+import org.adempiere.webui.action.IAction;
 import org.adempiere.webui.adwindow.ADTabpanel;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
+import org.adempiere.webui.adwindow.ToolbarCustomButton;
 import org.adempiere.webui.component.ADTabListModel.ADTabLabel;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.Panel;
@@ -33,9 +38,11 @@ import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.component.Window;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
+import org.compiere.model.MToolBarButton;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
+import org.zkoss.image.AImage;
 import org.zkoss.zhtml.Text;
 import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
@@ -51,6 +58,7 @@ import org.zkoss.zk.ui.sys.ExecutionCtrl;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Hbox;
+import org.zkoss.zul.Separator;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.Tabpanels;
 import org.zkoss.zul.Tabs;
@@ -59,7 +67,7 @@ import org.zkoss.zul.Toolbar;
 /**
  * @author hengsin
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereDetailPane extends Panel implements EventListener<Event>, IdSpace {
@@ -77,6 +85,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 	private static final String BTN_NEW_ID = "BtnNew";
 
+	private static final String BTN_SAVE_ID = "BtnSave";
+
 	private static final String TABBOX_ONSELECT_ATTRIBUTE = "detailpane.tabbox.onselect";
 
 	public static final String ON_POST_SELECT_TAB_EVENT = "onPostSelectTab";
@@ -89,6 +99,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	private static final String EDIT_IMAGE = "images/EditRecord16.png";
 	private static final String NEW_IMAGE = "images/New16.png";
 	private static final String PROCESS_IMAGE = "images/Process16.png";
+	private static final String SAVE_IMAGE = "images/Save16.png";
+
 
 	private ToolBarButton btnNew;
 	private long prevKeyEventTime = 0;
@@ -114,6 +126,12 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	public static final String ON_NEW_EVENT = "onNew";
 
 	public static final String ON_EDIT_EVENT = "onEdit";
+
+	public static final String ON_SAVE_EVENT = "onSave";
+
+    private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
+    private List<ToolbarCustomButton> toolbarCustomButtons = new ArrayList<ToolbarCustomButton>();
+
 
 	public JPiereDetailPane() {
 		tabbox = new Tabbox();
@@ -277,7 +295,6 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		btnNew = new ToolBarButton();
 		btnNew.setImage(ThemeManager.getThemeResource(NEW_IMAGE));
 		btnNew.setId(BTN_NEW_ID);
-		toolbar.appendChild(btnNew);
 		btnNew.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
@@ -285,13 +302,13 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			}
 		});
 		btnNew.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "New")) + "    Shift+Alt+N");
+       buttons.put(BTN_NEW_ID.substring(3, BTN_NEW_ID.length()), btnNew);
 
 		ToolBarButton button = new ToolBarButton();
 
 		button = new ToolBarButton();
 		button.setImage(ThemeManager.getThemeResource(EDIT_IMAGE));
 		button.setId(BTN_EDIT_ID);
-		toolbar.appendChild(button);
 		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
@@ -299,11 +316,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			}
 		});
 		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
+        buttons.put(BTN_EDIT_ID.substring(3, BTN_EDIT_ID.length()), button);
 
 		button = new ToolBarButton();
 		button.setImage(ThemeManager.getThemeResource(DELETE_IMAGE));
 		button.setId(BTN_DELETE_ID);
-		toolbar.appendChild(button);
 		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
@@ -312,12 +329,26 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			}
 		});
 		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Delete")));
+        buttons.put(BTN_DELETE_ID.substring(3, BTN_DELETE_ID.length()), button);
+
+		button = new ToolBarButton();
+		button.setImage(ThemeManager.getThemeResource(SAVE_IMAGE));
+		button.setId(BTN_SAVE_ID);
+		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
+			@Override
+			public void onEvent(Event event) throws Exception {
+				Event openEvent = new Event(ON_SAVE_EVENT, JPiereDetailPane.this);
+				eventListener.onEvent(openEvent);
+			}
+		});
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Save")));
+        buttons.put(BTN_SAVE_ID.substring(3, BTN_SAVE_ID.length()), button);
+
 
 		if (!tabPanel.getGridTab().isSortTab()) {
 			button = new ToolBarButton();
 			button.setImage(ThemeManager.getThemeResource(PROCESS_IMAGE));
 			button.setId(BTN_PROCESS_ID);
-			toolbar.appendChild(button);
 			button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 				@Override
 				public void onEvent(Event event) throws Exception {
@@ -325,7 +356,58 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 				}
 			});
 			button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Process")));
+			buttons.put(BTN_PROCESS_ID.substring(3, BTN_PROCESS_ID.length()), button);
 		}
+
+		MToolBarButton[] officialButtons = MToolBarButton.getToolbarButtons("D", null);
+		for (MToolBarButton toolbarButton : officialButtons) {
+			if ( !toolbarButton.isActive() ) {
+				buttons.remove(toolbarButton.getComponentName());
+			} else {
+				if ( toolbarButton.isCustomization() ) {
+					String actionId = toolbarButton.getActionClassName();
+					IServiceHolder<IAction> serviceHolder = Actions.getAction(actionId);
+					if ( serviceHolder != null && serviceHolder.getService() != null ) {
+
+						String labelKey = actionId + ".label";
+						String tooltipKey = actionId + ".tooltip";
+						String label = Msg.getMsg(Env.getCtx(), labelKey);
+						String tooltiptext = Msg.getMsg(Env.getCtx(), tooltipKey);
+						if ( labelKey.equals(label) ) {
+							label = toolbarButton.getName();
+						}
+						if ( tooltipKey.equals(tooltiptext) ) {
+							tooltipKey = null;
+						}
+						ToolBarButton btn = new ToolBarButton();
+						btn.setName("Btn"+toolbarButton.getComponentName());
+						btn.setId("Btn"+toolbarButton.getComponentName());
+						btn.setTooltiptext(tooltiptext);
+						btn.setDisabled(false);
+
+						AImage aImage = Actions.getActionImage(actionId);
+						if ( aImage != null ) {
+							btn.setImageContent(aImage);
+						} else {
+							btn.setLabel(label);
+						}
+
+						ToolbarCustomButton toolbarCustomBtn = new ToolbarCustomButton(toolbarButton, btn, actionId, tabPanel.getGridTab().getWindowNo());
+						toolbarCustomButtons.add(toolbarCustomBtn);
+
+						toolbar.appendChild(btn);
+					}
+				} else {
+					if (buttons.get(toolbarButton.getComponentName()) != null) {
+						toolbar.appendChild(buttons.get(toolbarButton.getComponentName()));
+						if (toolbarButton.isAddSeparator()) {
+							toolbar.appendChild(new Separator("vertical"));
+						}
+					}
+				}
+			}
+		}
+
 
 		Hbox messageContainer = new Hbox();
 		messageContainer.setPack("end");
@@ -622,6 +704,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         			btn.setDisabled(!enableDelete);
         		} else if (BTN_EDIT_ID.equals(btn.getId())) {
         			btn.setDisabled(false);
+        		} else if (BTN_SAVE_ID.equals(btn.getId())) {
+         			btn.setDisabled(false);
         		}
         		if (windowRestrictList.contains(btn.getId())) {
         			btn.setVisible(false);

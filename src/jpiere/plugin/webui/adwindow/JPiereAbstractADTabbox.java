@@ -33,7 +33,7 @@ import org.compiere.util.Util;
 /**
  *  JPiere Abstract ADTabbox
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public abstract class JPiereAbstractADTabbox extends AbstractUIPart implements JPiereIADTabbox

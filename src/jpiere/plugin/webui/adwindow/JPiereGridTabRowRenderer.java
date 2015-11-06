@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -30,6 +31,7 @@ import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.EditorBox;
 import org.adempiere.webui.component.NumberBox;
+import org.adempiere.webui.component.Textbox;
 import org.adempiere.webui.component.Urlbox;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
@@ -76,7 +78,7 @@ import org.zkoss.zul.impl.XulElement;
  * 		<li>BF [ 2996608 ] GridPanel is not displaying time
  * 			https://sourceforge.net/tracker/?func=detail&aid=2996608&group_id=176962&atid=955896
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRendererExt, RendererCtrl, EventListener<Event> {
@@ -180,7 +182,14 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		checkBox.setDisabled(true);
 		return checkBox;
 	}
-
+	
+	private Component createInvisibleComponent() {
+		Textbox textBox = new Textbox();
+		textBox.setDisabled(true);
+		textBox.setVisible(false);
+		return textBox;
+	}
+	
 	/**
 	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
 	 * @param value
@@ -239,6 +248,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		Component component;
 		if (gridField.getDisplayType() == DisplayType.YesNo) {
 			component = createReadonlyCheckbox(value);
+		} else if (gridField.isHeading()) {
+			component = createInvisibleComponent();
 		} else if (gridField.getDisplayType() == DisplayType.Button) {
 			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 			WButtonEditor editor = new WButtonEditor(gridField, rowIndex);
@@ -457,24 +468,27 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		for (int i = 0; i < columnCount; i++) {
 			if (editors.get(gridPanelFields[i]) == null) {
 				WEditor editor = WebEditorFactory.getEditor(gridPanelFields[i], true);
-				editors.put(gridPanelFields[i], editor);
-				if (editor instanceof WButtonEditor) {
-					((WButtonEditor)editor).addActionListener(buttonListener);
+				if (editor != null) {
+					editors.put(gridPanelFields[i], editor);
+					if (editor instanceof WButtonEditor) {
+						((WButtonEditor)editor).addActionListener(buttonListener);
+					}
+	
+					//readonly for display text
+					WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true);
+					if (readOnlyEditor != null) {
+						readOnlyEditor.setReadWrite(false);
+						readOnlyEditors.put(gridPanelFields[i], readOnlyEditor);
+					}
+					editor.getComponent().setWidgetOverride("fieldHeader", HelpController.escapeJavascriptContent(gridPanelFields[i].getHeader()));
+	    			editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
+	    			editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
+	    			editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp());");
+	
+	    			//	Default Focus
+	    			if (defaultFocusField == null && gridPanelFields[i].isDefaultFocus())
+	    				defaultFocusField = editor;
 				}
-
-				//readonly for display text
-				WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true);
-				readOnlyEditor.setReadWrite(false);
-				readOnlyEditors.put(gridPanelFields[i], readOnlyEditor);
-
-				editor.getComponent().setWidgetOverride("fieldHeader", HelpController.escapeJavascriptContent(gridPanelFields[i].getHeader()));
-    			editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
-    			editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
-    			editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp());");
-
-    			//	Default Focus
-    			if (defaultFocusField == null && gridPanelFields[i].isDefaultFocus())
-    				defaultFocusField = editor;
 			}
 
 			if ("IsActive".equals(gridPanelFields[i].getColumnName())) {
@@ -552,6 +566,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		row.setStyle(ROW_STYLE);
 		row.addEventListener(Events.ON_CLICK, rowListener);
 		row.addEventListener(Events.ON_OK, rowListener);
+		row.setTooltiptext("Row " + (rowIndex+1));
 
 		if (isActive == null) {
 			Object isActiveValue = gridTab.getValue(rowIndex, "IsActive");

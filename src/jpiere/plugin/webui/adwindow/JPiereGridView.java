@@ -80,7 +80,7 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  * Grid view implemented using the Grid component.
  * @author Low Heng Sin
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener

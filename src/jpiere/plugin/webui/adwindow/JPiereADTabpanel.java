@@ -130,7 +130,7 @@ import org.zkoss.zul.impl.XulElement;
  *
  * @author Low Heng Sin
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
 public class JPiereADTabpanel extends Div implements Evaluatee, EventListener<Event>,
 DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
@@ -254,7 +254,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 
         listPanel = new JPiereGridView();			//JPIERE
-//        listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
+        if( "Y".equals(Env.getContext(Env.getCtx(), "P|ToggleOnDoubleClick")) )
+        	listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
     }
 
 

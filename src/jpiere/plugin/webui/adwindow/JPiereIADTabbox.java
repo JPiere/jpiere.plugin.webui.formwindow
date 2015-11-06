@@ -23,7 +23,7 @@ import org.compiere.model.GridTab;
  *
  * @author <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public interface JPiereIADTabbox extends IADTabbox,UIPart {

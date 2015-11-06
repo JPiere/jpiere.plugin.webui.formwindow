@@ -22,7 +22,7 @@ import org.zkoss.zk.ui.Component;
  * Interface for UI component that edit/display record using ad_tab definitions
  * @author Low Heng Sin
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public interface JPiereIADTabpanel extends IADTabpanel, Component, Evaluatee {
