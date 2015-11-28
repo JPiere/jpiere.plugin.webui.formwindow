@@ -13,3 +13,5 @@ Service-Component: OSGI-INF/JPiereWebuiFormFactory.xml
 Bundle-Activator: jpiere.plugin.webui.JPiereWebUIActivator
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: OSS ERP Solutions
+Export-Package: jpiere.plugin.webui.adwindow,
+ jpiere.plugin.webui.window.form
