@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -182,14 +181,14 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		checkBox.setDisabled(true);
 		return checkBox;
 	}
-	
+
 	private Component createInvisibleComponent() {
 		Textbox textBox = new Textbox();
 		textBox.setDisabled(true);
 		textBox.setVisible(false);
 		return textBox;
 	}
-	
+
 	/**
 	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
 	 * @param value
@@ -461,7 +460,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 		Boolean isActive = null;
 		Vbox vbox = null;
-		int auxheadSize = gridPanel.getAuxheadSize();//TODO
+		int auxheadSize = gridPanel.getAuxheadSize();//JPIERE-0014:Form Window
 
 
 		int sameLineColumnCounter = 0;
@@ -473,7 +472,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 					if (editor instanceof WButtonEditor) {
 						((WButtonEditor)editor).addActionListener(buttonListener);
 					}
-	
+
 					//readonly for display text
 					WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true);
 					if (readOnlyEditor != null) {
@@ -484,7 +483,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	    			editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
 	    			editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
 	    			editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp());");
-	
+
 	    			//	Default Focus
 	    			if (defaultFocusField == null && gridPanelFields[i].isDefaultFocus())
 	    				defaultFocusField = editor;
@@ -525,12 +524,12 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 			div.setStyle(divStyle);
 			div.setWidth("100%");
-			div.setHeight("28px");//TODO:非表示データのカラムの高さを指定したいので埋め込みpx指定
+			div.setHeight("28px");//JPIERE-0014:Fomr Window - Set Small Height for multi-column
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);
 
-			//TODO:マルチ列表示ロジック
-			if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
+			//JPIERE-0014: Multi-Column Display Logic - start
+			if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//First Column row
 
 				vbox = new Vbox();
 				vbox.setWidth("100%");
@@ -539,7 +538,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				row.appendChild(vbox);
 				sameLineColumnCounter = 1;
 
-			}else{												//2段目以降の処理
+			}else{												//Over Second Column row
 
 				if(sameLineColumnCounter <= auxheadSize){	//追加タイトル行数以下の表示カラム数の場合
 					vbox.appendChild(div);
@@ -555,7 +554,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 					sameLineColumnCounter = 1;
 				}
 
-			}//マルチ列表示ロジック終わり
+			}//JPIERE-0014: Multi-Column Display Logic - finish
 
 		}
 
@@ -658,7 +657,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			//skip selection and indicator column
 			int colIndex = 1;
 
-			//TODO:マルチ列表示ロジック
+			//JPIERE-0014: Multi-Column Display Logic - start
 			int auxheadSize = gridPanel.getAuxheadSize();
 			int sameLineColumnCounter = 0;
 			int cellCounter = 0;
@@ -669,7 +668,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				}
 				colIndex ++;
 
-				//TODO:マルチ列表示ロジック
+				//JPIERE-0014: Multi-Column Display Logic - start
 				if(!gridPanelFields[i].isSameLine() || sameLineColumnCounter== 0){//1段目の処理
 					sameLineColumnCounter =1;
 					cellCounter = 0;

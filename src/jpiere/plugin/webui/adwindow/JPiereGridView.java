@@ -94,7 +94,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 	private static final int DEFAULT_DETAIL_PAGE_SIZE = 10;
 
-	private static final int DEFAULT_PAGE_SIZE = 20;
+	private static final int DEFAULT_PAGE_SIZE = 10;//JPIERE-0014:Form Window
 
 	private static final int MIN_COLUMN_WIDTH = 100;
 
@@ -180,7 +180,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		}
 		else
 		{
-			pageSize = MSysConfig.getIntValue(MSysConfig.ZK_PAGING_SIZE, DEFAULT_PAGE_SIZE);
+			pageSize = MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE);//JPIERE-0014:Form Window
 			String limit = Library.getProperty(CustomGridDataLoader.GRID_DATA_LOADER_LIMIT);
 			if (limit == null || !(limit.equals(Integer.toString(pageSize)))) {
 				Library.setProperty(CustomGridDataLoader.GRID_DATA_LOADER_LIMIT, Integer.toString(pageSize));
@@ -198,7 +198,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		gridFooter.setStyle(HEADER_GRID_STYLE);
 
 		addEventListener("onSelectRow", this);
-//		addEventListener("onCustomizeGrid", this);
+//		addEventListener("onCustomizeGrid", this);	//JPIERE-0014:
 	}
 
 	protected void createListbox() {
@@ -213,7 +213,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	public void setDetailPaneMode(boolean detailPaneMode) {
 		if (this.detailPaneMode != detailPaneMode) {
 			this.detailPaneMode = detailPaneMode;
-			pageSize =  detailPaneMode ? DEFAULT_DETAIL_PAGE_SIZE : MSysConfig.getIntValue(MSysConfig.ZK_PAGING_SIZE, 20);
+			pageSize =  detailPaneMode ? DEFAULT_DETAIL_PAGE_SIZE : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE);//JPIERE-0014:Form Window
 			updatePaging();
 		}
 	}
@@ -481,7 +481,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		{
 			Frozen frozen = new Frozen();
 			//freeze selection and indicator column
-			frozen.setColumns(2);
+			frozen.setColumns(4);//JPIERE-0014:Frozen of Form Window is 3
 			listbox.appendChild(frozen);
 		}
 
