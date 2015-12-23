@@ -17,6 +17,7 @@ import jpiere.plugin.webui.adwindow.JPiereADWindow;
 
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
+import org.compiere.model.MQuery;
 import org.compiere.util.Env;
 
 
@@ -43,11 +44,21 @@ public class JPiereFormWindow extends AbstractJPiereFormWindow {
     	adw.createPart(form);
     }
 
+
+	@Override
+	public void createFormWindow(int AD_Window_ID, MQuery query) {
+
+    	JPiereADWindow adw = new JPiereADWindow(Env.getCtx(), AD_Window_ID, query);
+    	adw.createPart(form);
+	}
+
 	@Override
 	public ADForm getForm()
 	{
 		return form;
 	}
+
+
 
 
 }

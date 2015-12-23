@@ -14,6 +14,8 @@
 
 package jpiere.plugin.webui.window.form;
 
+import org.compiere.model.MQuery;
+
 
 /**
  *  Interface JPiere Form Window Controller
@@ -28,6 +30,8 @@ public interface IJPiereFormWindowController
 	 * @return
 	 */
 	public void createFormWindow(int AD_Window_ID);
+
+	public void createFormWindow(int AD_Window_ID,MQuery query);
 
 
 }
