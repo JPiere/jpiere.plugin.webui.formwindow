@@ -19,13 +19,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADWindow;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridTableListModel;
+import org.adempiere.webui.adwindow.ADWindow;					//JPIERE-0014
+import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE-0014
+import org.adempiere.webui.adwindow.DetailPane;					//JPIERE-0014
+import org.adempiere.webui.adwindow.GridTableListModel;			//JPIERE-0014
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.EditorBox;

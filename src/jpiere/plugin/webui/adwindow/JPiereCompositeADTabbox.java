@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.adempiere.util.Callback;
-import org.adempiere.webui.adwindow.ADTabpanel;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.BreadCrumb;
-import org.adempiere.webui.adwindow.BreadCrumbLink;
-import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.IADTabpanel;
+import org.adempiere.webui.adwindow.ADTabpanel;					//JPIERE-0014
+import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE-0014
+import org.adempiere.webui.adwindow.BreadCrumb;					//JPIERE-0014
+import org.adempiere.webui.adwindow.BreadCrumbLink;				//JPIERE-0014
+import org.adempiere.webui.adwindow.DetailPane;					//JPIERE-0014
+import org.adempiere.webui.adwindow.IADTabpanel;				//JPIERE-0014
 import org.adempiere.webui.component.ADTabListModel;
 import org.adempiere.webui.component.ADTabListModel.ADTabLabel;
 import org.adempiere.webui.window.FDialog;
@@ -977,11 +977,11 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 		}
 	}
 
-	@Override
+	@Override//JPIERE-0014
 	public void addTab(GridTab tab, IADTabpanel tabPanel) {
 	}
 
-	@Override
+	@Override//JPIERE-0014
 	public void setADWindowPanel(AbstractADWindowContent abstractADWindowPanel) {
 	}
 }

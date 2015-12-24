@@ -1037,20 +1037,17 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 	}
 
 	@Override
-	public GridView getGridView() {
-		// TODO 自動生成されたメソッド・スタブ
+	public GridView getGridView() {//JPIERE-0014
 		return null;
 	}
 
 	@Override
-	public void setDetailPane(DetailPane detailPane) {
-		// TODO 自動生成されたメソッド・スタブ
+	public void setDetailPane(DetailPane detailPane) {//JPIERE-0014
 
 	}
 
 	@Override
-	public DetailPane getDetailPane() {
-		// TODO 自動生成されたメソッド・スタブ
+	public DetailPane getDetailPane() {//JPIERE-0014
 		return null;
 	}
 }	//ADSortTab

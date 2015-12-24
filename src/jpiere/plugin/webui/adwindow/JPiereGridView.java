@@ -27,11 +27,11 @@ import javax.swing.table.AbstractTableModel;
 import org.adempiere.base.Core;
 import org.adempiere.model.MTabCustomization;
 import org.adempiere.util.GridRowCtx;
-import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridTabRowRenderer;
-import org.adempiere.webui.adwindow.GridTableListModel;
-import org.adempiere.webui.adwindow.IADTabpanel;
-import org.adempiere.webui.adwindow.IFieldEditorContainer;
+import org.adempiere.webui.adwindow.DetailPane;				//JPIERE-0014
+import org.adempiere.webui.adwindow.GridTabRowRenderer;		//JPIERE-0014
+import org.adempiere.webui.adwindow.GridTableListModel;		//JPIERE-0014
+import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
+import org.adempiere.webui.adwindow.IFieldEditorContainer;	//JPIERE-0014
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Columns;
@@ -63,8 +63,8 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
-import org.zkoss.zul.Auxhead;
-import org.zkoss.zul.Auxheader;
+import org.zkoss.zul.Auxhead;					//JPIERE-0014
+import org.zkoss.zul.Auxheader;					//JPIERE-0014
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Column;
 import org.zkoss.zul.Div;
@@ -147,7 +147,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 	protected Checkbox selectAll;
 
-	public static final int DEFAULT_AUXHEADS_SIZE = 0; //TODO:マルチ列表示ロジック
+	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
 
 	/**	Cache						*/
 	private static CCache<Integer,MTab> s_cache	= new CCache<Integer,MTab>("AD_Tab", 40, 10);	//	10 minutes
@@ -308,7 +308,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 			ArrayList<GridField> gridFieldList = new ArrayList<GridField>();
 
 			for(GridField field:tmpFields){
-				if(field.isDisplayedGrid() && !field.isToolbarButton()) {
+				if(field.isDisplayedGrid() && !field.isToolbarOnlyButton()) {
 					gridFieldList.add(field);
 				}
 			}
@@ -464,9 +464,9 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		this.getChildren().clear();
 	}
 
-	private int auxheadSize = 0;
+	private int auxheadSize = 0;	//JPIERE-0014
 
-	public int getAuxheadSize(){
+	public int getAuxheadSize(){	//JPIERE-0014
 		return auxheadSize;
 	}
 
@@ -510,7 +510,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		columns.setColumnsgroup(false);
 
 
-		//TODO:マルチ列表示ロジック
+		//JPIERE-0014
 		int AD_Tab_ID = gridTab.getAD_Tab_ID();
 		Integer key = new Integer (AD_Tab_ID);
 		MTab mtab = (MTab) s_cache.get (key);
@@ -612,7 +612,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				}
 
 
-				//JPIERE-14 Title of Form Window
+				//JPIERE-0014 Title of Form Window
 				if(!gridField[i].isSameLine() || sameLineColumnCounter== 0){//First line of Title
 					if(column.isVisible()){
 						columns.appendChild(column);

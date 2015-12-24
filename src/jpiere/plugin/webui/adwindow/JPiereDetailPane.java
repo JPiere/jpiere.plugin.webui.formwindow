@@ -23,10 +23,10 @@ import org.adempiere.base.IServiceHolder;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.action.Actions;
 import org.adempiere.webui.action.IAction;
-import org.adempiere.webui.adwindow.ADTabpanel;
-import org.adempiere.webui.adwindow.IADTabpanel;
-import org.adempiere.webui.adwindow.ProcessButtonPopup;
-import org.adempiere.webui.adwindow.ToolbarCustomButton;
+import org.adempiere.webui.adwindow.ADTabpanel;				//JPIERE-0014
+import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
+import org.adempiere.webui.adwindow.ProcessButtonPopup;		//JPIERE-0014
+import org.adempiere.webui.adwindow.ToolbarCustomButton;	//JPIERE-0014
 import org.adempiere.webui.component.ADTabListModel.ADTabLabel;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.Panel;

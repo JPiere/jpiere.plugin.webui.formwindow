@@ -14,11 +14,14 @@
 
 package jpiere.plugin.webui.adwindow;
 
-import static org.compiere.model.SystemIDs.*;
+import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
+import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,7 +49,9 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -2641,7 +2646,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	@Override
 	public void onCSVImport() {
-		;
+//		CSVImportAction action = new CSVImportAction(this);//JPIERE-0014
+//		action.fileImport();
 	}
 
 	/**************************************************************************
@@ -3185,9 +3191,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 //			gridFieldIds.add(fields[i].getAD_Field_ID());
 //
 //		}
-//
-//
-//
 //		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());
 	}
 
