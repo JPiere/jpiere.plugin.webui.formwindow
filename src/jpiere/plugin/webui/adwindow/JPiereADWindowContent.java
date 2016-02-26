@@ -18,7 +18,7 @@ import java.util.Properties;
 
 import org.adempiere.util.Callback;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.BreadCrumb;
+import org.adempiere.webui.adwindow.BreadCrumb;//JPIERE-0014
 import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.panel.IHelpContext;
