@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.ADWindowToolbar;
 import org.adempiere.webui.desktop.IDesktop;
 import org.adempiere.webui.exception.ApplicationException;
@@ -243,7 +244,11 @@ public class JPiereADWindow extends AbstractUIPart
 	 * @return adwindow instance for windowNo ( if any )
 	 */
 	public static JPiereADWindow get(int windowNo) {
-		return (JPiereADWindow) SessionManager.getAppDesktop().findWindow(windowNo);
+		Object window = SessionManager.getAppDesktop().findWindow(windowNo);
+		if (window != null && window instanceof ADWindow)
+			return (JPiereADWindow) SessionManager.getAppDesktop().findWindow(windowNo);
+		
+		return null;
 	}
 
 	/**
