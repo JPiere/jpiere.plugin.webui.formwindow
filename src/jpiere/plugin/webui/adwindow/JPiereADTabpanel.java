@@ -210,6 +210,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	public static final String ON_TOGGLE_EVENT = "onToggle";
 
+	private static final String DEFAULT_PANEL_WIDTH = "300px";
+
 	private static enum SouthEvent {
     	SLIDE(),
     	OPEN(),
@@ -368,7 +370,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			treePanel = new ADTreePanel(windowNo, gridTab.getTabNo());
 			West west = new West();
 			west.appendChild(treePanel);
-			west.setWidth("300px");
+			west.setWidth(widthTreePanel());
 			west.setCollapsible(true);
 			west.setSplittable(true);
 			west.setAutoscroll(true);
@@ -574,7 +576,9 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         				row.appendCellChild(div,1);
         			}
         			row.appendCellChild(editor.getComponent(), field.getColumnSpan());
-
+        			//to support float/absolute editor
+        			row.getLastCell().setStyle("position: relative; overflow: visible;");
+        			
         			if (editor instanceof WButtonEditor)
         			{
         				if (windowPanel != null)
@@ -723,7 +727,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			{
 				for (WEditor comp : editors)
 				{
-					comp.updateLabelStyle();
+					comp.updateStyle();
 				}
                 return;
             }
@@ -760,7 +764,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
                     comp.setVisible(false);
                 }
             }
-            comp.updateLabelStyle();
+            comp.updateStyle();
         }   //  all components
 
         //hide row if all editor within the row is invisible
@@ -1003,36 +1007,37 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
      * Activate/deactivate panel
      * @param activate
      */
-//    public void activate(boolean activate)
-//    {
-//    	if (activate) {
-//	    	if (getAttribute(ATTR_ON_ACTIVATE_POSTED) != null) {
-//	    		return;
-//	    	}
-//
-//	    	setAttribute(ATTR_ON_ACTIVATE_POSTED, Boolean.TRUE);
-//    	}
-//
-//    	activated = activate;
-//        if (listPanel.isVisible()) {
-//        	if (activate)
-//        		listPanel.activate(gridTab);
-//        	else
-//        		listPanel.deactivate();
-//        } else {
-//        	if (activate) {
-//        		formContainer.setVisible(activate);
-//        		focusToFirstEditor();
-//        	}
-//        }
-//
-//        if (gridTab.getRecord_ID() > 0 && gridTab.isTreeTab() && treePanel != null) {
-//        	echoDeferSetSelectedNodeEvent();
-//        }
-//
-//        Event event = new Event(ON_ACTIVATE_EVENT, this, activate);
-//        Events.postEvent(event);
-//    }
+	@Override
+	public void activate(boolean activate)
+	{
+    	if (activate) {
+	    	if (getAttribute(ATTR_ON_ACTIVATE_POSTED) != null) {
+	    		return;
+	    	}
+	    	
+	    	setAttribute(ATTR_ON_ACTIVATE_POSTED, Boolean.TRUE);
+    	}
+    	
+    	activated = activate;
+        if (listPanel.isVisible()) {
+        	if (activate)
+        		listPanel.activate(gridTab);
+        	else
+        		listPanel.deactivate();
+        } else {
+        	if (activate) {
+        		formContainer.setVisible(activate);
+        		focusToFirstEditor();
+        	}
+        }
+
+        if (gridTab.getRecord_ID() > 0 && gridTab.isTreeTab() && treePanel != null) {
+        	echoDeferSetSelectedNodeEvent();
+        }
+        
+        Event event = new Event(ON_ACTIVATE_EVENT, this, activate);
+        Events.postEvent(event);
+	}
 
     /**
 	 * set focus to first active editor
@@ -1179,6 +1184,18 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	return height;
     }
 
+    private String widthTreePanel() {
+    	String width = null;
+    	int windowId = getGridTab().getAD_Window_ID();
+    	int adTabId = getGridTab().getAD_Tab_ID();
+    	if (windowId > 0 && adTabId > 0) {
+    		width = Env.getPreference(Env.getCtx(), windowId, adTabId+"|TreePanel.Width", false);
+    	}
+    	if (Util.isEmpty(width)) {
+    		width = DEFAULT_PANEL_WIDTH;
+    	}
+    	return width;
+    }
     private void navigateTo(DefaultTreeNode<MTreeNode> value) {
     	MTreeNode treeNode = value.getData();
     	//  We Have a TreeNode
@@ -1793,36 +1810,5 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		return noUse;
 	}
 
-	@Override
-	public void activate(boolean activate) {
-		if (activate) {
-	    	if (getAttribute(ADTabpanel.ATTR_ON_ACTIVATE_POSTED) != null) {
-	    		return;
-	    	}
-
-	    	setAttribute(ADTabpanel.ATTR_ON_ACTIVATE_POSTED, Boolean.TRUE);
-    	}
-
-    	activated = activate;
-        if (listPanel.isVisible()) {
-        	if (activate)
-        		listPanel.activate(gridTab);
-        	else
-        		listPanel.deactivate();
-        } else {
-        	if (activate) {
-        		formContainer.setVisible(activate);
-        		focusToFirstEditor();
-        	}
-        }
-
-        if (gridTab.getRecord_ID() > 0 && gridTab.isTreeTab() && treePanel != null) {
-        	echoDeferSetSelectedNodeEvent();
-        }
-
-        Event event = new Event(ADTabpanel.ON_ACTIVATE_EVENT, this, activate);
-        Events.postEvent(event);
-
-	}
 
 }
