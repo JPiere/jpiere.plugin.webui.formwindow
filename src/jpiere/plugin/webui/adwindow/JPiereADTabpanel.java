@@ -1671,7 +1671,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	    	} else if (tabPanel != null && tabPanel.isGridView()) {
 	    		//ensure row indicator is not lost
     			RowRenderer<Object[]> renderer = tabPanel.getJPiereGridView().getListbox().getRowRenderer();
-    			GridTabRowRenderer gtr = (GridTabRowRenderer)renderer;
+    			JPiereGridTabRowRenderer gtr = (JPiereGridTabRowRenderer)renderer; //JPIERE
     			org.zkoss.zul.Row row = gtr.getCurrentRow();
     			if (row != null)
     				gtr.setCurrentRow(row);
