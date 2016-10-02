@@ -278,6 +278,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      */
     protected abstract JPiereIADTabbox createADTab();
 
+    protected abstract void switchEditStatus(boolean editStatus);
+    
     private void focusToActivePanel() {
     	JPiereIADTabpanel adTabPanel = adTabbox.getSelectedTabpanel();
 		focusToTabpanel(adTabPanel);
@@ -1566,10 +1568,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         {
         	adTabbox.updateDetailPaneToolbar(changed, readOnly);
         }
-        toolbar.enableIgnore(adTabbox.needSave(true, false) ||
+        boolean isEditting = adTabbox.needSave(true, false) ||
         		adTabbox.getSelectedGridTab().isNew() ||
-        		(adTabbox.getSelectedDetailADTabpanel() != null && adTabbox.getSelectedDetailADTabpanel().getGridTab().isNew()));
-
+        		(adTabbox.getSelectedDetailADTabpanel() != null && adTabbox.getSelectedDetailADTabpanel().getGridTab().isNew());
+        toolbar.enableIgnore(isEditting);
+        
+        switchEditStatus (isEditting);
+        
         if (changed && !readOnly && !toolbar.isSaveEnable() ) {
         	if (tabPanel.getGridTab().getRecord_ID() > 0) {
             	if (adTabbox.getSelectedIndex() == 0 && !detailTab) {
