@@ -180,7 +180,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		}
 		else
 		{
-			pageSize = MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE);//JPIERE-0014:Form Window
+			pageSize = MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0014:Form Window
 			String limit = Library.getProperty(CustomGridDataLoader.GRID_DATA_LOADER_LIMIT);
 			if (limit == null || !(limit.equals(Integer.toString(pageSize)))) {
 				Library.setProperty(CustomGridDataLoader.GRID_DATA_LOADER_LIMIT, Integer.toString(pageSize));
@@ -213,7 +213,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	public void setDetailPaneMode(boolean detailPaneMode) {
 		if (this.detailPaneMode != detailPaneMode) {
 			this.detailPaneMode = detailPaneMode;
-			pageSize =  detailPaneMode ? DEFAULT_DETAIL_PAGE_SIZE : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE);//JPIERE-0014:Form Window
+			pageSize =  detailPaneMode ? DEFAULT_DETAIL_PAGE_SIZE : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0014:Form Window
 			updatePaging();
 		}
 	}
