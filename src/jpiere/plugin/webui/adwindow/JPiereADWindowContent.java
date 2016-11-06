@@ -25,6 +25,7 @@ import org.adempiere.webui.panel.IHelpContext;
 import org.adempiere.webui.panel.ITabOnCloseHandler;
 import org.adempiere.webui.part.WindowContainer;
 import org.adempiere.webui.session.SessionManager;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.util.CLogger;
 import org.zkoss.zk.au.out.AuScript;
@@ -85,7 +86,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
         Div div = new Div();
         div.setStyle("height: 100%; width: 100%");
         north.appendChild(div);
-        north.setVflex("0");
+        ZKUpdateUtil.setVflex(north, "0");
         toolbar.setParent(div);
         toolbar.setWindowNo(getWindowNo());
         breadCrumb = new BreadCrumb(getWindowNo());
@@ -138,8 +139,8 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 
         contentArea = new Div();
         contentArea.setParent(layout);
-        contentArea.setVflex("1");
-        contentArea.setHflex("1");
+        ZKUpdateUtil.setVflex(contentArea, "1");
+        ZKUpdateUtil.setHflex(contentArea, "1");
         contentArea.setStyle("overflow: auto;");
         adTabbox.createPart(contentArea);
 

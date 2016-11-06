@@ -19,7 +19,7 @@ import org.adempiere.webui.panel.IFormController;
 /**
  *  Abstract JPiere Form Window
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public abstract class AbstractJPiereFormWindow implements IJPiereFormWindowController,IFormController {

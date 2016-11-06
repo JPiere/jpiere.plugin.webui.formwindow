@@ -40,6 +40,7 @@ import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.component.Window;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridTab;
 import org.compiere.model.MQuery;
@@ -68,7 +69,7 @@ import org.zkoss.zul.Vbox;
  * @author Elaine
  * @date September 6, 2012
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereReportAction implements EventListener<Event>
@@ -100,7 +101,7 @@ public class JPiereReportAction implements EventListener<Event>
 		if(winReport == null)
 		{
 			winReport = new Window();
-			winReport.setWidth("450px");
+			ZKUpdateUtil.setWidth(winReport, "450px");
 			winReport.setClosable(true);
 			winReport.setBorder("normal");
 			winReport.setStyle("position:absolute");
@@ -145,7 +146,7 @@ public class JPiereReportAction implements EventListener<Event>
 			}
 
 			Vbox vb = new Vbox();
-			vb.setWidth("100%");
+			ZKUpdateUtil.setWidth(vb, "100%");
 			winReport.appendChild(vb);
 			winReport.setSclass("toolbar-popup-window");
 			vb.setSclass("toolbar-popup-window-cnt");
@@ -156,10 +157,10 @@ public class JPiereReportAction implements EventListener<Event>
 
 	        Columns columns = new Columns();
 	        Column column = new Column();
-	        column.setHflex("min");
+	        ZKUpdateUtil.setHflex(column, "min");
 	        columns.appendChild(column);
 	        column = new Column();
-	        column.setHflex("1");
+	        ZKUpdateUtil.setHflex(column, "1");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
 
@@ -170,7 +171,7 @@ public class JPiereReportAction implements EventListener<Event>
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.translate(Env.getCtx(), "AD_PrintFormat_ID")));
 			row.appendChild(cboPrintFormat);
-			cboPrintFormat.setHflex("1");
+			ZKUpdateUtil.setHflex(cboPrintFormat, "1");
 			cboPrintFormat.addEventListener(Events.ON_SELECT, this);
 
 			row = new Row();
@@ -182,12 +183,12 @@ public class JPiereReportAction implements EventListener<Event>
 			{
 				Panel panel = new Panel();
 				panel.appendChild(chkExport);
-				chkExport.setHflex("min");
+				ZKUpdateUtil.setHflex(chkExport, "min");
 				panel.appendChild(new Space());
 				chkExport.addEventListener(Events.ON_CHECK, this);
 				panel.appendChild(cboExportType);
-				cboExportType.setHflex("1");
-				panel.setHflex("1");
+				ZKUpdateUtil.setHflex(cboExportType, "1");
+				ZKUpdateUtil.setHflex(panel, "1");
 
 				row = new Row();
 				rows.appendChild(row);
@@ -275,19 +276,19 @@ public class JPiereReportAction implements EventListener<Event>
 		int Record_ID = 0;
 		int[] RecordIDs = null;
 		MQuery query = new MQuery(gridTab.getTableName());
-		String whereClause;
+		StringBuilder whereClause = new StringBuilder("");
 
 		if (currentRowOnly)
 		{
 			Record_ID = gridTab.getRecord_ID();
-			whereClause = gridTab.getTableModel().getWhereClause(gridTab.getCurrentRow());
-			if (whereClause==null)
-				whereClause = gridTab.getTableModel().getSelectWhereClause();
+			whereClause.append(gridTab.getTableModel().getWhereClause(gridTab.getCurrentRow()));
+			if (whereClause.length() == 0)
+				whereClause.append(gridTab.getTableModel().getSelectWhereClause());
 
 		}
 		else
 		{
-			whereClause = gridTab.getTableModel().getSelectWhereClause();
+			whereClause.append(gridTab.getTableModel().getSelectWhereClause());
 			RecordIDs = new int[gridTab.getRowCount()];
 			for(int i = 0; i < gridTab.getRowCount(); i++)
 			{
@@ -295,24 +296,34 @@ public class JPiereReportAction implements EventListener<Event>
 			}
 		}
 
-		if (whereClause!=null && whereClause.length() > 0)
+		if (whereClause.length() > 0)
 		{
-			if (whereClause.indexOf('@') != -1) //replace variables in context
+			if (whereClause.indexOf("@") != -1) //replace variables in context
 			{
-				String context = Env.parseContext(Env.getCtx(), panel.getWindowNo(), whereClause, false);
+				String context = Env.parseContext(Env.getCtx(), panel.getWindowNo(), whereClause.toString(), false);
 				if(context != null && context.trim().length() > 0)
 				{
-					whereClause = context;
+					whereClause = new StringBuilder(context);
 				}
 				else
 				{
 					log.log(Level.WARNING, "Failed to parse where clause. whereClause= "+whereClause);
-					whereClause = ("1 = 2");
+					whereClause = new StringBuilder("1 = 2");
 				}
 			}
 		}
 
-		query.addRestriction(whereClause);
+		if (!currentRowOnly && gridTab.isOnlyCurrentRows() && gridTab.getTabNo() == 0)
+		{
+			if (whereClause.length() > 0)
+				whereClause.append(" AND ");
+			//	Show only unprocessed or the one updated within x days
+			whereClause.append("(").append(gridTab.getTableName()).append(".Processed='N' OR ").append(gridTab.getTableName()).append(".Updated>");
+			whereClause.append("SysDate-1");
+			whereClause.append(")");
+		}
+
+		query.addRestriction(whereClause.toString());
 
 		PrintInfo info = new PrintInfo(pf.getName(), pf.getAD_Table_ID(), Record_ID);
 		info.setDescription(query.getInfo());
@@ -322,7 +333,7 @@ public class JPiereReportAction implements EventListener<Event>
 			// It's a report using the JasperReports engine
 			ProcessInfo pi = new ProcessInfo ("", pf.getJasperProcess_ID(), pf.getAD_Table_ID(), Record_ID);
 			pi.setRecord_IDs(RecordIDs);
-			pi.setIsBatch(true);
+			//pi.setIsBatch(true);
 
 			if (export)
 			{
@@ -405,10 +416,16 @@ public class JPiereReportAction implements EventListener<Event>
 				re.createXML(sw);
 				data = sw.getBuffer().toString().getBytes();
 			}
-			else if (ext.equals("csv") || ext.equals("ssv"))
+			else if (ext.equals("csv"))
 			{
 				StringWriter sw = new StringWriter();
 				re.createCSV(sw, ',', re.getPrintFormat().getLanguage());
+				data = sw.getBuffer().toString().getBytes();
+			}
+			else if (ext.equals("ssv"))
+			{
+				StringWriter sw = new StringWriter();							
+				re.createCSV(sw, ';', re.getPrintFormat().getLanguage());
 				data = sw.getBuffer().toString().getBytes();
 			}
 			else if (ext.equals("txt"))

@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 /**
  *  JPiere Window Validator Manager
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereWindowValidatorManager implements BundleActivator, ServiceTrackerCustomizer<JPiereWindowValidator, JPiereWindowValidator> {

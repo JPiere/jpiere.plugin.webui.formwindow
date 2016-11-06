@@ -14,6 +14,8 @@
 
 package jpiere.plugin.webui.panel.action;
 
+import static org.compiere.model.SystemIDs.REFERENCE_IMPORT_MODE;
+
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -45,13 +47,19 @@ import org.adempiere.webui.component.Listbox;
 import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.component.Window;
+import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.event.DialogEvents;
 import org.adempiere.webui.util.ReaderInputStream;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridTab;
+import org.compiere.model.MLookup;
+import org.compiere.model.MLookupFactory;
+import org.compiere.model.MLookupInfo;
 import org.compiere.util.Env;
 import org.compiere.util.Ini;
 import org.compiere.util.Msg;
+import org.compiere.util.Util;
 import org.zkoss.util.media.AMedia;
 import org.zkoss.util.media.Media;
 import org.zkoss.zk.ui.Executions;
@@ -68,7 +76,7 @@ import org.zkoss.zul.Vlayout;
  *
  * @author Carlos Ruiz
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereFileImportAction implements EventListener<Event>
@@ -83,7 +91,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 	private Listbox cboType = new Listbox();
 	private Button bFile = new Button();
 	private Listbox fCharset = new Listbox();
-	private Listbox fImportMode = new Listbox();
+	private WTableDirEditor fImportMode;
 	private InputStream m_file_istream = null;
 
 	/**
@@ -118,10 +126,9 @@ public class JPiereFileImportAction implements EventListener<Event>
 		}
 		fCharset.addEventListener(Events.ON_SELECT, this);
 
-		fImportMode.appendItem("Insert","I");
-		fImportMode.appendItem("Update","U");
-		fImportMode.appendItem("Merge","M");
-		fImportMode.setSelectedIndex(0);
+		MLookupInfo lookupInfo = MLookupFactory.getLookup_List(Env.getLanguage(Env.getCtx()), REFERENCE_IMPORT_MODE);
+		MLookup lookup = new MLookup(lookupInfo, 0);
+		fImportMode = new WTableDirEditor("ImportMode",true,false,true,lookup);
 
 		importerMap = new HashMap<String, IGridTabImporter>();
 		extensionMap = new HashMap<String, String>();
@@ -140,7 +147,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 		{
 			winImportFile = new Window();
 			winImportFile.setTitle(Msg.getMsg(Env.getCtx(), "FileImport") + ": " + panel.getActiveGridTab().getName());
-			winImportFile.setWidth("450px");
+			ZKUpdateUtil.setWidth(winImportFile, "450px");
 			winImportFile.setClosable(true);
 			winImportFile.setBorder("normal");
 			winImportFile.setStyle("position:absolute");
@@ -158,7 +165,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			cboType.setSelectedIndex(0);
 
 			Vbox vb = new Vbox();
-			vb.setWidth("100%");
+			ZKUpdateUtil.setWidth(vb, "100%");
 			winImportFile.appendChild(vb);
 
 			Vlayout vlayout = new Vlayout();
@@ -170,10 +177,10 @@ public class JPiereFileImportAction implements EventListener<Event>
 
 	        Columns columns = new Columns();
 	        Column column = new Column();
-	        column.setHflex("min");
+	        ZKUpdateUtil.setHflex(column, "min");
 	        columns.appendChild(column);
 	        column = new Column();
-	        column.setHflex("1");
+	        ZKUpdateUtil.setHflex(column, "1");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
 
@@ -182,27 +189,23 @@ public class JPiereFileImportAction implements EventListener<Event>
 
 			Row row = new Row();
 			rows.appendChild(row);
-			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "FilesOfType")));
+			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "FilesOfType", true)));
 			row.appendChild(cboType);
-			cboType.setHflex("1");
+			ZKUpdateUtil.setHflex(cboType, "1");
 
 			row = new Row();
 			rows.appendChild(row);
-			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "Charset", false) + ": "));
+			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "Charset", true) + ": "));
 			fCharset.setMold("select");
 			fCharset.setRows(0);
 			fCharset.setTooltiptext(Msg.getMsg(Env.getCtx(), "Charset", false));
 			row.appendChild(fCharset);
-			fCharset.setHflex("1");
+			ZKUpdateUtil.setHflex(fCharset, "1");
 
 			row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "import.mode", true)));
-			fImportMode.setMold("select");
-			fImportMode.setRows(0);
-			fImportMode.setTooltiptext(Msg.getMsg(Env.getCtx(), "import.mode", false));
-			row.appendChild(fImportMode);
-			fImportMode.setHflex("1");
+			row.appendChild(fImportMode.getComponent());
 
 			row = new Row();
 			rows.appendChild(row);
@@ -245,7 +248,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			Executions.getCurrent().getDesktop().getWebApp().getConfiguration().setUploadCharset(charset.name());
 			bFile.setLabel(Msg.getMsg(Env.getCtx(), "FileImportFile"));
 		} else if (event.getTarget().getId().equals(ConfirmPanel.A_OK)) {
-			if (m_file_istream == null || fCharset.getSelectedItem() == null)
+			if (m_file_istream == null || fCharset.getSelectedItem() == null || Util.isEmpty((String)fImportMode.getValue()))
 				return;
 			importFile();
 		} else if (event.getName().equals(DialogEvents.ON_WINDOW_CLOSE)) {
@@ -324,11 +327,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 				return;
 			charset = (Charset)listitem.getValue();
 
-			ListItem importItem = fImportMode.getSelectedItem();
-			if (importItem == null)
-				return;
-
-			String iMode = (String)importItem.getValue();
+			String iMode = (String) fImportMode.getValue();
 			File outFile = importer.fileImport(panel.getActiveGridTab(), childs, m_file_istream, charset,iMode);
 			winImportFile.onClose();
 			winImportFile = null;

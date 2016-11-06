@@ -7,8 +7,15 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  org.adempiere.ui;bundle-version="2.1.0",
  org.adempiere.ui.zk;bundle-version="2.1.0",
- org.zkoss.zk.library;bundle-version="6.0.0",
- org.eclipse.osgi;bundle-version="3.7.2"
+ org.eclipse.osgi;bundle-version="3.7.2",
+ org.idempiere.zk.extra;bundle-version="1.0.0",
+ zk;bundle-version="8.0.1",
+ zkbind;bundle-version="8.0.1",
+ zkplus;bundle-version="8.0.1",
+ zcommon;bundle-version="8.0.1",
+ zul;bundle-version="8.0.1",
+ zel;bundle-version="8.0.1",
+ zhtml;bundle-version="8.0.1"
 Service-Component: OSGI-INF/JPiereWebuiFormFactory.xml,
  OSGI-INF/JPiereWebuiFormWindowZoomFactory.xml
 Bundle-Activator: jpiere.plugin.webui.JPiereWebUIActivator
