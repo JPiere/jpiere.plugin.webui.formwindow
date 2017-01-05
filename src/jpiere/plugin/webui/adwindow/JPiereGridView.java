@@ -41,6 +41,7 @@ import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.util.SortComparator;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridTable;
@@ -167,10 +168,10 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		setId("gridView");
 		createListbox();
 
-		this.setHflex("1");
+		ZKUpdateUtil.setHflex(this, "1");
 
 		gridFooter = new Div();
-		gridFooter.setVflex("0");
+		ZKUpdateUtil.setVflex(gridFooter, "0");
 
 		//default paging size
 		if (AEnv.isTablet())
@@ -192,7 +193,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 		appendChild(listbox);
 		appendChild(gridFooter);
-		this.setVflex("true");
+		ZKUpdateUtil.setVflex(this, "true");
 
 		setStyle(HEADER_GRID_STYLE);
 		gridFooter.setStyle(HEADER_GRID_STYLE);
@@ -204,8 +205,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	protected void createListbox() {
 		listbox = new Grid();
 		listbox.setSizedByContent(false);
-		listbox.setVflex("1");
-		listbox.setHflex("1");
+		ZKUpdateUtil.setVflex(listbox, "1");
+		ZKUpdateUtil.setHflex(listbox, "1");
 		listbox.setSclass("adtab-grid");
 		listbox.setEmptyMessage(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Processing")));
 	}
@@ -290,7 +291,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				int AD_Field_ID = Integer.parseInt(fieldIdStr);
 				for(GridField gridField : tmpFields) {
 					if (gridField.getAD_Field_ID() == AD_Field_ID) {
-						if(gridField.isDisplayedGrid() && !gridField.isToolbarButton())
+						// IDEMPIERE-2204 add field in tabCustomization list to display list event this field have showInGrid = false
+						if((gridField.isDisplayedGrid() || gridField.isDisplayed()) && !gridField.isToolbarOnlyButton())
 							fieldList.add(gridField);
 
 						break;
@@ -486,7 +488,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		}
 
 		org.zkoss.zul.Column selection = new Column();
-		selection.setWidth("22px");
+		ZKUpdateUtil.setWidth(selection, "22px");
 		try{
 			selection.setSort("none");
 		} catch (Exception e) {}
@@ -498,7 +500,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		columns.appendChild(selection);
 
 		org.zkoss.zul.Column indicator = new Column();
-		indicator.setWidth("22px");
+		ZKUpdateUtil.setWidth(indicator, "22px");
 		try {
 			indicator.setSort("none");
 		} catch (Exception e) {}
@@ -537,7 +539,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		int sameLineColumnCounter = 0;
 		for (int i = 0; i < numColumns; i++)
 		{
-			if (gridField[i].isDisplayedGrid() && !gridField[i].isToolbarButton())
+			// IDEMPIERE-2148: when has tab customize, ignore check properties isDisplayedGrid
+			if (gridField[i].isDisplayedGrid() && !gridField[i].isToolbarOnlyButton())
 			{
 				colnames.put(index, gridField[i].getHeader());
 				index++;
@@ -545,26 +548,31 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				int colindex =tableModel.findColumn(gridField[i].getColumnName());
 				column.setSortAscending(new SortComparator(colindex, true, Env.getLanguage(Env.getCtx())));
 				column.setSortDescending(new SortComparator(colindex, false, Env.getLanguage(Env.getCtx())));
-				column.setLabel(gridField[i].getHeader());
-				if (columnWidthMap != null && columnWidthMap.get(gridField[i].getAD_Field_ID()) != null) {
-					column.setWidth(columnWidthMap.get(gridField[i].getAD_Field_ID()));
+				//IDEMPIERE-2898 - UX: Field only showing title at header on grid
+				if( gridField[i].isFieldOnly() )
+					column.setLabel("");
+				else
+					column.setLabel(gridField[i].getHeader());
+
+				if (columnWidthMap != null && columnWidthMap.get(gridField[i].getAD_Field_ID()) != null && !columnWidthMap.get(gridField[i].getAD_Field_ID()).equals("")) {
+					ZKUpdateUtil.setWidth(column, columnWidthMap.get(gridField[i].getAD_Field_ID()));
 				} else {
 					if (gridField[i].getDisplayType()==DisplayType.YesNo) {
 						if (i > 0) {
-							column.setHflex("min");
+							ZKUpdateUtil.setHflex(column, "min");
 						} else {
 							int estimatedWidth=60;
 							int headerWidth = (gridField[i].getHeader().length()+2) * 8;
 							if (headerWidth > estimatedWidth)
 								estimatedWidth = headerWidth;
-							column.setWidth(estimatedWidth+"px");
+							ZKUpdateUtil.setWidth(column, estimatedWidth+"px");
 						}
 					} else if (DisplayType.isNumeric(gridField[i].getDisplayType()) && "Line".equals(gridField[i].getColumnName())) {
 						//special treatment for line
 						if (i > 0)
-							column.setHflex("min");
+							ZKUpdateUtil.setHflex(column, "min");
 						else
-							column.setWidth("60px");
+							ZKUpdateUtil.setWidth(column, "60px");
 					} else {
 						int estimatedWidth = 0;
 						if (DisplayType.isNumeric(gridField[i].getDisplayType()))
@@ -586,17 +594,17 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 							if (DisplayType.isLookup(gridField[i].getDisplayType()))
 							{
 								if (headerWidth > MIN_COMBOBOX_WIDTH)
-									column.setHflex("min");
+									ZKUpdateUtil.setHflex(column, "min");
 							}
 							else if (DisplayType.isNumeric(gridField[i].getDisplayType()))
 							{
 								if (headerWidth > MIN_NUMERIC_COL_WIDTH)
-									column.setHflex("min");
+									ZKUpdateUtil.setHflex(column, "min");
 							}
 							else if (!DisplayType.isText(gridField[i].getDisplayType()))
 							{
 								if (headerWidth > MIN_COLUMN_WIDTH)
-									column.setHflex("min");
+									ZKUpdateUtil.setHflex(column, "min");
 							}
 						}
 
@@ -606,7 +614,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 								estimatedWidth = MAX_COLUMN_WIDTH;
 							else if ( estimatedWidth < MIN_COLUMN_WIDTH)
 								estimatedWidth = MIN_COLUMN_WIDTH;
-							column.setWidth(Integer.toString(estimatedWidth) + "px");
+							ZKUpdateUtil.setWidth(column, Integer.toString(estimatedWidth) + "px");
 						}
 					}
 				}
@@ -1243,7 +1251,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 					Component firstChild = parent.getFirstChild();
 					if ( gridFooter.getParent() != firstChild ) {
 						firstChild.appendChild(gridFooter);
-						gridFooter.setHflex("0");
+						ZKUpdateUtil.setHflex(gridFooter, "0");
 						gridFooter.setSclass("adwindow-detailpane-adtab-grid-south");
 					}
 					break;
@@ -1256,7 +1264,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		else
 		{
 			if (gridFooter.getParent() != this) {
-				gridFooter.setHflex("1");
+				ZKUpdateUtil.setHflex(gridFooter, "1");
 				gridFooter.setSclass("adtab-grid-south");
 				appendChild(gridFooter);
 			}

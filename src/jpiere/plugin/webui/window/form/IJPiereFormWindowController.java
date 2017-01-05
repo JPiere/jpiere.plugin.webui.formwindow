@@ -20,7 +20,7 @@ import org.compiere.model.MQuery;
 /**
  *  Interface JPiere Form Window Controller
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public interface IJPiereFormWindowController

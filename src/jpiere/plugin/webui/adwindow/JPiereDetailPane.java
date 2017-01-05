@@ -38,6 +38,7 @@ import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.component.Window;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.compiere.model.MToolBarButton;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -146,7 +147,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		});
 		tabbox.setSclass("adwindow-detailpane-tabbox");
 		tabbox.setTabscroll(true);
-		tabbox.setWidth("100%");
+		ZKUpdateUtil.setWidth(tabbox, "100%");
 
 		createPopup();
 
@@ -284,7 +285,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		Tabpanels tabpanels = tabbox.getTabpanels();
 		if (tabpanels == null) {
 			tabpanels = new Tabpanels();
-			tabpanels.setWidth("100%");
+			ZKUpdateUtil.setWidth(tabpanels, "100%");
 			tabbox.appendChild(tabpanels);
 		}
 		Tabpanel tp = new Tabpanel();
@@ -621,7 +622,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 	private void createPopup() {
 		msgPopupCnt = new Div();
-		msgPopupCnt.setVflex("1");
+		ZKUpdateUtil.setVflex(msgPopupCnt, "1");
 
 
 		msgPopup = new Window();
@@ -630,7 +631,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		msgPopup.setClosable(true);
 		msgPopup.setSizable(true);
 		msgPopup.setContentStyle("overflow: auto");
-        msgPopup.setWidth("500px");
+		ZKUpdateUtil.setWidth(msgPopup, "500px");
         msgPopup.appendChild(msgPopupCnt);
         msgPopup.setPage(SessionManager.getAppDesktop().getComponent().getPage());
         msgPopup.setShadow(true);
@@ -659,8 +660,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	 */
 	@Override
 	public void setVflex(String flex) {
+		if (getHeight() != null)
+			setHeight(null);
 		super.setVflex(flex);
-		tabbox.setVflex(flex);
+		ZKUpdateUtil.setVflex(tabbox, flex);
 	}
 
 	/**

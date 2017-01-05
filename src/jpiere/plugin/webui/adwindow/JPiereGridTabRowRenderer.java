@@ -45,9 +45,11 @@ import org.adempiere.webui.panel.HelpController;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.GridTabDataBinder;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.MStyle;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.X_AD_StyleLine;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -95,7 +97,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	private static final String CELL_BORDER_STYLE_NONE = "border: none;";
 	private static final String ROW_STYLE = "border: solid 1px #dddddd; cursor:pointer";
 
-	private static final int MAX_TEXT_LENGTH = 60;
+	private static final int MAX_TEXT_LENGTH_DEFAULT = 60;
 	private GridTab gridTab;
 	private int windowNo;
 	private GridTabDataBinder dataBinder;
@@ -319,6 +321,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	 */
 	private void setLabelText(String text, Label label) {
 		String display = text;
+		final int MAX_TEXT_LENGTH = MSysConfig.getIntValue(MSysConfig.MAX_TEXT_LENGTH_ON_GRID_VIEW,MAX_TEXT_LENGTH_DEFAULT,Env.getAD_Client_ID(Env.getCtx()));
 		if (text != null && text.length() > MAX_TEXT_LENGTH)
 			display = text.substring(0, MAX_TEXT_LENGTH - 3) + "...";
 		// since 5.0.8, the org.zkoss.zhtml.Text is encoded by default
@@ -536,7 +539,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				}
 			}
 
-			if (!gridPanelFields[i].isDisplayedGrid() || gridPanelFields[i].isToolbarButton()) {
+			if (!gridPanelFields[i].isDisplayedGrid() || gridPanelFields[i].isToolbarOnlyButton()) {
 				continue;
 			}
 
@@ -560,7 +563,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			component.setVisible(gridPanelFields[i].isDisplayed(ctx, true));
 
 			div.setStyle(divStyle);
-			div.setWidth("100%");
+			ZKUpdateUtil.setWidth(div, "100%");
 			div.setHeight("28px");//JPIERE-0014:Fomr Window - Set Small Height for multi-column
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);

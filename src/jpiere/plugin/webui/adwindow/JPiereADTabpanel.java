@@ -60,6 +60,7 @@ import org.adempiere.webui.panel.HelpController;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.util.GridTabDataBinder;
 import org.adempiere.webui.util.TreeUtils;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.DataStatusListener;
@@ -210,8 +211,6 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	public static final String ON_TOGGLE_EVENT = "onToggle";
 
-	private static final String DEFAULT_PANEL_WIDTH = "300px";
-
 	private static enum SouthEvent {
     	SLIDE(),
     	OPEN(),
@@ -245,11 +244,11 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     {
     	LayoutUtils.addSclass("adtab-content", this);
 
-    	this.setWidth("100%");
+    	ZKUpdateUtil.setWidth(this, "100%");
 
         form = new Grid();
-        form.setHflex("1");
-        form.setHeight(null);
+        ZKUpdateUtil.setHflex(form, "1");
+        ZKUpdateUtil.setHeight(form, null);
         form.setVflex(false);
         form.setSclass("grid-layout adwindow-form");
         form.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "form");
@@ -308,7 +307,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				int maxHeight = browserHeight - topmarginpx;
 				if (prefHeight <= maxHeight) {
 					height = Integer.toString(prefHeight) + "px";
-					formContainer.getSouth().setHeight(height);
+					ZKUpdateUtil.setHeight(formContainer.getSouth(), height);
 				}
 			} catch (Exception e) {
 				// just ignore exception is harmless here, consequence is just not setting height so it will assume the default of theme
@@ -370,7 +369,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			treePanel = new ADTreePanel(windowNo, gridTab.getTabNo());
 			West west = new West();
 			west.appendChild(treePanel);
-			west.setWidth(widthTreePanel());
+			ZKUpdateUtil.setWidth(west, "300px");
 			west.setCollapsible(true);
 			west.setSplittable(true);
 			west.setAutoscroll(true);
@@ -380,8 +379,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			Vlayout div = new Vlayout();
 			div.appendChild(form);
 			center.appendChild(div);
-			div.setVflex("1");
-			div.setHflex("1");
+			ZKUpdateUtil.setVflex(div, "1");
+			ZKUpdateUtil.setHflex(div, "1");
 			div.setSclass("adtab-form");
 			div.setStyle("overflow-y: visible;");
 			div.setSpacing("0px");
@@ -397,8 +396,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			div.setSclass("adtab-form");
 			div.appendChild(form);
 			div.setStyle("overflow-y: visible;");
-			div.setVflex("1");
-			div.setWidth("100%");
+			ZKUpdateUtil.setVflex(div, "1");
+			ZKUpdateUtil.setWidth(div, "100%");
 			div.setSpacing("0px");
 
 			Borderlayout layout = new Borderlayout();
@@ -440,7 +439,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
     	for (int h=0;h<numCols;h++){
     		Column col = new Column();
-    		col.setWidth(equalWidth + "%");
+    		ZKUpdateUtil.setWidth(col, equalWidth + "%");
     		columns.appendChild(col);
     	}
 
@@ -1087,6 +1086,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	}
     	else if (treePanel != null && event.getTarget() == treePanel.getTree()) {
     		Treeitem item =  treePanel.getTree().getSelectedItem();
+    		if (item.getValue() != null)
     		navigateTo((DefaultTreeNode<MTreeNode>)item.getValue());
     	}
     	else if (ON_DEFER_SET_SELECTED_NODE.equals(event.getName())) {
@@ -1184,18 +1184,6 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	return height;
     }
 
-    private String widthTreePanel() {
-    	String width = null;
-    	int windowId = getGridTab().getAD_Window_ID();
-    	int adTabId = getGridTab().getAD_Tab_ID();
-    	if (windowId > 0 && adTabId > 0) {
-    		width = Env.getPreference(Env.getCtx(), windowId, adTabId+"|TreePanel.Width", false);
-    	}
-    	if (Util.isEmpty(width)) {
-    		width = DEFAULT_PANEL_WIDTH;
-    	}
-    	return width;
-    }
     private void navigateTo(DefaultTreeNode<MTreeNode> value) {
     	MTreeNode treeNode = value.getData();
     	//  We Have a TreeNode
@@ -1416,7 +1404,13 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 		SimpleTreeModel model = (SimpleTreeModel)(TreeModel<?>) treePanel.getTree().getModel();
 		if (treePanel.getTree().getSelectedItem() != null) {
-			DefaultTreeNode<Object> treeNode = treePanel.getTree().getSelectedItem().getValue();
+			Treeitem treeItem = treePanel.getTree().getSelectedItem();
+			if (!treeItem.isLoaded()){
+				return;
+			}
+			
+			DefaultTreeNode<Object> treeNode = treeItem.getValue();
+			 
 			MTreeNode data = (MTreeNode) treeNode.getData();
 			if (data.getNode_ID() == recordId) {
 				int[] path = model.getPath(treeNode);
@@ -1586,7 +1580,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			} else {
 				attachDetailPane();
 			}
-			this.setVflex("true");
+			ZKUpdateUtil.setVflex(this, "true");
 			listPanel.setDetailPaneMode(detailPaneMode);
 		}
 	}

@@ -19,7 +19,7 @@ import org.adempiere.util.Callback;
 /**
  *  JPiere Window Validator
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public interface JPiereWindowValidator {

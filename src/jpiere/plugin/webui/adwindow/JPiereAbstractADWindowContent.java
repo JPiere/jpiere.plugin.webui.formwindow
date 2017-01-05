@@ -81,6 +81,8 @@ import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
+import org.adempiere.webui.util.ZKUpdateUtil;
+import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -96,6 +98,7 @@ import org.compiere.model.GridWindowVO;
 import org.compiere.model.I_M_Product;
 import org.compiere.model.MImage;
 import org.compiere.model.MProcess;
+import org.compiere.model.MProjectIssue;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRecentItem;
 import org.compiere.model.MRole;
@@ -766,8 +769,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		findWindow.setTitle(null);
 		findWindow.setBorder("none");
 		findWindow.setStyle("position: absolute; border-bottom: 2px solid #484848; padding: 2px; background-color: #fff;");
-		findWindow.setWidth("100%");
-		findWindow.setHeight("60%");
+		ZKUpdateUtil.setWidth(findWindow, "100%");
+		ZKUpdateUtil.setHeight(findWindow, "60%");
 		findWindow.setZindex(1000);
 		findWindow.setSizable(false);
 		findWindow.setContentStyle("background-color: #fff; width: 99%; margin: auto;");
@@ -1324,7 +1327,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	}
 
-	private String prevdbInfo = "";
 	/**
 	 * @param e
 	 * @see DataStatusListener#dataStatusChanged(DataStatusEvent)
@@ -1357,14 +1359,12 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	        breadCrumb.setStatusDB(dbInfo, e);
 
 	        String adInfo = e.getAD_Message();
-	        if (   ! prevdbInfo.equals(dbInfo)
-	        	&& (   GridTab.DEFAULT_STATUS_MESSAGE.equals(adInfo)
-	        	    || GridTable.DATA_REFRESH_MESSAGE.equals(adInfo)
-	        	    || GridTable.DATA_INSERTED_MESSAGE.equals(adInfo)
-	        	    || GridTable.DATA_UPDATE_COPIED_MESSAGE.equals(adInfo)
-	        	   )
-	           ) {
-	        	prevdbInfo = dbInfo;
+	        if (   adInfo == null
+		        	|| GridTab.DEFAULT_STATUS_MESSAGE.equals(adInfo)
+		        	|| GridTable.DATA_REFRESH_MESSAGE.equals(adInfo)
+		        	|| GridTable.DATA_INSERTED_MESSAGE.equals(adInfo)
+		        	|| GridTable.DATA_UPDATE_COPIED_MESSAGE.equals(adInfo)
+		           ) {
 
 	        String prefix = null;
 	        if (dbInfo.contains("*"))
@@ -2837,7 +2837,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				if (DocAction.STATUS_Completed.equals(docStatus)
 					|| DocAction.STATUS_Closed.equals(docStatus)
 					|| DocAction.STATUS_Reversed.equals(docStatus)
-					|| DocAction.STATUS_Voided.equals(docStatus))
+					|| DocAction.STATUS_Voided.equals(docStatus)
+					|| table_ID == MProjectIssue.Table_ID) // document without status
 					;
 				else
 				{

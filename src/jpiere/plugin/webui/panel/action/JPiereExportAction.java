@@ -43,6 +43,7 @@ import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.component.Window;
 import org.adempiere.webui.event.DialogEvents;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridTab;
 import org.compiere.util.Env;
@@ -60,7 +61,7 @@ import org.zkoss.zul.Vlayout;
  *
  * @author hengsin
  *
- * @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereExportAction implements EventListener<Event>
@@ -109,7 +110,7 @@ public class JPiereExportAction implements EventListener<Event>
 		{
 			winExportFile = new Window();
 			winExportFile.setTitle(Msg.getMsg(Env.getCtx(), "Export") + ": " + panel.getActiveGridTab().getName());
-			winExportFile.setWidth("450px");
+			ZKUpdateUtil.setWidth(winExportFile, "450px");
 			winExportFile.setClosable(true);
 			winExportFile.setBorder("normal");
 			winExportFile.setStyle("position:absolute");
@@ -128,7 +129,7 @@ public class JPiereExportAction implements EventListener<Event>
 			cboType.addActionListener(this);
 
 			Vbox vb = new Vbox();
-			vb.setWidth("100%");
+			ZKUpdateUtil.setWidth(vb, "100%");
 			winExportFile.appendChild(vb);
 
 			Vlayout vlayout = new Vlayout();
@@ -140,10 +141,10 @@ public class JPiereExportAction implements EventListener<Event>
 
 	        Columns columns = new Columns();
 	        Column column = new Column();
-	        column.setHflex("min");
+	        ZKUpdateUtil.setHflex(column, "min");
 	        columns.appendChild(column);
 	        column = new Column();
-	        column.setHflex("1");
+	        ZKUpdateUtil.setHflex(column, "1");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
 
@@ -154,7 +155,7 @@ public class JPiereExportAction implements EventListener<Event>
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "FilesOfType")));
 			row.appendChild(cboType);
-			cboType.setHflex("1");
+			ZKUpdateUtil.setHflex(cboType, "1");
 
 			row = new Row();
 			rows.appendChild(row);

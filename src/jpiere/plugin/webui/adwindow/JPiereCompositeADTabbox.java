@@ -30,6 +30,7 @@ import org.adempiere.webui.adwindow.DetailPane;					//JPIERE-0014
 import org.adempiere.webui.adwindow.IADTabpanel;				//JPIERE-0014
 import org.adempiere.webui.component.ADTabListModel;
 import org.adempiere.webui.component.ADTabListModel.ADTabLabel;
+import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.DataStatusListener;
@@ -99,7 +100,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 			@Override
 			public void onEvent(Event event) throws Exception {
 				if (DetailPane.ON_EDIT_EVENT.equals(event.getName())) {
-					if (headerTab.getGridTab().isNew()) return;
+					if (headerTab.getGridTab().isNew() && ! headerTab.needSave(true, false)) return;
 
 					final int row = getSelectedDetailADTabpanel() != null
 							? getSelectedDetailADTabpanel().getGridTab().getCurrentRow()
@@ -233,6 +234,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 		JPiereIADTabpanel selectedPanel = getSelectedDetailADTabpanel();
 		if (selectedPanel == null) return;
 		int newIndex = selectedPanel.getTabNo();
+		selectedPanel.query();
 
 		Executions.getCurrent().setAttribute(AD_TABBOX_ON_EDIT_DETAIL_ATTRIBUTE, selectedPanel);
 		Event selectionChanged = new Event(ON_SELECTION_CHANGED_EVENT, layout, new Object[]{oldIndex, newIndex});
@@ -262,8 +264,8 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     protected Component doCreatePart(Component parent)
     {
     	layout = new Vlayout();
-    	layout.setHeight("100%");
-    	layout.setWidth("100%");
+    	ZKUpdateUtil.setHeight(layout, "100%");
+    	ZKUpdateUtil.setWidth(layout, "100%");
     	layout.setStyle("position: relative");
     	if (parent != null) {
     		layout.setParent(parent);
@@ -423,8 +425,8 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     		headerTab.getJPiereDetailPane().setVflex("true");
     	}
     	HtmlBasedComponent htmlComponent = (HtmlBasedComponent) tabPanel;
-        htmlComponent.setVflex("1");
-        htmlComponent.setWidth("100%");
+    	ZKUpdateUtil.setVflex(htmlComponent, "1"); 
+    	ZKUpdateUtil.setWidth(htmlComponent, "100%");
 
         tabPanel.getGridTab().addDataStatusListener(new SyncDataStatusListener(tabPanel));
 	}
