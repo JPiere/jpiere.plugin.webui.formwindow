@@ -132,23 +132,6 @@ public class JPiereADWindow extends AbstractUIPart
     	return image;
     }
 
-    public AImage getAImage() throws IOException {
-    	MImage image = getMImage();
-    	AImage aImage = null;
-    	if (image != null) {
-    		synchronized (imageCache) {
-    			aImage = imageCache.get(image.getAD_Image_ID());
-			}
-    		if (aImage == null) {
-    			aImage = new AImage(image.getName(), image.getData());
-    			synchronized (imageCache) {
-    				imageCache.put(image.getAD_Image_ID(), aImage);
-    			}
-    		}
-    	}
-		return aImage;
-	}
-
     protected Component doCreatePart(Component parent)
     {
     	windowPanelComponent = windowContent.createPart(parent);

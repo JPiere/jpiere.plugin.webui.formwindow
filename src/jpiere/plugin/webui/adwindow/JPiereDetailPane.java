@@ -418,7 +418,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 		toolbar.appendChild(messageContainer);
 		toolbar.setSclass("adwindow-detailpane-toolbar");
-		toolbar.setVflex("0");
+		ZKUpdateUtil.setVflex(toolbar, "0");
 		messageContainers.put(tabLabel.AD_Tab_ID, messageContainer);
 		tabPanel.setAttribute("AD_Tab_ID", tabLabel.AD_Tab_ID);
 
