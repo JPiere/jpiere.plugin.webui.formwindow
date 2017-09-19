@@ -18,6 +18,7 @@ Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  zhtml;bundle-version="8.0.1"
 Service-Component: OSGI-INF/JPiereWebuiFormFactory.xml,OSGI-INF/JPiereWebuiFormWindowZoomFactory.xml,
  OSGI-INF/JPiereWebuiFormWindowContractOrderWindowValidator.xml
+ ,OSGI-INF/JPiereWebuiFormWindowContractInvoiceWindowValidator.xml
 Bundle-Activator: jpiere.plugin.webui.JPiereWebUIActivator
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: OSS ERP Solutions

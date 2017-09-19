@@ -24,7 +24,7 @@ import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridTab;
-import org.compiere.model.MOrder;
+import org.compiere.model.MInvoice;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -39,7 +39,7 @@ import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
 * @author Hideaki Hagiwara
 *
 */
-public class JPiereContractOrderWindowValidator implements JPiereWindowValidator {
+public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidator {
 	
 	@Override
 	public void onWindowEvent(JPiereWindowValidatorEvent event, Callback<Boolean> callback)
@@ -52,23 +52,23 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 			{
 				;//Notihg to do
 				
-			}else{			
-				int JP_ContractProcPeriod_ID = ((Integer)gridTab.getValue("JP_ContractProcPeriod_ID")).intValue();
+			}else{
+				int JP_ContractProcPeriod_ID = ((Integer)obj).intValue();
 				if(JP_ContractProcPeriod_ID > 0)
 				{
 					int Record_ID =((Integer)gridTab.getRecord_ID()).intValue();
 					int JP_ContractContent_ID = ((Integer)gridTab.getValue("JP_ContractContent_ID")).intValue();
-					MOrder[] orders = getOrderByContractPeriod(Env.getCtx(),JP_ContractContent_ID, JP_ContractProcPeriod_ID);
-					for(int i = 0; i < orders.length; i++)
+					MInvoice[] invoices = getInvoiceByContractPeriod(Env.getCtx(),JP_ContractContent_ID, JP_ContractProcPeriod_ID);
+					for(int i = 0; i < invoices.length; i++)
 					{
-						if(orders[i].getC_Order_ID() == Record_ID)
+						if(invoices[i].getC_Order_ID() == Record_ID)
 						{
 							continue;
 						}else{
 								
-							String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + orders[i].getDocumentNo();
+							String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + invoices[i].getDocumentNo();
 							String msg = docInfo + " " + Msg.getMsg(Env.getCtx(),"JP_DoYouConfirmIt");//Do you confirm it?
-							final MOrder order = orders[i];
+							final MInvoice invoice = invoices[i];
 							Callback<Boolean> isZoom = new Callback<Boolean>()
 							{
 									@Override
@@ -76,7 +76,7 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 									{
 										if(result)
 										{
-											AEnv.zoom(MOrder.Table_ID, order.getC_Order_ID());
+											AEnv.zoom(MInvoice.Table_ID, invoice.getC_Invoice_ID());
 										}
 									}
 								
@@ -87,16 +87,18 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 					}//for
 				}
 			}//if(obj == null)
+			
 			callback.onCallback(true);
+			
 		}//BEFORE_SAVE
 		
 		callback.onCallback(true);
 	}
 	
-	public MOrder[] getOrderByContractPeriod(Properties ctx, int JP_ContractContent_ID, int JP_ContractProcPeriod_ID)
+	public MInvoice[] getInvoiceByContractPeriod(Properties ctx, int JP_ContractContent_ID, int JP_ContractProcPeriod_ID)
 	{
-		ArrayList<MOrder> list = new ArrayList<MOrder>();
-		final String sql = "SELECT * FROM C_Order WHERE JP_ContractContent_ID=? AND JP_ContractProcPeriod_ID=? AND DocStatus NOT IN ('VO','RE')";
+		ArrayList<MInvoice> list = new ArrayList<MInvoice>();
+		final String sql = "SELECT * FROM C_Invoice WHERE JP_ContractContent_ID=? AND JP_ContractProcPeriod_ID=? AND DocStatus NOT IN ('VO','RE')";
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
@@ -106,7 +108,7 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 			pstmt.setInt(2, JP_ContractProcPeriod_ID);
 			rs = pstmt.executeQuery();
 			while(rs.next())
-				list.add(new MOrder(ctx, rs, null));
+				list.add(new MInvoice(ctx, rs, null));
 		}
 		catch (Exception e)
 		{
@@ -119,8 +121,8 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 		}
 		
 		
-		MOrder[] orderes = new MOrder[list.size()];
-		list.toArray(orderes);
-		return orderes;
+		MInvoice[] invoices = new MInvoice[list.size()];
+		list.toArray(invoices);
+		return invoices;
 	}
 }

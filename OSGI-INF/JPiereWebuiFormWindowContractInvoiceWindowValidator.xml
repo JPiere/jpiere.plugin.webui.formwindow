@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="JPiereWebuiFormWindowContractInvoiceWindowValidator">
+   <implementation class="jpiere.plugin.webui.window.validator.JPiereContractInvoiceWindowValidator"/>
+   <property name="AD_Window_UU" type="String">22c03042-24c7-4e70-8ad6-c014c5424363
+accf9a84-7f68-42a7-a616-0253b8220875
+bc57f4f6-14db-4d01-a1ba-a2d4adf41fec
+81838bde-842f-4fc0-86cf-a232f4508335
+   </property>
+   <service>
+      <provide interface="jpiere.plugin.webui.adwindow.validator.JPiereWindowValidator"/>
+   </service>
+</scr:component>
