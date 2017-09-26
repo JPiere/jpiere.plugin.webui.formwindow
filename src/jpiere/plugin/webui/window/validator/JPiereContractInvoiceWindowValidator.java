@@ -51,8 +51,8 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 			GridField gf_ContractProcPeriod_ID = gridTab.getField("JP_ContractProcPeriod_ID");
 			int old_ContractProcPeriod_ID = 0;
 			int new_ContractProcPeriod_ID = 0;
-			Object old_value =gf_ContractProcPeriod_ID.getOldValue();
-			Object new_value = (Integer)gf_ContractProcPeriod_ID.getValue();
+			Object old_value = gf_ContractProcPeriod_ID.getOldValue();
+			Object new_value = gf_ContractProcPeriod_ID.getValue();
 			if(old_value == null)
 				old_ContractProcPeriod_ID = 0;
 			else
