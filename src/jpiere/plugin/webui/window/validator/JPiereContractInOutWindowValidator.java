@@ -25,8 +25,8 @@ import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
-import org.compiere.model.MInvoice;
-import org.compiere.model.MInvoiceLine;
+import org.compiere.model.MInOut;
+import org.compiere.model.MInOutLine;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -41,7 +41,7 @@ import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
 * @author Hideaki Hagiwara
 *
 */
-public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidator {
+public class JPiereContractInOutWindowValidator implements JPiereWindowValidator {
 	
 	@Override
 	public void onWindowEvent(JPiereWindowValidatorEvent event, Callback<Boolean> callback)
@@ -82,17 +82,17 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 //						}else{
 //							
 //							int JP_ContractContent_ID = ((Integer)obj_ContracContent_ID).intValue();
-//							MInvoice[] invoices = getInvoiceByContractPeriod(Env.getCtx(),JP_ContractContent_ID, new_ContractProcPeriod_ID);
-//							for(int i = 0; i < invoices.length; i++)
+//							MInOut[] inouts = getInOutByContractPeriod(Env.getCtx(),JP_ContractContent_ID, new_ContractProcPeriod_ID);
+//							for(int i = 0; i < inouts.length; i++)
 //							{
-//								if(invoices[i].getC_Invoice_ID() == Record_ID)
+//								if(inouts[i].getM_InOut_ID() == Record_ID)
 //								{
 //									continue;
 //								}else{
 //										
-//									String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + invoices[i].getDocumentNo();
+//									String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + inouts[i].getDocumentNo();
 //									String msg = docInfo + " " + Msg.getMsg(Env.getCtx(),"JP_DoYouConfirmIt");//Do you confirm it?
-//									final MInvoice invoice = invoices[i];
+//									final MInOut io = inouts[i];
 //									Callback<Boolean> isZoom = new Callback<Boolean>()
 //									{
 //											@Override
@@ -100,7 +100,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 //											{
 //												if(result)
 //												{
-//													AEnv.zoom(MInvoice.Table_ID, invoice.getC_Invoice_ID());
+//													AEnv.zoom(MInOut.Table_ID, io.getM_InOut_ID());
 //												}
 //											}
 //										
@@ -121,18 +121,18 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 						}else{
 							
 							int JP_ContractLine_ID = ((Integer)obj_ContracLine_ID).intValue();
-							MInvoiceLine[] invoiceLines = getInvoiceLineByContractPeriod(Env.getCtx(), JP_ContractLine_ID ,new_ContractProcPeriod_ID);
-							for(int i = 0; i < invoiceLines.length; i++)
+							MInOutLine[] ioLines = getInOutLineByContractPeriod(Env.getCtx(), JP_ContractLine_ID ,new_ContractProcPeriod_ID);
+							for(int i = 0; i < ioLines.length; i++)
 							{
-								if(invoiceLines[i].getC_InvoiceLine_ID() == Record_ID)
+								if(ioLines[i].getM_InOutLine_ID() == Record_ID)
 								{
 									continue;
 								}else{
 										
-									String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + invoiceLines[i].getParent().getDocumentNo()
-														+" - " + Msg.getElement(Env.getCtx(), "C_InvoiceLine_ID") + " : " + invoiceLines[i].getLine();
+									String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + ioLines[i].getParent().getDocumentNo()
+														+" - " + Msg.getElement(Env.getCtx(), "C_InvoiceLine_ID") + " : " + ioLines[i].getLine();
 									String msg = docInfo + " " + Msg.getMsg(Env.getCtx(),"JP_DoYouConfirmIt");//Do you confirm it?
-									final MInvoiceLine invoiceLine = invoiceLines[i];
+									final MInOutLine ioLine = ioLines[i];
 									Callback<Boolean> isZoom = new Callback<Boolean>()
 									{
 											@Override
@@ -140,7 +140,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 											{
 												if(result)
 												{
-													AEnv.zoom(MInvoiceLine.Table_ID, invoiceLine.getC_InvoiceLine_ID());
+													AEnv.zoom(MInOutLine.Table_ID, ioLine.getM_InOutLine_ID());
 												}
 											}
 										
@@ -161,10 +161,10 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 		callback.onCallback(true);
 	}
 	
-	public MInvoice[] getInvoiceByContractPeriod(Properties ctx, int JP_ContractContent_ID, int JP_ContractProcPeriod_ID)
+	public MInOut[] getInOutByContractPeriod(Properties ctx, int JP_ContractContent_ID, int JP_ContractProcPeriod_ID)
 	{
-		ArrayList<MInvoice> list = new ArrayList<MInvoice>();
-		final String sql = "SELECT * FROM C_Invoice WHERE JP_ContractContent_ID=? AND JP_ContractProcPeriod_ID=? AND DocStatus NOT IN ('VO','RE')";
+		ArrayList<MInOut> list = new ArrayList<MInOut>();
+		final String sql = "SELECT * FROM M_InOut WHERE JP_ContractContent_ID=? AND JP_ContractProcPeriod_ID=? AND DocStatus NOT IN ('VO','RE')";
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
@@ -174,7 +174,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 			pstmt.setInt(2, JP_ContractProcPeriod_ID);
 			rs = pstmt.executeQuery();
 			while(rs.next())
-				list.add(new MInvoice(ctx, rs, null));
+				list.add(new MInOut(ctx, rs, null));
 		}
 		catch (Exception e)
 		{
@@ -187,15 +187,15 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 		}
 		
 		
-		MInvoice[] invoices = new MInvoice[list.size()];
-		list.toArray(invoices);
-		return invoices;
+		MInOut[] inouts = new MInOut[list.size()];
+		list.toArray(inouts);
+		return inouts;
 	}
 	
-	public MInvoiceLine[] getInvoiceLineByContractPeriod(Properties ctx, int JP_ContractLine_ID,int JP_ContractProcPeriod_ID)
+	public MInOutLine[] getInOutLineByContractPeriod(Properties ctx, int JP_ContractLine_ID,int JP_ContractProcPeriod_ID)
 	{
-		ArrayList<MInvoiceLine> list = new ArrayList<MInvoiceLine>();
-		final String sql = "SELECT il.* FROM C_InvoiceLine il  INNER JOIN  C_Invoice i ON(i.C_Invoice_ID = il.C_Invoice_ID) "
+		ArrayList<MInOutLine> list = new ArrayList<MInOutLine>();
+		final String sql = "SELECT il.* FROM M_InOutLine il  INNER JOIN  M_InOut i ON(i.M_InOut_ID = il.M_InOut_ID) "
 					+ " WHERE il.JP_ContractLine_ID=? AND il.JP_ContractProcPeriod_ID=? AND i.DocStatus NOT IN ('VO','RE')";
 		
 		PreparedStatement pstmt = null;
@@ -207,7 +207,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 			pstmt.setInt(2, JP_ContractProcPeriod_ID);
 			rs = pstmt.executeQuery();
 			while(rs.next())
-				list.add(new MInvoiceLine(ctx, rs, null));
+				list.add(new MInOutLine(ctx, rs, null));
 		}
 		catch (Exception e)
 		{
@@ -219,7 +219,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 			rs = null; pstmt = null;
 		}
 		
-		MInvoiceLine[] iLines = new MInvoiceLine[list.size()];
+		MInOutLine[] iLines = new MInOutLine[list.size()];
 		list.toArray(iLines);
 		return iLines;
 	}
