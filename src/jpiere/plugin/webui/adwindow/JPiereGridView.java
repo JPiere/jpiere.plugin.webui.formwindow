@@ -147,6 +147,8 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private boolean detailPaneMode;
 
 	protected Checkbox selectAll;
+	
+	boolean isHasCustomizeData = false;
 
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
 
@@ -1082,15 +1084,18 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
                 }
                 else
                 {
-                	comp.dynamicDisplay();
-                    boolean rw = mField.isEditableGrid(true);   //  r/w - check Context
+                    boolean rw = mField.isEditable(true);   //  r/w - check Context
+                    if (rw && !comp.isReadWrite()) // IDEMPIERE-3421 - if it was read-only the list can contain direct values
+                    	mField.refreshLookup();
                     comp.setReadWrite(rw);
+                    comp.setMandatory(mField.isMandatory(true));    //  check context
+                	comp.dynamicDisplay();
                 }
 
                 Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab, gridTab.getCurrentRow())
             		: mField.getVO().ctx;
 
-                comp.setVisible(mField.isDisplayedGrid() && mField.isDisplayed(ctx, true));
+                comp.setVisible((isHasCustomizeData || mField.isDisplayedGrid()) && mField.isDisplayed(ctx, true));
             }
         }
 	}

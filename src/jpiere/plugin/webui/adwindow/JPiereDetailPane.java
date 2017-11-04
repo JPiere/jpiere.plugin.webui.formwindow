@@ -685,12 +685,18 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			readOnly = true;
 
 		boolean insertRecord = !readOnly;
+		boolean deleteRecord = !readOnly;
+		
 		if (insertRecord)
         {
             insertRecord = adtab.getGridTab().isInsertRecord();
         }
         boolean enableNew = !changed && insertRecord && !adtab.getGridTab().isSortTab();
-        boolean enableDelete = !changed && !readOnly && !adtab.getGridTab().isSortTab();
+        		if (deleteRecord)
+        {
+			deleteRecord = adtab.getGridTab().isDeleteRecord();
+        }
+        boolean enableDelete = !changed && deleteRecord && !adtab.getGridTab().isSortTab();
 
         JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
         if (adwindow == null)
