@@ -26,7 +26,9 @@ import javax.swing.table.AbstractTableModel;
 
 import org.adempiere.base.Core;
 import org.adempiere.model.MTabCustomization;
+import org.adempiere.util.Callback;
 import org.adempiere.util.GridRowCtx;
+import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.adwindow.DetailPane;				//JPIERE-0014
 import org.adempiere.webui.adwindow.GridTabRowRenderer;		//JPIERE-0014
 import org.adempiere.webui.adwindow.GridTableListModel;		//JPIERE-0014
@@ -94,7 +96,9 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private static final String HEADER_GRID_STYLE = "border: none; margin:0; padding: 0;";
 
 	private static final int DEFAULT_DETAIL_PAGE_SIZE = 10;
-
+	
+	private static final int DEFAULT_MOBILE_PAGE_SIZE = 10;//JPIERE-0014:Form Window
+	
 	private static final int DEFAULT_PAGE_SIZE = 10;//JPIERE-0014:Form Window
 
 	private static final int MIN_COLUMN_WIDTH = 100;
@@ -191,7 +195,10 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		}
 
 		//default true for better UI experience
-		modeless = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_EDIT_MODELESS, true);
+		if (ClientInfo.isMobile())
+			modeless = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_MOBILE_EDIT_MODELESS, false);
+		else
+			modeless = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_EDIT_MODELESS, true);
 
 		appendChild(listbox);
 		appendChild(gridFooter);
@@ -1276,5 +1283,11 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 			if (paging != null)
 				paging.setDetailed(true);
 		}
+	}
+	
+	@Override
+	public void editorTraverse(Callback<WEditor> editorTaverseCallback) {
+		editorTraverse(editorTaverseCallback, renderer.getEditors());
+		
 	}
 }

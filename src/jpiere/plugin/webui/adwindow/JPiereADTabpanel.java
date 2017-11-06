@@ -14,6 +14,8 @@
 
 package jpiere.plugin.webui.adwindow;		//JPIERE
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,14 +26,13 @@ import java.util.logging.Level;
 
 import org.adempiere.base.Core;
 import org.adempiere.exceptions.AdempiereException;
+import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADTabpanel;
 import org.adempiere.webui.adwindow.ADTreePanel;
 import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.IFieldEditorContainer;
@@ -208,6 +209,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	/** DefaultFocusField		*/
 	private WEditor	defaultFocusField = null;
+	
+	private int numberOfFormColumns;
 
 	public static final String ON_TOGGLE_EVENT = "onToggle";
 
@@ -238,6 +241,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		});
         addEventListener(ON_POST_INIT_EVENT, this);
         addEventListener(ON_SAVE_OPEN_PREFERENCE_EVENT, this);
+        if (ClientInfo.isMobile())
+        	ClientInfo.onClientInfo(this, this::onClientInfo);
     }
 
     private void initComponents()
@@ -253,7 +258,6 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         form.setSclass("grid-layout adwindow-form");
         form.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "form");
 
-
         listPanel = new JPiereGridView();			//JPIERE
         if( "Y".equals(Env.getContext(Env.getCtx(), "P|ToggleOnDoubleClick")) )
         	listPanel.getListbox().addEventListener(Events.ON_DOUBLE_CLICK, this);
@@ -267,13 +271,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		South south = borderLayout.getSouth();
 		if (south == null) {
 			south = new South();
+			LayoutUtils.addSlideSclass(south);
 			borderLayout.appendChild(south);
-			south.setWidgetOverride("doClick_", "function (evt){this.$supers('doClick_', arguments);" +
-					"var target = evt.domTarget;if (!target.id) target = target.parentNode;" +
-					"if(this.$n('colled') == target) {" +
-					"var se = new zk.Event(this, 'onSlide', null, {toServer: true}); zAu.send(se); } }");
 			south.addEventListener(Events.ON_OPEN, this);
-			south.addEventListener("onSlide", this);
+			south.addEventListener(Events.ON_SLIDE, this);
 
 			south.addEventListener(Events.ON_SWIPE, new EventListener<SwipeEvent>() {
 
@@ -284,7 +285,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 						South south = borderLayout.getSouth();
 						if (south.isOpen()) {
 							south.setOpen(false);
-							onSouthEvent(SouthEvent.CLOSE);
+							OpenEvent openEvent = new OpenEvent(Events.ON_OPEN, south, false);
+							Events.postEvent(openEvent);
 						}
 					}
 				}
@@ -297,6 +299,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		south.setSplittable(true);
 		south.setOpen(isOpenDetailPane());
 		south.setSclass("adwindow-gridview-detail");
+		if (!south.isOpen())
+			LayoutUtils.addSclass("slide", south);
 		String height = heigthDetailPane();
 		if (! Util.isEmpty(height)) {
 			try {
@@ -365,6 +369,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			Borderlayout layout = new Borderlayout();
 			layout.setParent(this);
 			layout.setSclass("adtab-form-borderlayout");
+			if (ClientInfo.isMobile())
+				LayoutUtils.addSclass("mobile", layout);
 
 			treePanel = new ADTreePanel(windowNo, gridTab.getTabNo());
 			West west = new West();
@@ -374,6 +380,11 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			west.setSplittable(true);
 			west.setAutoscroll(true);
 			layout.appendChild(west);
+			LayoutUtils.addSlideSclass(west);
+			if (isMobile()) {
+				west.setOpen(false);
+				LayoutUtils.addSclass("slide", west);
+			}
 
 			Center center = new Center();
 			Vlayout div = new Vlayout();
@@ -403,6 +414,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			Borderlayout layout = new Borderlayout();
 			layout.setParent(this);
 			layout.setSclass("adtab-form-borderlayout");
+			if (ClientInfo.isMobile())
+				LayoutUtils.addSclass("mobile", layout);
 
 			Center center = new Center();
 			layout.appendChild(center);
@@ -422,6 +435,11 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
      */
     @Override
     public void createUI()
+    {
+    	createUI(false);
+    }
+    
+    protected void createUI(boolean update)
     {
     	if (uiCreated) return;
 
@@ -577,7 +595,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         			row.appendCellChild(editor.getComponent(), field.getColumnSpan());
         			//to support float/absolute editor
         			row.getLastCell().setStyle("position: relative; overflow: visible;");
-        			
+
         			if (editor instanceof WButtonEditor)
         			{
         				if (windowPanel != null)
@@ -1015,10 +1033,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	    	if (getAttribute(ATTR_ON_ACTIVATE_POSTED) != null) {
 	    		return;
 	    	}
-	    	
+
 	    	setAttribute(ATTR_ON_ACTIVATE_POSTED, Boolean.TRUE);
     	}
-    	
+
     	activated = activate;
         if (listPanel.isVisible()) {
         	if (activate)
@@ -1035,7 +1053,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         if (gridTab.getRecord_ID() > 0 && gridTab.isTreeTab() && treePanel != null) {
         	echoDeferSetSelectedNodeEvent();
         }
-        
+
         Event event = new Event(ON_ACTIVATE_EVENT, this, activate);
         Events.postEvent(event);
 	}
@@ -1410,9 +1428,9 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			if (!treeItem.isLoaded()){
 				return;
 			}
-			
+
 			DefaultTreeNode<Object> treeNode = treeItem.getValue();
-			 
+
 			MTreeNode data = (MTreeNode) treeNode.getData();
 			if (data.getNode_ID() == recordId) {
 				int[] path = model.getPath(treeNode);
@@ -1788,6 +1806,37 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			}
 		}
 		super.onPageDetached(page);
+	}
+
+	protected void onClientInfo() {
+		if (!uiCreated || gridTab == null) return;
+		int numCols=gridTab.getNumColumns();
+    	if (numCols <= 0) {
+    		numCols=6;
+    	}
+
+    	if (ClientInfo.maxWidth(ClientInfo.EXTRA_SMALL_WIDTH-1)) {
+    		if (numCols > 3) {
+    			numCols=3;
+    		}
+    	} else if (ClientInfo.maxWidth(ClientInfo.MEDIUM_WIDTH-1)) {
+    		if (numCols > 6) {
+    			numCols=6;
+    		}
+    	}
+		if (numCols > 0 && numCols != numberOfFormColumns) {
+			createUI(true);
+			dynamicDisplay(0);
+		}
+	};
+
+	protected boolean isMobile() {
+		return ClientInfo.isMobile();
+	}
+	@Override
+	public void editorTraverse(Callback<WEditor> editorTaverseCallback) {
+		editorTraverse(editorTaverseCallback, editors);
+
 	}
 
 	@Override
