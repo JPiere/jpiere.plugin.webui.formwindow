@@ -14,7 +14,6 @@
 
 package jpiere.plugin.webui.adwindow;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -230,7 +229,7 @@ public class JPiereADWindow extends AbstractUIPart
 		Object window = SessionManager.getAppDesktop().findWindow(windowNo);
 		if (window != null && window instanceof ADWindow)
 			return (JPiereADWindow) SessionManager.getAppDesktop().findWindow(windowNo);
-		
+
 		return null;
 	}
 

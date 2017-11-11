@@ -18,10 +18,8 @@ import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
 import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -37,6 +35,7 @@ import jpiere.plugin.webui.panel.action.JPiereReportAction;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
+import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.WArchive;
 import org.adempiere.webui.WRequest;
@@ -49,9 +48,7 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
-import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
-import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -86,6 +83,7 @@ import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
+import org.adempiere.webui.window.WPostIt;
 import org.adempiere.webui.window.WRecordAccessDialog;
 import org.compiere.grid.ICreateFrom;
 import org.compiere.model.DataStatusEvent;
@@ -156,7 +154,7 @@ import org.zkoss.zul.Window.Mode;
  *  	<li>BF [ 2985892 ] Opening a window using a new record query is not working
  *  		https://sourceforge.net/tracker/?func=detail&aid=2985892&group_id=176962&atid=955896
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
 public abstract class JPiereAbstractADWindowContent extends AbstractUIPart implements ToolbarListener,
         EventListener<Event>, DataStatusListener, ActionListener, ITabOnSelectHandler
@@ -282,7 +280,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     protected abstract JPiereIADTabbox createADTab();
 
     protected abstract void switchEditStatus(boolean editStatus);
-    
+
     private void focusToActivePanel() {
     	JPiereIADTabpanel adTabPanel = adTabbox.getSelectedTabpanel();
 		focusToTabpanel(adTabPanel);
@@ -770,7 +768,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		findWindow.setBorder("none");
 		findWindow.setStyle("position: absolute; border-bottom: 2px solid #484848; padding: 2px; background-color: #fff;");
 		ZKUpdateUtil.setWidth(findWindow, "100%");
-		ZKUpdateUtil.setHeight(findWindow, "60%");
+		if (ClientInfo.maxHeight(ClientInfo.MEDIUM_HEIGHT-1))
+			ZKUpdateUtil.setHeight(findWindow, "100%");
+		else
+			ZKUpdateUtil.setHeight(findWindow, "60%");
 		findWindow.setZindex(1000);
 		findWindow.setSizable(false);
 		findWindow.setContentStyle("background-color: #fff; width: 99%; margin: auto;");
@@ -1034,6 +1035,48 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     	LayoutUtils.openOverlappedWindow(getComponent(), chat, "middle_center");
     	chat.showWindow();
     }
+
+    public void onPostIt()
+    {
+    	int recordId = adTabbox.getSelectedGridTab().getRecord_ID();
+    	logger.info("Record_ID=" + recordId);
+
+    	if (recordId== -1)	//	No Key
+    	{
+    		return;
+    	}
+
+    	//	Find display
+    	String infoName = null;
+    	String infoDisplay = null;
+    	for (int i = 0; i < adTabbox.getSelectedGridTab().getFieldCount(); i++)
+    	{
+    		GridField field = adTabbox.getSelectedGridTab().getField(i);
+    		if (field.isKey())
+    			infoName = field.getHeader();
+    		if ((field.getColumnName().equals("Name") || field.getColumnName().equals("DocumentNo") )
+    				&& field.getValue() != null)
+    			infoDisplay = field.getValue().toString();
+    		if (infoName != null && infoDisplay != null)
+    			break;
+    	}
+    	String header = infoName + ": " + infoDisplay;
+
+    	WPostIt postit = new WPostIt(header, adTabbox.getSelectedGridTab().getAD_PostIt_ID(), adTabbox.getSelectedGridTab().getAD_Table_ID(), recordId, null);
+    	postit.addEventListener(DialogEvents.ON_WINDOW_CLOSE, new EventListener<Event>() {
+    		@Override
+    		public void onEvent(Event event) throws Exception {
+    			hideBusyMask();
+    			toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
+    			focusToActivePanel();
+    		}
+    	});
+    	getComponent().getParent().appendChild(postit);
+    	showBusyMask(postit);
+    	LayoutUtils.openOverlappedWindow(getComponent(), postit, "middle_center");
+    	postit.showWindow();
+    }
+
 
     /**
      * @see ToolbarListener#onToggle()
@@ -1304,6 +1347,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		toolbar.enableTabNavigation(breadCrumb.hasParentLink(), adTabbox.getSelectedDetailADTabpanel() != null);
 
 		toolbar.getButton("Attachment").setPressed(adTabbox.getSelectedGridTab().hasAttachment());
+		toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
 		toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
 		toolbar.getButton("Find").setPressed(adTabbox.getSelectedGridTab().isQueryActive());
 
@@ -1577,9 +1621,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         		adTabbox.getSelectedGridTab().isNew() ||
         		(adTabbox.getSelectedDetailADTabpanel() != null && adTabbox.getSelectedDetailADTabpanel().getGridTab().isNew());
         toolbar.enableIgnore(isEditting);
-        
+
         switchEditStatus (isEditting);
-        
+
         if (changed && !readOnly && !toolbar.isSaveEnable() ) {
         	if (tabPanel.getGridTab().getRecord_ID() > 0) {
             	if (adTabbox.getSelectedIndex() == 0 && !detailTab) {
@@ -1645,7 +1689,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
             toolbar.enableAttachment(false);
         }
 
-        // Check Chat
+        // Check Chat and PostIt
         boolean canHaveChat = true;
         if (e.isLoading() &&
                 adTabbox.getSelectedGridTab().getCurrentRow() > e.getLoadedRows())
@@ -1660,10 +1704,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         {
             toolbar.enableChat(true);
             toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
+            toolbar.enablePostIt(true);
+            toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
         }
         else
         {
         	toolbar.enableChat(false);
+        	toolbar.enablePostIt(false);
         }
 
         toolbar.getButton("Find").setPressed(adTabbox.getSelectedGridTab().isQueryActive());
@@ -3007,8 +3054,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 						onRefresh(true, false);
 					}
 				});
-				showBusyMask(form);
-				LayoutUtils.openOverlappedWindow(getComponent(), form, "middle_center");
+				form.setPage(getComponent().getPage());
+				form.doHighlighted();
 				form.focus();
 			}
 			else {
@@ -3024,8 +3071,15 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				//dialog.setWidth("500px");
 				dialog.setBorder("normal");
 				getComponent().getParent().appendChild(dialog);
-				showBusyMask(dialog);
-				LayoutUtils.openOverlappedWindow(getComponent(), dialog, "middle_center");
+				if (ClientInfo.isMobile())
+				{
+					dialog.doHighlighted();
+				}
+				else
+				{
+					showBusyMask(dialog);
+					LayoutUtils.openOverlappedWindow(getComponent(), dialog, "middle_center");
+				}
 				dialog.focus();
 			}
 			else

@@ -795,7 +795,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 				}
 				headerTab.getJPiereDetailPane().onEdit(getSelectedDetailADTabpanel().getGridTab().isSingleRow());
 			} catch (Exception e) {
-				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+				throw new RuntimeException(e);
 			}
 		}
 	}

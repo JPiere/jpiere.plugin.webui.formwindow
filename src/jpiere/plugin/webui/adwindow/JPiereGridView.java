@@ -96,9 +96,9 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private static final String HEADER_GRID_STYLE = "border: none; margin:0; padding: 0;";
 
 	private static final int DEFAULT_DETAIL_PAGE_SIZE = 10;
-	
+
 	private static final int DEFAULT_MOBILE_PAGE_SIZE = 10;//JPIERE-0014:Form Window
-	
+
 	private static final int DEFAULT_PAGE_SIZE = 10;//JPIERE-0014:Form Window
 
 	private static final int MIN_COLUMN_WIDTH = 100;
@@ -151,7 +151,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 	private boolean detailPaneMode;
 
 	protected Checkbox selectAll;
-	
+
 	boolean isHasCustomizeData = false;
 
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
@@ -180,7 +180,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		ZKUpdateUtil.setVflex(gridFooter, "0");
 
 		//default paging size
-		if (AEnv.isTablet())
+		if (ClientInfo.isMobile())
 		{
 			//anything more than 20 is very slow on a tablet
 			pageSize = 10;
@@ -318,10 +318,16 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		} else {
 			ArrayList<GridField> gridFieldList = new ArrayList<GridField>();
 
+			//limit number of columns on mobile for better performance
+			int max = 0;
+			if (ClientInfo.isMobile())
+				max = MSysConfig.getIntValue(MSysConfig.ZK_GRID_MOBILE_MAX_COLUMNS, 10, Env.getAD_Client_ID(Env.getCtx()));
 			for(GridField field:tmpFields){
 				if(field.isDisplayedGrid() && !field.isToolbarOnlyButton()) {
 					gridFieldList.add(field);
 				}
+				if (max > 0 && gridFieldList.size() >= max)
+					break;
 			}
 
 			Collections.sort(gridFieldList, new Comparator<GridField>() {
@@ -488,7 +494,7 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 		Columns columns = new Columns();
 
 		//frozen not working well on tablet devices yet
-		if (!AEnv.isTablet())
+		if (!ClientInfo.isMobile())
 		{
 			Frozen frozen = new Frozen();
 			//freeze selection and indicator column
@@ -1284,10 +1290,10 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 				paging.setDetailed(true);
 		}
 	}
-	
+
 	@Override
 	public void editorTraverse(Callback<WEditor> editorTaverseCallback) {
 		editorTraverse(editorTaverseCallback, renderer.getEditors());
-		
+
 	}
 }

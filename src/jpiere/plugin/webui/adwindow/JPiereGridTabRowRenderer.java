@@ -495,6 +495,13 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		cell.setWidth("18px");
 		cell.addEventListener(Events.ON_CLICK, this);
 		cell.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
+		if (ThemeManager.isUseFontIconForImage()) {
+			Label indicatorLabel = new Label();
+			cell.appendChild(indicatorLabel);
+			final Cell finalCell = cell;
+			indicatorLabel.addEventListener(Events.ON_CLICK, evt->Events.postEvent(Events.ON_CLICK, finalCell, indicatorLabel.getSclass()));
+		}
+		cell.setValign("middle");
 
 		row.appendChild(cell);
 
@@ -631,12 +638,20 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			if (cell != null) {
 				cell.setStyle("background-color: transparent");
 				cell.setSclass("row-indicator");
+				if (cell.getFirstChild() != null)
+					((Label)cell.getFirstChild()).setSclass("");
 			}
 		}
 		currentRow = row;
 		Cell cell = (Cell) currentRow.getChildren().get(1);
 		if (cell != null) {
-			cell.setSclass("row-indicator-selected");
+			if (ThemeManager.isUseFontIconForImage()) 
+			{
+				Label indicatorLabel = (Label) cell.getFirstChild();
+				indicatorLabel.setSclass("row-indicator-selected z-icon-Edit");
+			}
+			else
+				cell.setSclass("row-indicator-selected");
 		}
 		currentRowIndex = gridTab.getCurrentRow();
 
@@ -954,6 +969,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		if (event.getTarget() instanceof Cell) {
 			Cell cell = (Cell) event.getTarget();
 			if (cell.getSclass() != null && cell.getSclass().indexOf("row-indicator-selected") >= 0)
+				Events.sendEvent(gridPanel, new Event(DetailPane.ON_EDIT_EVENT, gridPanel));
+			else if (event.getData() != null && event.getData().toString().indexOf("row-indicator-selected") >= 0)
 				Events.sendEvent(gridPanel, new Event(DetailPane.ON_EDIT_EVENT, gridPanel));
 			else
 				Events.sendEvent(event.getTarget().getParent(), event);
