@@ -27,10 +27,10 @@ import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.action.Actions;
 import org.adempiere.webui.action.IAction;
+import org.adempiere.webui.adwindow.ToolbarCustomButton;//JPIERE-0014
 import org.adempiere.webui.component.FToolbar;
 import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBarButton;
-import org.adempiere.webui.adwindow.ToolbarCustomButton;//JPIERE-0014
 import org.adempiere.webui.event.ToolbarListener;
 import org.adempiere.webui.part.WindowContainer;
 import org.adempiere.webui.session.SessionManager;
@@ -144,7 +144,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	private ArrayList<ToolBarButton> overflows;
 
 	private Popup overflowPopup;
-	
+
 	private int prevWidth;
 
 	/**	Last Modifier of Action Event					*/
@@ -297,7 +297,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         btn.setId(btn.getName());
         if (image != null)
         {
-        	if (ThemeManager.isUseFontIconForImage()) 
+        	if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
         	{
         		String iconSclass = "z-icon-" + image;
         		btn.setIconSclass(iconSclass);
@@ -810,35 +810,35 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 			SessionManager.getSessionApplication().getKeylistener().addEventListener(Events.ON_CTRL_KEY, this);
 		}
 	}
-	
-	private void mobileInit() {	
+
+	private void mobileInit() {
 		LayoutUtils.addSclass("mobile", this);
 		addEventListener("onOverflowButton", evt -> onOverflowButton(evt));
-		this.setWidgetOverride("toolbarScrollable", "function (wgt) {\n" + 
-				"	var total = jq(wgt.$n()).width();\n" + 
-				"	var w = wgt.firstChild;\n" + 
-				"\n" + 
-				"	// make sure all images are loaded.\n" + 
-				"	if (zUtl.isImageLoading()) {\n" + 
-				"		var f = arguments.callee;\n" + 
-				"		setTimeout(function () {\n" + 
-				"			return f(wgt);\n" + 
-				"		}, 20);\n" + 
-				"		return;\n" + 
-				"	}\n" + 
-				"	for (; w; w = w.nextSibling) {\n" + 
-				"		total -= jq(w.$n()).outerWidth(true);\n" + 
-				"		if (total < 0 && w.className == 'zul.wgt.Toolbarbutton') {\n" + 
-				"			break;\n" + 
-				"		}\n" + 
-				"	}\n" + 
-				"	if (w) {\n" + 
+		this.setWidgetOverride("toolbarScrollable", "function (wgt) {\n" +
+				"	var total = jq(wgt.$n()).width();\n" +
+				"	var w = wgt.firstChild;\n" +
+				"\n" +
+				"	// make sure all images are loaded.\n" +
+				"	if (zUtl.isImageLoading()) {\n" +
+				"		var f = arguments.callee;\n" +
+				"		setTimeout(function () {\n" +
+				"			return f(wgt);\n" +
+				"		}, 20);\n" +
+				"		return;\n" +
+				"	}\n" +
+				"	for (; w; w = w.nextSibling) {\n" +
+				"		total -= jq(w.$n()).outerWidth(true);\n" +
+				"		if (total < 0 && w.className == 'zul.wgt.Toolbarbutton') {\n" +
+				"			break;\n" +
+				"		}\n" +
+				"	}\n" +
+				"	if (w) {\n" +
 				"       var event = new zk.Event(wgt, 'onOverflowButton', w.uuid, {toServer: true}); \n" +
 				"       zAu.send(event); \n" +
-				"	}\n" + 
+				"	}\n" +
 				"}");
 		addEventListener(Events.ON_AFTER_SIZE, (AfterSizeEvent evt) -> onAfterSize(evt));
-		
+
 		addCallback(AFTER_PAGE_ATTACHED, t -> afterPageAttached());
 	}
 
@@ -858,7 +858,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		if (width != prevWidth) {
 			prevWidth = width;
 			if (overflowButton != null)
-				overflowButton.detach();	
+				overflowButton.detach();
 			if (overflowPopup != null)
 				overflowPopup.detach();
 			if (overflows != null) {
@@ -899,7 +899,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 			appendChild(overflowPopup);
 			for(ToolBarButton btn : overflows) {
 				overflowPopup.appendChild(btn);
-			}			
+			}
 			overflowButton.addEventListener(Events.ON_CLICK, e -> {
 				Long ts = (Long) overflowPopup.removeAttribute("popup.close");
 				if (ts != null) {
@@ -909,7 +909,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 				}
 				overflowPopup.open(overflowButton, "after_end");
 			});
-			
+
 			int cnt = 0;
 			for(Component c : getChildren()) {
 				if (c instanceof ToolBarButton)
@@ -925,7 +925,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 			}
 		}
 	}
-	
+
 	public void onPostAfterSize() {
 		if (this.getPage() != null) {
 			String script = "var w = zk.Widget.$('#" + getUuid() + "'); w.toolbarScrollable(w);";

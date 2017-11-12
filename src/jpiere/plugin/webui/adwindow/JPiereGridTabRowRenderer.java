@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -289,12 +288,12 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		int AD_Style_ID = gridField.getAD_FieldStyle_ID();
 		if (AD_Style_ID <= 0)
 			return;
-		
+
 		GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 		MStyle style = MStyle.get(Env.getCtx(), AD_Style_ID);
 		X_AD_StyleLine[] lines = style.getStyleLines();
 		StringBuilder styleBuilder = new StringBuilder();
-		for (X_AD_StyleLine line : lines) 
+		for (X_AD_StyleLine line : lines)
 		{
 			String inlineStyle = line.getInlineStyle().trim();
 			String displayLogic = line.getDisplayLogic();
@@ -305,7 +304,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			}
 			if (!Util.isEmpty(displayLogic))
 			{
-				if (!Evaluator.evaluateLogic(gridRowCtx, displayLogic)) 
+				if (!Evaluator.evaluateLogic(gridRowCtx, displayLogic))
 					continue;
 			}
 			if (styleBuilder.length() > 0 && !(styleBuilder.charAt(styleBuilder.length()-1)==';'))
@@ -495,7 +494,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		cell.setWidth("18px");
 		cell.addEventListener(Events.ON_CLICK, this);
 		cell.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
-		if (ThemeManager.isUseFontIconForImage()) {
+		if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+		{
 			Label indicatorLabel = new Label();
 			cell.appendChild(indicatorLabel);
 			final Cell finalCell = cell;
@@ -645,7 +645,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		currentRow = row;
 		Cell cell = (Cell) currentRow.getChildren().get(1);
 		if (cell != null) {
-			if (ThemeManager.isUseFontIconForImage()) 
+			if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
 			{
 				Label indicatorLabel = (Label) cell.getFirstChild();
 				indicatorLabel.setSclass("row-indicator-selected z-icon-Edit");
