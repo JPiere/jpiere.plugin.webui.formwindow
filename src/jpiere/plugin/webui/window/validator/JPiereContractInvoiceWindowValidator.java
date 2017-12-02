@@ -35,14 +35,14 @@ import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidator;
 import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
 
 
-/** 
+/**
 * JPIERE-0363
 *
 * @author Hideaki Hagiwara
 *
 */
 public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidator {
-	
+
 	@Override
 	public void onWindowEvent(JPiereWindowValidatorEvent event, Callback<Boolean> callback)
 	{
@@ -60,19 +60,19 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 					old_ContractProcPeriod_ID = 0;
 				else
 					old_ContractProcPeriod_ID = ((Integer)old_value).intValue();
-					
+
 				if(new_value == null)
 					new_ContractProcPeriod_ID = 0;
 				else
 					new_ContractProcPeriod_ID = ((Integer)new_value).intValue();
-				
+
 				int Record_ID =((Integer)gridTab.getRecord_ID()).intValue();
-				if(Record_ID > 0 && old_ContractProcPeriod_ID == new_ContractProcPeriod_ID)
+				if(Record_ID > 0 && (old_ContractProcPeriod_ID == 0 || old_ContractProcPeriod_ID == new_ContractProcPeriod_ID))
 				{
 					;//Notihg to do
-					
+
 				}else{
-					
+
 					if(gridTab.getTabNo() == 0 && new_ContractProcPeriod_ID > 0)
 					{
 //						Object obj_ContracContent_ID = gridTab.getValue("JP_ContractContent_ID");
@@ -80,7 +80,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 //						{
 //							;//Nothing to do
 //						}else{
-//							
+//
 //							int JP_ContractContent_ID = ((Integer)obj_ContracContent_ID).intValue();
 //							MInvoice[] invoices = getInvoiceByContractPeriod(Env.getCtx(),JP_ContractContent_ID, new_ContractProcPeriod_ID);
 //							for(int i = 0; i < invoices.length; i++)
@@ -89,7 +89,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 //								{
 //									continue;
 //								}else{
-//										
+//
 //									String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + invoices[i].getDocumentNo();
 //									String msg = docInfo + " " + Msg.getMsg(Env.getCtx(),"JP_DoYouConfirmIt");//Do you confirm it?
 //									final MInvoice invoice = invoices[i];
@@ -103,15 +103,15 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 //													AEnv.zoom(MInvoice.Table_ID, invoice.getC_Invoice_ID());
 //												}
 //											}
-//										
+//
 //									};
 //									FDialog.ask( event.getWindow().getJPiereADWindowContent().getWindowNo(), event.getWindow().getComponent(),Msg.getElement(Env.getCtx(), "JP_ContractProcPeriod_ID"), "JP_OverlapPeriod", msg, isZoom);
 //									break;
 //								}
 //							}//for
 //						}
-					}//gridTab.getTabNo() == 0 
-					
+					}//gridTab.getTabNo() == 0
+
 					else if(gridTab.getTabNo() == 1 && new_ContractProcPeriod_ID > 0)
 					{
 						Object obj_ContracLine_ID = gridTab.getValue("JP_ContractLine_ID");
@@ -119,7 +119,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 						{
 							;//Nothing to do
 						}else{
-							
+
 							int JP_ContractLine_ID = ((Integer)obj_ContracLine_ID).intValue();
 							MInvoiceLine[] invoiceLines = getInvoiceLineByContractPeriod(Env.getCtx(), JP_ContractLine_ID ,new_ContractProcPeriod_ID);
 							for(int i = 0; i < invoiceLines.length; i++)
@@ -128,7 +128,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 								{
 									continue;
 								}else{
-										
+
 									String docInfo = Msg.getElement(Env.getCtx(), "DocumentNo") + " : " + invoiceLines[i].getParent().getDocumentNo()
 														+" - " + Msg.getElement(Env.getCtx(), "C_InvoiceLine_ID") + " : " + invoiceLines[i].getLine();
 									String msg = docInfo + " " + Msg.getMsg(Env.getCtx(),"JP_DoYouConfirmIt");//Do you confirm it?
@@ -143,7 +143,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 													AEnv.zoom(MInvoiceLine.Table_ID, invoiceLine.getC_InvoiceLine_ID());
 												}
 											}
-										
+
 									};
 									FDialog.ask( event.getWindow().getJPiereADWindowContent().getWindowNo(), event.getWindow().getComponent(),Msg.getElement(Env.getCtx(), "JP_ContractProcPeriod_ID"), "JP_OverlapPeriod", msg, isZoom);
 									break;
@@ -151,16 +151,16 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 							}//for
 						}
 					}//gridTab.getTabNo() == 1
-					
-				}//if(Record_ID > 0 
-			
+
+				}//if(Record_ID > 0
+
 			}//if(gf_ContractProcPeriod_ID != null)
-			
+
 		}//BEFORE_SAVE
-		
+
 		callback.onCallback(true);
 	}
-	
+
 	public MInvoice[] getInvoiceByContractPeriod(Properties ctx, int JP_ContractContent_ID, int JP_ContractProcPeriod_ID)
 	{
 		ArrayList<MInvoice> list = new ArrayList<MInvoice>();
@@ -185,19 +185,19 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 			DB.close(rs, pstmt);
 			rs = null; pstmt = null;
 		}
-		
-		
+
+
 		MInvoice[] invoices = new MInvoice[list.size()];
 		list.toArray(invoices);
 		return invoices;
 	}
-	
+
 	public MInvoiceLine[] getInvoiceLineByContractPeriod(Properties ctx, int JP_ContractLine_ID,int JP_ContractProcPeriod_ID)
 	{
 		ArrayList<MInvoiceLine> list = new ArrayList<MInvoiceLine>();
 		final String sql = "SELECT il.* FROM C_InvoiceLine il  INNER JOIN  C_Invoice i ON(i.C_Invoice_ID = il.C_Invoice_ID) "
 					+ " WHERE il.JP_ContractLine_ID=? AND il.JP_ContractProcPeriod_ID=? AND i.DocStatus NOT IN ('VO','RE')";
-		
+
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
@@ -218,7 +218,7 @@ public class JPiereContractInvoiceWindowValidator implements JPiereWindowValidat
 			DB.close(rs, pstmt);
 			rs = null; pstmt = null;
 		}
-		
+
 		MInvoiceLine[] iLines = new MInvoiceLine[list.size()];
 		list.toArray(iLines);
 		return iLines;
