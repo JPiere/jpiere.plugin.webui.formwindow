@@ -75,7 +75,7 @@ import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Paging;
 import org.zkoss.zul.Row;
 import org.zkoss.zul.Tabpanel;
-import org.zkoss.zul.Vbox;
+import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.event.ZulEvents;
 import org.zkoss.zul.impl.CustomGridDataLoader;
 
@@ -86,7 +86,7 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
-public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
+public class JPiereGridView extends Vlayout implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
 {
 	/**
 	 *
@@ -259,6 +259,9 @@ public class JPiereGridView extends Vbox implements EventListener<Event>, IdSpac
 
 		setupColumns();
 		render();
+		if (listbox.getFrozen() != null){
+			listbox.getFrozen().setWidgetOverride("syncScroll", "function (){syncScrollOVR(this);}");
+		}
 
 		updateListIndex();
 
