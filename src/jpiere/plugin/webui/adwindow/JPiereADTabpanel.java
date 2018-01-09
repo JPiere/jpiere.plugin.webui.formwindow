@@ -489,9 +489,13 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	decimalFormat.setRoundingMode(RoundingMode.DOWN);
     	String columnWidth = decimalFormat.format(equalWidth);
 
-    	for (int h=0;h<numCols;h++){
+    	for (int h=0;h<numCols+1;h++){
     		Column col = new Column();
-    		ZKUpdateUtil.setWidth(col, columnWidth + "%");
+    		if (h == numCols) {
+    			ZKUpdateUtil.setWidth(col, "5%");
+    		} else {
+    			ZKUpdateUtil.setWidth(col, columnWidth + "%");
+    		}
     		columns.appendChild(col);
     	}
 
@@ -592,8 +596,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         		actualxpos = 0;
         	}
 
+        	// get the column span for field
+			int columnSpan = field.getColumnSpan();
         	int xpos = field.getXPosition();
-        	if (xpos > numCols && diff > 0)
+        	if (xpos + columnSpan > numCols && diff > 0)
         	{
         		xpos = xpos - diff;
         		if (xpos <= 0)
@@ -618,10 +624,16 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         	if (xpos-1 - actualxpos > 0)
         		row.appendCellChild(createSpacer(), xpos-1 - actualxpos);
         	boolean paintLabel = ! (field.getDisplayType() == DisplayType.Button || field.getDisplayType() == DisplayType.YesNo || field.isFieldOnly());
+
+        	// Adjust column spam to the remain columns size
+			int remainCols = numCols - actualxpos;
+    		if (columnSpan > remainCols)
+    			columnSpan = remainCols-1 > 0 ? remainCols-1 : 1;
+
         	if (field.isHeading())
         		actualxpos = xpos;
         	else
-        		actualxpos = xpos + field.getColumnSpan()-1 + (paintLabel ? 1 : 0);
+        		actualxpos = xpos + columnSpan-1 + (paintLabel ? 1 : 0);
 
         	if (! field.isHeading()) {
 
@@ -650,7 +662,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         					div.appendChild(label.getDecorator());
         				row.appendCellChild(div,1);
         			}
-        			row.appendCellChild(editor.getComponent(), field.getColumnSpan());
+
+        			row.appendCellChild(editor.getComponent(),  columnSpan );
         			//to support float/absolute editor
         			row.getLastCell().setStyle("position: relative; overflow: visible;");
 
