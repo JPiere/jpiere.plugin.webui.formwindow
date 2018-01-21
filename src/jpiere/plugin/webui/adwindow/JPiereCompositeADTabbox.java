@@ -411,7 +411,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     			headerTab.setJPiereDetailPane(createDetailPane());
     		} else
     			tabPanel.setVisible(false);
-    		headerTab.getJPiereDetailPane().setHflex("1");
+    		ZKUpdateUtil.setHflex(headerTab.getDetailPane(), "1");
     		headerTab.getJPiereDetailPane().addADTabpanel(tabPanel, tabLabel);
     		tabPanel.setDetailPaneMode(true);
     		headerTab.getJPiereDetailPane().setVflex("true");

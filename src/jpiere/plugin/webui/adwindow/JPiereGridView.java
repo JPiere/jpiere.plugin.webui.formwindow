@@ -98,7 +98,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 	private static final int DEFAULT_MOBILE_PAGE_SIZE = 10;//JPIERE-0014:Form Window
 
-	private static final int DEFAULT_PAGE_SIZE = 10;//JPIERE-0014:Form Window
+	private static final int DEFAULT_PAGE_SIZE = 20;//JPIERE-0014:Form Window
 
 	private static final int MIN_COLUMN_WIDTH = 100;
 
