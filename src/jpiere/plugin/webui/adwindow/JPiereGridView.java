@@ -1093,6 +1093,8 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
             GridField mField = comp.getGridField();
             if (mField != null)
             {
+            	Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab) 
+                		: mField.getVO().ctx;
                 if (noData)
                 {
                     comp.setReadWrite(false);
@@ -1104,12 +1106,9 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
                     	mField.refreshLookup();
                     comp.setReadWrite(rw);
                     comp.setMandatory(mField.isMandatory(true));    //  check context
-                	comp.dynamicDisplay();
+                	comp.dynamicDisplay(ctx);
                 }
-
-                Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab, gridTab.getCurrentRow())
-            		: mField.getVO().ctx;
-
+                
                 comp.setVisible((isHasCustomizeData || mField.isDisplayedGrid()) && mField.isDisplayed(ctx, true));
             }
         }
