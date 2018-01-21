@@ -33,9 +33,7 @@ import org.compiere.model.MToolBarButton;
 import org.compiere.model.MToolBarButtonRestrict;
 import org.compiere.model.MWindow;
 import org.compiere.model.X_AD_ToolBarButton;
-import org.compiere.util.CCache;
 import org.compiere.util.Env;
-import org.zkoss.image.AImage;
 import org.zkoss.zk.ui.Component;
 
 /**
@@ -60,8 +58,6 @@ public class JPiereADWindow extends AbstractUIPart
 
 	private Component windowPanelComponent;
 	private MImage image;
-
-	private static final CCache<Integer, AImage> imageCache = new CCache<Integer, AImage>(null, "WindowImageCache", 5, false);
 
 	private Map<Integer, List<String>> tabToolbarRestricMap = new HashMap<Integer, List<String>>();
 

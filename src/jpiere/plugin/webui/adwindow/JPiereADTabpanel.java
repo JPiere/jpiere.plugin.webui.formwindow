@@ -307,7 +307,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				ClientInfo browserInfo = SessionManager.getAppDesktop().getClientInfo();
 				int browserHeight = browserInfo.desktopHeight;
 				int prefHeight = Integer.valueOf(height.replace("px", ""));
-				int topmarginpx = MSysConfig.getIntValue("TOP_MARGIN_PIXELS_FOR_HEADER", 222);
+				int topmarginpx = MSysConfig.getIntValue(MSysConfig.TOP_MARGIN_PIXELS_FOR_HEADER, 222);
 				int maxHeight = browserHeight - topmarginpx;
 				if (prefHeight <= maxHeight) {
 					height = Integer.toString(prefHeight) + "px";

@@ -34,7 +34,6 @@ import org.adempiere.webui.adwindow.GridTabRowRenderer;		//JPIERE-0014
 import org.adempiere.webui.adwindow.GridTableListModel;		//JPIERE-0014
 import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
 import org.adempiere.webui.adwindow.IFieldEditorContainer;	//JPIERE-0014
-import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Columns;
 import org.adempiere.webui.component.EditorBox;

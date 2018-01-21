@@ -551,7 +551,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 				}
 				detailPane.setAttribute("detailpane.tablist", list);
 
-				detailPane.setVflex("true");
+				ZKUpdateUtil.setVflex(detailPane, "true");
 				if (headerTab.getJPiereDetailPane() == null) {
 					headerTab.setJPiereDetailPane(detailPane);
 				}
@@ -589,7 +589,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 						detailPane.setSelectedIndex(0);
 						activateDetailIfVisible();
 					} else {
-						if (((JPiereADTabpanel) headerTab).isDetailVisible()) {
+						if (((JPiereADTabpanel) headerTab).isDetailVisible() && detailPane.getSelectedADTabpanel() != null) {
 							JPiereIADTabpanel selectDetailPanel = detailPane.getSelectedADTabpanel();
 							if (!selectDetailPanel.isVisible()) {
 								selectDetailPanel.setVisible(true);
