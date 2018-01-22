@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.adempiere.util.Callback;
 import org.adempiere.webui.adwindow.ADTabpanel;					//JPIERE-0014
@@ -74,9 +73,6 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 	private static final String ON_TAB_SELECTION_CHANGED_ECHO_EVENT = "onTabSelectionChangedEcho";
 
 	public static final String ON_SELECTION_CHANGED_EVENT = "onSelectionChanged";
-
-	/** Logger                  */
-	private static CLogger  log = CLogger.getCLogger (JPiereCompositeADTabbox.class);
 
     private List<ADTabListModel.ADTabLabel> tabLabelList = new ArrayList<ADTabListModel.ADTabLabel>();
 
@@ -415,7 +411,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     			headerTab.setJPiereDetailPane(createDetailPane());
     		} else
     			tabPanel.setVisible(false);
-    		headerTab.getJPiereDetailPane().setHflex("1");
+    		ZKUpdateUtil.setHflex(headerTab.getDetailPane(), "1");
     		headerTab.getJPiereDetailPane().addADTabpanel(tabPanel, tabLabel);
     		tabPanel.setDetailPaneMode(true);
     		headerTab.getJPiereDetailPane().setVflex("true");
@@ -551,7 +547,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 				}
 				detailPane.setAttribute("detailpane.tablist", list);
 
-				detailPane.setVflex("true");
+				ZKUpdateUtil.setVflex(detailPane, "true");
 				if (headerTab.getJPiereDetailPane() == null) {
 					headerTab.setJPiereDetailPane(detailPane);
 				}
@@ -589,7 +585,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 						detailPane.setSelectedIndex(0);
 						activateDetailIfVisible();
 					} else {
-						if (((JPiereADTabpanel) headerTab).isDetailVisible()) {
+						if (((JPiereADTabpanel) headerTab).isDetailVisible() && detailPane.getSelectedADTabpanel() != null) {
 							JPiereIADTabpanel selectDetailPanel = detailPane.getSelectedADTabpanel();
 							if (!selectDetailPanel.isVisible()) {
 								selectDetailPanel.setVisible(true);

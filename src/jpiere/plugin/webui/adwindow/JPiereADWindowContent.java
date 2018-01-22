@@ -19,6 +19,7 @@ import java.util.Properties;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.BreadCrumb;//JPIERE-0014
+import org.adempiere.webui.component.Tabbox;
 import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.panel.IHelpContext;
@@ -26,6 +27,7 @@ import org.adempiere.webui.panel.ITabOnCloseHandler;
 import org.adempiere.webui.part.WindowContainer;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
+import org.compiere.model.DataStatusEvent;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.util.CLogger;
 import org.zkoss.zk.au.out.AuScript;
@@ -144,10 +146,13 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
         contentArea.setStyle("overflow: auto;");
         adTabbox.createPart(contentArea);
 
-        if (parent instanceof Tabpanel) {
-        	TabOnCloseHanlder handler = new TabOnCloseHanlder();
-        	((Tabpanel)parent).setOnCloseHandler(handler);
-        }
+        //JPIERE-0014:Form window can not set TabOnCloseHanlder this timing.
+        //Because, Tabpanel do not create yet. see TabbledDesktop#openForm().
+        //So, set TabOnCloseHanlder at dataStatusChanged.
+//        if (parent instanceof Tabpanel) {
+//        	TabOnCloseHanlder handler = new TabOnCloseHanlder();
+//        	((Tabpanel)parent).setOnCloseHandler(handler);
+//        }
 
         SessionManager.getSessionApplication().getKeylistener().addEventListener(Events.ON_CTRL_KEY, this);
 
@@ -242,4 +247,38 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 	protected void switchEditStatus(boolean editStatus) {
 		layout.setWidgetOverride("isEditting", "'" + String.valueOf(editStatus) + "'");
 	}	
+	
+	//JPIERE-0014 - set Tab Close handler - Start
+	private boolean isSetOnCloseHandler = false;
+	
+    private void setOnCloseHandler()
+    {
+    	if(isSetOnCloseHandler)
+    		return ;
+    	
+    	Component customForm = this.getADTab().getSelectedTabpanel().getParent().getParent().getParent().getParent();
+    	if(customForm.getParent() == null)
+    		return ;
+    	
+    	Component tabboxComponent = customForm.getParent().getParent().getParent();
+    	if(tabboxComponent instanceof Tabbox)
+    	{
+    		Tabbox tabbox = (Tabbox)tabboxComponent;
+    		org.zkoss.zul.Tabpanel selectedPanel = tabbox.getSelectedPanel();
+	        if (selectedPanel instanceof org.zkoss.zul.Tabpanel) 
+	        {
+	        	TabOnCloseHanlder handler = new TabOnCloseHanlder();
+	        	((org.adempiere.webui.component.Tabpanel)selectedPanel).setOnCloseHandler(handler);
+	        	isSetOnCloseHandler = true;
+	        }
+    	}
+    }
+    
+    @Override
+    public void dataStatusChanged(DataStatusEvent e)
+    {
+    	super.dataStatusChanged(e);
+    	setOnCloseHandler();
+    }
+  //JPiere-0014 - set Tab Close handler - finish
 }

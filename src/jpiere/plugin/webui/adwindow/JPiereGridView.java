@@ -34,7 +34,6 @@ import org.adempiere.webui.adwindow.GridTabRowRenderer;		//JPIERE-0014
 import org.adempiere.webui.adwindow.GridTableListModel;		//JPIERE-0014
 import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
 import org.adempiere.webui.adwindow.IFieldEditorContainer;	//JPIERE-0014
-import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Columns;
 import org.adempiere.webui.component.EditorBox;
@@ -99,7 +98,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 	private static final int DEFAULT_MOBILE_PAGE_SIZE = 10;//JPIERE-0014:Form Window
 
-	private static final int DEFAULT_PAGE_SIZE = 10;//JPIERE-0014:Form Window
+	private static final int DEFAULT_PAGE_SIZE = 20;//JPIERE-0014:Form Window
 
 	private static final int MIN_COLUMN_WIDTH = 100;
 
@@ -1094,6 +1093,8 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
             GridField mField = comp.getGridField();
             if (mField != null)
             {
+            	Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab) 
+                		: mField.getVO().ctx;
                 if (noData)
                 {
                     comp.setReadWrite(false);
@@ -1105,12 +1106,9 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
                     	mField.refreshLookup();
                     comp.setReadWrite(rw);
                     comp.setMandatory(mField.isMandatory(true));    //  check context
-                	comp.dynamicDisplay();
+                	comp.dynamicDisplay(ctx);
                 }
-
-                Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab, gridTab.getCurrentRow())
-            		: mField.getVO().ctx;
-
+                
                 comp.setVisible((isHasCustomizeData || mField.isDisplayedGrid()) && mField.isDisplayed(ctx, true));
             }
         }
