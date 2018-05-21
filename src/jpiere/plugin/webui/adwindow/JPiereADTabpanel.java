@@ -209,10 +209,12 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	/** DefaultFocusField		*/
 	private WEditor	defaultFocusField = null;
-	
+
 	private int numberOfFormColumns;
 
 	public static final String ON_TOGGLE_EVENT = "onToggle";
+
+	private static final String DEFAULT_PANEL_WIDTH = "300px";
 
 	private static enum SouthEvent {
     	SLIDE(),
@@ -351,14 +353,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
 
 		StringBuilder cssContent = new StringBuilder();
-		cssContent.append(".adtab-form-borderlayout .z-south-colpsd:before { ");
+		cssContent.append(".adtab-form-borderlayout .z-south-collapsed:before { ");
 		cssContent.append("content: \"");
 		cssContent.append(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Detail")));
 		cssContent.append("\"; ");
-		cssContent.append("position: relative; font-size: 12px; font-weight: bold; ");
-		cssContent.append("top: 3px; ");
-		cssContent.append("left: 4px; ");
-		cssContent.append("z-index: -1; ");
 		cssContent.append("} ");
 		Style style = new Style();
 		style.setContent(cssContent.toString());
@@ -375,7 +373,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			treePanel = new ADTreePanel(windowNo, gridTab.getTabNo());
 			West west = new West();
 			west.appendChild(treePanel);
-			ZKUpdateUtil.setWidth(west, "300px");
+			ZKUpdateUtil.setWidth(west, widthTreePanel());
 			west.setCollapsible(true);
 			west.setSplittable(true);
 			west.setAutoscroll(true);
@@ -438,10 +436,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     {
     	createUI(false);
     }
-    
+
     protected void createUI(boolean update)
     {
-    	if (update) 
+    	if (update)
     	{
     		if (!uiCreated) return;
     	}
@@ -478,7 +476,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	}
 
     	this.numberOfFormColumns = numCols;
-    	
+
     	if (update)
     		form.getColumns().detach();
     	// set size in percentage per column leaving a MARGIN on right
@@ -607,7 +605,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         		if (xpos == 1 && (field.getDisplayType() == DisplayType.YesNo || field.getDisplayType() == DisplayType.Button || field.isFieldOnly()))
         			xpos = 2;
         	}
-        	
+
 			//normal field
         	if (xpos <= actualxpos) {
         		// Fill right part of the row with spacers until number of columns
@@ -696,7 +694,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
         				//setup editor context menu
         				WEditorPopupMenu popupMenu = editor.getPopupMenu();
-	        			if (popupMenu == null) 
+	        			if (popupMenu == null)
 	        			{
 	        				popupMenu = new WEditorPopupMenu(false, false, false, false, false, false, null);
 	        				popupMenu.addSuggestion(field);
@@ -1305,6 +1303,15 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			height = Env.getPreference(Env.getCtx(), windowId, adTabId+"|DetailPane.Height", false);
 		}
     	return height;
+    }
+
+    private String widthTreePanel() {
+    	String width = null;
+    	int windowId = getGridTab().getAD_Window_ID();
+    	int adTabId = getGridTab().getAD_Tab_ID();
+    	if (windowId > 0 && adTabId > 0)
+    		width = Env.getPreference(Env.getCtx(), windowId, adTabId+"|TreePanel.Width", false);
+    	return Util.isEmpty(width) ? DEFAULT_PANEL_WIDTH : width;
     }
 
     private void navigateTo(DefaultTreeNode<MTreeNode> value) {
