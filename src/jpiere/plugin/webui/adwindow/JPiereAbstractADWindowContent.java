@@ -18,8 +18,10 @@ import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
 import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -48,7 +50,9 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -708,8 +712,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
                     .append(mTab.getTableName());
             if (where.length() > 0)
                 sql.append(" WHERE ").append(where);
-            // Does not consider security
-            int no = DB.getSQLValue(null, sql.toString());
+            String finalSQL = MRole.getDefault().addAccessSQL(sql.toString(),
+            		mTab.getTableName(), MRole.SQL_NOTQUALIFIED, MRole.SQL_RO);
+            int no = DB.getSQLValue(null, finalSQL.toString());
             //
             require = MRole.getDefault().isQueryRequire(no);
         }

@@ -23,9 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
-
 import org.adempiere.webui.LayoutUtils;
+import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
 import org.adempiere.webui.apps.WProcessCtl;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
@@ -101,7 +100,7 @@ public class JPiereReportAction implements EventListener<Event>
 		if(winReport == null)
 		{
 			winReport = new Window();
-			ZKUpdateUtil.setWidth(winReport, "450px");
+			ZKUpdateUtil.setWindowWidthX(winReport, 450);
 			winReport.setClosable(true);
 			winReport.setBorder("normal");
 			winReport.setStyle("position:absolute");
