@@ -21,8 +21,6 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
-
 import org.adempiere.base.IDictionaryService;
 import org.adempiere.util.ServerContext;
 import org.compiere.Adempiere;
@@ -39,10 +37,12 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
+
 /**
  *  JPiere Web-UI Activator
  *
- *  @author Hideaki Hagiwara（萩原 秀明:h.hagiwara@oss-erp.co.jp）
+ *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
 public class JPiereWebUIActivator implements BundleActivator,ServiceTrackerCustomizer<IDictionaryService, IDictionaryService>  {

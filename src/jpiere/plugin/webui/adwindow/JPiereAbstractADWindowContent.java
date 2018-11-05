@@ -820,7 +820,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					adTabbox.getSelectedGridTab().navigate(0);
+					adTabbox.getSelectedGridTab().navigate(-1); // not zero because of IDEMPIERE-3736 
 			        focusToActivePanel();
 				}
 			}
