@@ -245,7 +245,8 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         		if (button.isCustomization()) {
         			String actionId = button.getActionClassName();
         			IServiceHolder<IAction> serviceHolder = Actions.getAction(actionId);
-        			if (serviceHolder != null && serviceHolder.getService() != null) {
+        			IAction action = serviceHolder.getService();
+        			if (serviceHolder != null && action != null) {
         				String labelKey = actionId + ".label";
         				String tooltipKey = actionId + ".tooltip";
         				String label = Msg.getMsg(Env.getCtx(), labelKey);
@@ -273,6 +274,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         				toolbarCustomButtons.add(toolbarCustomBtn);
 
         				this.appendChild(btn);
+        				action.decorate(btn);
         			}
         		}
         		if (buttons.get(button.getComponentName()) != null) {
@@ -297,7 +299,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         btn.setId(btn.getName());
         if (image != null)
         {
-        	if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+        	if (ThemeManager.isUseFontIconForImage()) 
         	{
         		String iconSclass = "z-icon-" + image;
         		btn.setIconSclass(iconSclass);
@@ -585,15 +587,24 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     {
     	this.btnLock.setPressed(locked);
 
-  		String size = Env.getContext(Env.getCtx(), "#ZK_Toolbar_Button_Size");
-  		String suffix = "24.png";
-  		if (!Util.isEmpty(size))
-  		{
-  			suffix = size + ".png";
-  		}
-  		String imgURL = "images/"+ (this.btnLock.isPressed() ? "LockX" : "Lock") + suffix;
-    	imgURL = ThemeManager.getThemeResource(imgURL);
-		this.btnLock.setImage(imgURL);
+      	if (ThemeManager.isUseFontIconForImage())
+      	{
+      		String iconSclass = "z-icon-" + (this.btnLock.isPressed() ? "lock" : "unlock") ;
+      		this.btnLock.setIconSclass(iconSclass);
+      		LayoutUtils.addSclass("font-icon-toolbar-button", this.btnLock);
+      	}
+      	else
+      	{
+  			String size = Env.getContext(Env.getCtx(), "#ZK_Toolbar_Button_Size");
+  			String suffix = "24.png";
+  			if (!Util.isEmpty(size))
+  			{
+  				suffix = size + ".png";
+  			}
+  			String imgURL = "images/"+ (this.btnLock.isPressed() ? "LockX" : "Lock") + suffix;
+    		imgURL = ThemeManager.getThemeResource(imgURL);
+			this.btnLock.setImage(imgURL);
+    	}
     }
 
     public void enablePostIt(boolean enabled)
