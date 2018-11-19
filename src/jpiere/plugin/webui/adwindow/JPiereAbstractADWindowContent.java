@@ -382,13 +382,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableFind(true);
         adTabbox.evaluate(null);
 
+        toolbar.updateToolbarAccess(adWindowId);
+        updateToolbar();
+        
         if (detailQuery != null && zoomToDetailTab(detailQuery))
         {
         	return true;
         }
-
-        toolbar.updateToolbarAccess(adWindowId);
-        updateToolbar();
 
         SessionManager.getAppDesktop().updateHelpContext(X_AD_CtxHelp.CTXTYPE_Tab, adTabbox.getSelectedGridTab().getAD_Tab_ID());
 
@@ -3283,8 +3283,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		popup.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "processButtonPopup");
 		JPiereADTabpanel adtab = (JPiereADTabpanel) adTabbox.getSelectedTabpanel();
 		popup.render(adtab.getToolbarButtons());
-
-		LayoutUtils.openPopupWindow(toolbar.getButton("Process"), popup, "after_start");
+		if (popup.getChildren().size() > 0) {
+			popup.setPage(this.getComponent().getPage());
+			popup.open(getToolbar().getButton("Process"), "after_start");
+		}
 	}
 
 	@Override

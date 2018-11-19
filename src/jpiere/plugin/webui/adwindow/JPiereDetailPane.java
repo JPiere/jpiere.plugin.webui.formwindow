@@ -294,7 +294,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		ToolBar toolbar = new ToolBar();
 		tp.appendChild(toolbar);
 		btnNew = new ToolBarButton();
-		if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+		if (ThemeManager.isUseFontIconForImage())
 			btnNew.setIconSclass("z-icon-New");
 		else
 			btnNew.setImage(ThemeManager.getThemeResource(NEW_IMAGE));
@@ -311,7 +311,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		ToolBarButton button = new ToolBarButton();
 
 		button = new ToolBarButton();
-		if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+		if (ThemeManager.isUseFontIconForImage())
 			button.setIconSclass("z-icon-Edit");
 		else
 			button.setImage(ThemeManager.getThemeResource(EDIT_IMAGE));
@@ -326,7 +326,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         buttons.put(BTN_EDIT_ID.substring(3, BTN_EDIT_ID.length()), button);
 
 		button = new ToolBarButton();
-		if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+		if (ThemeManager.isUseFontIconForImage())
 			button.setIconSclass("z-icon-Delete");
 		else
 			button.setImage(ThemeManager.getThemeResource(DELETE_IMAGE));
@@ -342,7 +342,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         buttons.put(BTN_DELETE_ID.substring(3, BTN_DELETE_ID.length()), button);
 
 		button = new ToolBarButton();
-		if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+		if (ThemeManager.isUseFontIconForImage())
 			button.setIconSclass("z-icon-Save");
 		else
 			button.setImage(ThemeManager.getThemeResource(SAVE_IMAGE));
@@ -360,7 +360,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 		if (!tabPanel.getGridTab().isSortTab()) {
 			button = new ToolBarButton();
-			if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+			if (ThemeManager.isUseFontIconForImage())
 				button.setIconSclass("z-icon-Process");
 			else
 				button.setImage(ThemeManager.getThemeResource(PROCESS_IMAGE));
@@ -455,8 +455,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		ProcessButtonPopup popup = new ProcessButtonPopup();
 		JPiereADTabpanel adtab = (JPiereADTabpanel) getSelectedADTabpanel();
 		popup.render(adtab.getToolbarButtons());
-
-		LayoutUtils.openPopupWindow(button, popup, "after_start");
+		if (popup.getChildren().size() > 0) {
+			popup.setPage(button.getPage());
+			popup.open(button, "after_start");
+		}
 	}
 
 	/**
