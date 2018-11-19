@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
@@ -516,7 +515,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		cell.setWidth("18px");
 		cell.addEventListener(Events.ON_CLICK, this);
 		cell.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
-		if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+		if (ThemeManager.isUseFontIconForImage())
 		{
 			Label indicatorLabel = new Label();
 			cell.appendChild(indicatorLabel);
@@ -667,7 +666,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		currentRow = row;
 		Cell cell = (Cell) currentRow.getChildren().get(1);
 		if (cell != null) {
-			if ("Y".equals(Env.getContext(Env.getCtx(), "#THEME_USE_FONT_ICON_FOR_IMAGE")))
+			if (ThemeManager.isUseFontIconForImage())
 			{
 				Label indicatorLabel = (Label) cell.getFirstChild();
 				indicatorLabel.setSclass("row-indicator-selected z-icon-Edit");
