@@ -14,25 +14,16 @@
 
 package jpiere.plugin.webui.adwindow;
 
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
+import static org.compiere.model.SystemIDs.*;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.logging.Level;
-
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
-import jpiere.plugin.webui.panel.action.JPiereExportAction;
-import jpiere.plugin.webui.panel.action.JPiereFileImportAction;
-import jpiere.plugin.webui.panel.action.JPiereReportAction;
 
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
@@ -50,9 +41,7 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
-import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
-import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -75,15 +64,10 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
-import org.adempiere.webui.panel.action.CSVImportAction;
-import org.adempiere.webui.panel.action.ExportAction;
-import org.adempiere.webui.panel.action.FileImportAction;
-import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -134,6 +118,12 @@ import org.zkoss.zul.Grid;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Menupopup;
 import org.zkoss.zul.Window.Mode;
+
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
+import jpiere.plugin.webui.panel.action.JPiereExportAction;
+import jpiere.plugin.webui.panel.action.JPiereFileImportAction;
+import jpiere.plugin.webui.panel.action.JPiereReportAction;
 
 /**
  *
@@ -384,7 +374,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
         toolbar.updateToolbarAccess(adWindowId);
         updateToolbar();
-        
+
         if (detailQuery != null && zoomToDetailTab(detailQuery))
         {
         	return true;
@@ -820,7 +810,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onCallback(Boolean result) {
 				if (result) {
-					adTabbox.getSelectedGridTab().navigate(-1); // not zero because of IDEMPIERE-3736 
+					adTabbox.getSelectedGridTab().navigate(-1); // not zero because of IDEMPIERE-3736
 			        focusToActivePanel();
 				}
 			}
@@ -2623,7 +2613,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			{
 				if (link.endsWith("_ID"))
 					query.addRestriction(link, MQuery.EQUAL,
-						new Integer(Env.getContextAsInt(ctx, curWindowNo, link)));
+							Integer.valueOf(Env.getContextAsInt(ctx, curWindowNo, link)));
 				else
 					query.addRestriction(link, MQuery.EQUAL,
 						Env.getContext(ctx, curWindowNo, link));

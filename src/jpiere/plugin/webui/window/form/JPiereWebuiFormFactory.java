@@ -44,7 +44,7 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 		Object form = null;
 		if(formName.startsWith("jpiere.plugin.webui.formwindow.")){
 
-			int AD_Window_ID = new Integer(formName.substring("jpiere.plugin.webui.formwindow.".length())).intValue();
+			int AD_Window_ID = Integer.valueOf(formName.substring("jpiere.plugin.webui.formwindow.".length())).intValue();
 
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
 			Class<?> clazz = null;
@@ -76,7 +76,7 @@ public class JPiereWebuiFormFactory implements IFormFactory {
 			if (clazz != null) {
 				try
 	    		{
-	    			form = clazz.newInstance();
+	    			form = clazz.getDeclaredConstructor().newInstance();
 	    		}
 	    		catch (Exception e)
 	    		{

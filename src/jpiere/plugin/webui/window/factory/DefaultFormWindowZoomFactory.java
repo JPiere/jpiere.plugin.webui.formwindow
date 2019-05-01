@@ -15,12 +15,12 @@ package jpiere.plugin.webui.window.factory;
 
 import java.util.logging.Level;
 
-import jpiere.plugin.webui.window.form.AbstractJPiereFormWindow;
-
 import org.adempiere.webui.factory.IFormWindowZoomFactory;
 import org.adempiere.webui.panel.ADForm;
 import org.compiere.model.MQuery;
 import org.compiere.util.CLogger;
+
+import jpiere.plugin.webui.window.form.AbstractJPiereFormWindow;
 
 /**
  *  JPiere Webui Form Factory
@@ -76,7 +76,7 @@ public class DefaultFormWindowZoomFactory implements IFormWindowZoomFactory {
 		if (clazz != null) {
 			try
     		{
-    			form = clazz.newInstance();
+    			form = clazz.getDeclaredConstructor().newInstance();
     		}
     		catch (Exception e)
     		{

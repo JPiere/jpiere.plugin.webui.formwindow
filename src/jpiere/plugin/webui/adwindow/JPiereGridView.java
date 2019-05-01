@@ -535,7 +535,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 		//JPIERE-0014
 		int AD_Tab_ID = gridTab.getAD_Tab_ID();
-		Integer key = new Integer (AD_Tab_ID);
+		Integer key = Integer.valueOf (AD_Tab_ID);
 		MTab mtab = (MTab) s_cache.get (key);
 		if (mtab == null)
 			mtab = new MTab(Env.getCtx(),AD_Tab_ID,null);
@@ -543,7 +543,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 			s_cache.put (key, mtab);
 
 		Object oo = mtab.get_Value("JPAdditionalHeaderLine");
-		auxheadSize = new Integer(oo.toString()).intValue();
+		auxheadSize = Integer.valueOf(oo.toString()).intValue();
 
 		Auxhead[] auxheads = new Auxhead[auxheadSize];
 		for(int i = 0 ; i < auxheads.length; i++){
@@ -1097,7 +1097,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
             GridField mField = comp.getGridField();
             if (mField != null)
             {
-            	Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab) 
+            	Properties ctx = isDetailPane() ? new GridRowCtx(Env.getCtx(), gridTab)
                 		: mField.getVO().ctx;
                 if (noData)
                 {
@@ -1112,7 +1112,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
                     comp.setMandatory(mField.isMandatory(true));    //  check context
                 	comp.dynamicDisplay(ctx);
                 }
-                
+
                 comp.setVisible((isHasCustomizeData || mField.isDisplayedGrid()) && mField.isDisplayed(ctx, true));
             }
         }
