@@ -70,6 +70,7 @@ import org.compiere.model.GridTab;
 import org.compiere.model.GridTable;
 import org.compiere.model.GridWindow;
 import org.compiere.model.I_AD_Preference;
+import org.compiere.model.MColumn;
 import org.compiere.model.MLookup;
 import org.compiere.model.MPreference;
 import org.compiere.model.MRole;
@@ -763,7 +764,14 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     			treePanel.initTree(AD_Tree_ID, windowNo);
     			Events.echoEvent(ON_DEFER_SET_SELECTED_NODE, this, null);
     		} else if (AD_Tree_ID_Default != 0) {
-    			treePanel.initTree(AD_Tree_ID_Default, windowNo);
+    			int linkColId = MTree.get(Env.getCtx(), AD_Tree_ID_Default, null).getParent_Column_ID();
+    			String linkColName = null;
+    			int linkID = 0;
+    			if (linkColId > 0) {
+    				linkColName = MColumn.getColumnName(Env.getCtx(), linkColId);
+    				linkID = Env.getContextAsInt(Env.getCtx(), windowNo, linkColName, true);
+    			}
+    			treePanel.initTree(AD_Tree_ID_Default, windowNo, linkColName, linkID);
     			Events.echoEvent(ON_DEFER_SET_SELECTED_NODE, this, null);
     		}
         }
@@ -1447,12 +1455,24 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     				else
     				{
     					AD_Tree_ID = MTree.getDefaultAD_Tree_ID (Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
-    					treePanel.initTree(AD_Tree_ID, windowNo);
+        				treePanel.prepareForRefresh();
+            			int linkColId = MTree.get(Env.getCtx(), AD_Tree_ID, null).getParent_Column_ID();
+            			String linkColName = null;
+            			int linkID = 0;
+            			if (linkColId > 0) {
+            				linkColName = MColumn.getColumnName(Env.getCtx(), linkColId);
+            				linkID = Env.getContextAsInt(Env.getCtx(), windowNo, linkColName, true);
+            			}
+            			if (treePanel.initTree(AD_Tree_ID, windowNo, linkColName, linkID))
+            				echoDeferSetSelectedNodeEvent();
+            			else
+            				setSelectedNode(gridTab.getRecord_ID());
     				}
 
 				}
 
-        	}else if(e.isInserting() && gridTab.getRecord_ID() < 0 && gridTab.getTabLevel() > 0 )
+        	} else if (e.isInserting() && gridTab.getRecord_ID() < 0 && gridTab.getTabLevel() > 0
+        			&& gridTab.getParentTab() != null && gridTab.getParentTab().getValue("AD_Tree_ID") != null)
         	{
     			int AD_Tree_ID = Integer.parseInt(gridTab.getParentTab().getValue("AD_Tree_ID").toString());
     			treePanel.initTree(AD_Tree_ID, windowNo);
@@ -1550,7 +1570,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				}
 
 				boolean changed = false;
-				if (isTreeDrivenByValue()) {
+				if (isValueDisplayed()) {
 					String value = (String) gridTab.getValue("Value");
 					String name = (String) gridTab.getValue("Name");
 					String full = value + " - " + name;
@@ -1885,6 +1905,12 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		return retValue;
 	}
 
+	private boolean isValueDisplayed() {
+		SimpleTreeModel model = (SimpleTreeModel)(TreeModel<?>) treePanel.getTree().getModel();
+		boolean retValue = false;
+		retValue = model.isValueDisplayed();
+		return retValue;
+	}
 
 	@Override
 	public void onPageDetached(Page page) {

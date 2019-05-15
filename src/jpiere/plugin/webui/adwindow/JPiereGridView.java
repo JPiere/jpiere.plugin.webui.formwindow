@@ -226,9 +226,14 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	public void setDetailPaneMode(boolean detailPaneMode) {
 		if (this.detailPaneMode != detailPaneMode) {
 			this.detailPaneMode = detailPaneMode;
-			pageSize =  detailPaneMode ? DEFAULT_DETAIL_PAGE_SIZE : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0014:Form Window
+			pageSize = detailPaneMode ? getDetailPageSize() : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0014:Form Window
 			updatePaging();
 		}
+	}
+
+	/** Returns the number of records to be displayed in detail grid (TODO : manage exceptions defined in SysConfig - see https://idempiere.atlassian.net/browse/IDEMPIERE-3786) */
+	int getDetailPageSize() {
+		return MSysConfig.getIntValue(MSysConfig.ZK_PAGING_DETAIL_SIZE, DEFAULT_DETAIL_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));
 	}
 
 	public boolean isDetailPaneMode() {
@@ -294,8 +299,9 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		columnWidthMap = new HashMap<Integer, String>();
 		GridField[] tmpFields = ((GridTable)tableModel).getFields();
 		MTabCustomization tabCustomization = MTabCustomization.get(Env.getCtx(), Env.getAD_User_ID(Env.getCtx()), gridTab.getAD_Tab_ID(), null);
-		if (tabCustomization != null && tabCustomization.getAD_Tab_Customization_ID() > 0
-			&& tabCustomization.getCustom() != null && tabCustomization.getCustom().trim().length() > 0) {
+		isHasCustomizeData = tabCustomization != null && tabCustomization.getAD_Tab_Customization_ID() > 0 
+				&& tabCustomization.getCustom() != null && tabCustomization.getCustom().trim().length() > 0;
+		if (isHasCustomizeData) {
 			String custom = tabCustomization.getCustom().trim();
 			String[] customComponent = custom.split(";");
 			String[] fieldIds = customComponent[0].split("[,]");

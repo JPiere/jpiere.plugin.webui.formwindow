@@ -14,11 +14,14 @@
 
 package jpiere.plugin.webui.adwindow;
 
-import static org.compiere.model.SystemIDs.*;
+import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
+import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -41,7 +44,9 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -761,7 +766,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	private void setupEmbeddedFindwindow() {
 		findWindow.setTitle(null);
 		findWindow.setBorder("none");
-		findWindow.setStyle("position: absolute; border-bottom: 2px solid #484848; padding: 2px; background-color: #fff;");
+		findWindow.setStyle("position: absolute;background-color: #fff;");
 		ZKUpdateUtil.setWidth(findWindow, "100%");
 		if (ClientInfo.maxHeight(ClientInfo.MEDIUM_HEIGHT-1))
 			ZKUpdateUtil.setHeight(findWindow, "100%");
@@ -2981,7 +2986,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		Clients.response(new AuScript(script.toString()));
 	}
 
-	private void executeButtonProcess(final IProcessButton wButton,
+	public void executeButtonProcess(final IProcessButton wButton,
 			final boolean startWOasking, final int table_ID, final int record_ID,
 			boolean isProcessMandatory) {
 		/**
