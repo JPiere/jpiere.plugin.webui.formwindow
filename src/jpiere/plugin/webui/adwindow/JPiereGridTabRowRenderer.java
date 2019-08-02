@@ -633,7 +633,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		row.setStyle(ROW_STYLE);
 		row.addEventListener(Events.ON_CLICK, rowListener);
 		row.addEventListener(Events.ON_OK, rowListener);
-		row.setTooltiptext("Row " + (rowIndex+1));
+		row.setTooltiptext(Msg.getMsg(Env.getCtx(), "Row") + " " + (rowIndex+1));
 
 		if (isActive == null) {
 			Object isActiveValue = gridTab.getValue(rowIndex, "IsActive");

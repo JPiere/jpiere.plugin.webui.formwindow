@@ -1440,6 +1440,21 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         			if (isTreeDrivenByValue())
         				treePanel.prepareForRefresh();
 				}
+        		
+        		if ("Saved".equals(e.getAD_Message()) && model.find(null, gridTab.getRecord_ID()) != null && !isTreeDrivenByValue())
+        		{
+        			DefaultTreeNode<Object> treeNode = model.find(null, gridTab.getRecord_ID());
+        			if (treeNode != null) { // 
+        				MTreeNode data = (MTreeNode) treeNode.getData();
+
+        				String label = (isValueDisplayed() ? (gridTab.getValue("Value").toString() + " - ") : "") + gridTab.get_ValueAsString("Name");
+        				if (!data.getName().equals(label)) {
+        					data.setName(label);
+        					treeNode.setData(data);
+        				}
+        			}
+				}
+
         		if (refresh)
         		{
         			int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), getWindowNo(), "AD_Tree_ID", true);
@@ -1525,7 +1540,9 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				String value = gridTab.getValue("Value").toString();
 				parentID = PO.retrieveIdOfParentValue(value, getTableName(), Env.getAD_Client_ID(Env.getCtx()), null);
 				parentNode = model.find(treeNode, parentID);
-				name = value + " - " + name;
+				if (isValueDisplayed()) {
+					name = value + " - " + name;
+				}
 			}
 			MTreeNode node = new MTreeNode (gridTab.getRecord_ID(), 0, name, description,
 					parentID, summary, imageIndicator, false, null);
