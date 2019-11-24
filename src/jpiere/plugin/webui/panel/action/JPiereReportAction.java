@@ -73,7 +73,7 @@ import org.zkoss.zul.Vbox;
  */
 public class JPiereReportAction implements EventListener<Event>
 {
-	private static CLogger log = CLogger.getCLogger(JPiereReportAction.class);
+	private static final CLogger log = CLogger.getCLogger(JPiereReportAction.class);
 
 	private JPiereAbstractADWindowContent panel;
 
@@ -273,7 +273,7 @@ public class JPiereReportAction implements EventListener<Event>
 		//	Query
 		boolean currentRowOnly = chkCurrentRowOnly.isChecked();
 		int Record_ID = 0;
-		int[] RecordIDs = null;
+		List <Integer> RecordIDs = null;
 		MQuery query = new MQuery(gridTab.getTableName());
 		StringBuilder whereClause = new StringBuilder("");
 
@@ -288,10 +288,10 @@ public class JPiereReportAction implements EventListener<Event>
 		else
 		{
 			whereClause.append(gridTab.getTableModel().getSelectWhereClause());
-			RecordIDs = new int[gridTab.getRowCount()];
+			RecordIDs = new ArrayList<Integer>();
 			for(int i = 0; i < gridTab.getRowCount(); i++)
 			{
-				RecordIDs[i] = gridTab.getKeyID(i);
+				RecordIDs.add(gridTab.getKeyID(i));
 			}
 		}
 

@@ -14,8 +14,8 @@
 
 package jpiere.plugin.webui.adwindow;
 
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
+import static org.compiere.model.MSysConfig.*;
+import static org.compiere.model.SystemIDs.*;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -44,9 +44,7 @@ import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
-import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
-import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -73,6 +71,7 @@ import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
+import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.FindWindow;
 import org.adempiere.webui.window.WChat;
@@ -93,6 +92,8 @@ import org.compiere.model.MProjectIssue;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRecentItem;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
+import org.compiere.model.MUserPreference;
 import org.compiere.model.MWindow;
 import org.compiere.model.PO;
 import org.compiere.model.X_AD_CtxHelp;
@@ -1400,7 +1401,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	        if (logger.isLoggable(Level.INFO)) logger.info(dbInfo);
 	        if (adTabbox.getSelectedGridTab() != null && adTabbox.getSelectedGridTab().isQueryActive())
 	            dbInfo = "[ " + dbInfo + " ]";
-	        breadCrumb.setStatusDB(dbInfo, e);
+	        breadCrumb.setStatusDB(dbInfo, e, adTabbox.getSelectedGridTab());
 
 	        String adInfo = e.getAD_Message();
 	        if (   adInfo == null
@@ -1820,22 +1821,22 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     public void onRefresh()
     {
     	GridTab gridTab = adTabbox.getSelectedGridTab();
-    	if (gridTab != null && gridTab.getTableModel() != null)
+    	/*if (gridTab != null && gridTab.getTableModel() != null)
     	{
     		gridTab.getTableModel().resetCacheSortState();
     	}
-    	Column sortColumn = findCurrentSortColumn();
+    	Column sortColumn = findCurrentSortColumn();*/
     	onRefresh(true, false);
-    	if (sortColumn != null)
+    	/*if (sortColumn != null)
     	{
     		sortColumn.setSortDirection("natural");
-    	}
+    	}*/
     	if (gridTab.isSortTab()) { // refresh is not refreshing sort tabs
     		IADTabpanel tabPanel = adTabbox.getSelectedTabpanel();
     		tabPanel.query(false, 0, 0);
     	}
     }
-
+/*
     private Column findCurrentSortColumn() {
     	JPiereIADTabpanel iadtabpanel = getADTab().getSelectedTabpanel();
 		if (iadtabpanel instanceof JPiereADTabpanel) {
@@ -1858,7 +1859,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 		return null;
 	}
-
+*/
     /**
      * @see ToolbarListener#onHelp()
      */
@@ -2070,8 +2071,28 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 				        if (findWindow.isCreateNew())
 				        	onNew();
-				        else
+				        else {
 				        	adTabbox.getSelectedGridTab().dataRefresh(false); // Elaine 2008/07/25
+
+				        	if (!adTabbox.getSelectedTabpanel().isGridView()) { // See if we should force the grid view
+
+				        		boolean forceGridView = false;
+				        		String up = Env.getContext(Env.getCtx(), MUserPreference.COLUMNNAME_ViewFindResult);
+
+				        		if (up.equals(MUserPreference.VIEWFINDRESULT_Default)) {
+				        			forceGridView = MSysConfig.getBooleanValue(ZK_GRID_AFTER_FIND, false, Env.getAD_Client_ID(Env.getCtx()));
+				        		}
+				        		else if (up.equals(MUserPreference.VIEWFINDRESULT_AlwaysInGridView)) {
+				        			forceGridView = true;
+			        }
+				        		else if (up.equals(MUserPreference.VIEWFINDRESULT_AccordingToThreshold)) {
+				        			forceGridView = adTabbox.getSelectedTabpanel().getGridTab().getRowCount() >= Env.getContextAsInt(Env.getCtx(), MUserPreference.COLUMNNAME_GridAfterFindThreshold);
+				        		}
+
+				        		if (forceGridView)
+				        			adTabbox.getSelectedTabpanel().switchRowPresentation();
+				        	}
+				        }
 			        }
 					else
 					{
@@ -3250,16 +3271,21 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
 	/**
+	 * show dialog to customize fields (hidden, display, order of field) in grid mode
+	 * @see CustomizeGridViewDialog
      * @see ToolbarListener#onCustomize()
      */
-	public void onCustomize() {//JPIERE-0014 Not Active;
-//		JPiereADTabpanel tabPanel = (JPiereADTabpanel) getADTab().getSelectedTabpanel();
-//		Columns columns = tabPanel.getJPiereGridView().getListbox().getColumns();
+	public void onCustomize() {
+//		ADTabpanel tabPanel = (ADTabpanel) getADTab().getSelectedTabpanel();
+//		Columns columns = tabPanel.getGridView().getListbox().getColumns();
 //		List<Component> columnList = columns.getChildren();
-//		GridField[] fields = tabPanel.getJPiereGridView().getFields();
+//		GridField[] fields = tabPanel.getGridView().getFields();
 //		Map<Integer, String> columnsWidth = new HashMap<Integer, String>();
 //		ArrayList<Integer> gridFieldIds = new ArrayList<Integer>();
 //		for (int i = 0; i < fields.length; i++) {
+//			// 2 is offset of num of column in grid view and actual data fields.
+//			// in grid view, add two function column, indicator column and selection (checkbox) column
+//			// @see GridView#setupColumns
 //			Column column = (Column) columnList.get(i+2);
 //			String width = column.getWidth();
 //			columnsWidth.put(fields[i].getAD_Field_ID(), width);
