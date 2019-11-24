@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: jpiere.plugin.webui.formwindow
 Bundle-SymbolicName: jpiere.plugin.webui.formwindow;singleton:=true
-Bundle-Version: 6.2.0.qualifier
+Bundle-Version: 7.1.0.qualifier
 Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  org.adempiere.ui;bundle-version="2.1.0",
  org.adempiere.ui.zk;bundle-version="2.1.0",
