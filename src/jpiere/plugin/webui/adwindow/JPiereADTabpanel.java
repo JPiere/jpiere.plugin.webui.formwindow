@@ -37,6 +37,7 @@ import org.adempiere.webui.adwindow.GridView;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.IFieldEditorContainer;
 import org.adempiere.webui.adwindow.ToolbarProcessButton;
+import org.adempiere.webui.apps.CalloutDialog;
 import org.adempiere.webui.component.Borderlayout;
 import org.adempiere.webui.component.Column;
 import org.adempiere.webui.component.Columns;
@@ -71,7 +72,6 @@ import org.compiere.model.GridTable;
 import org.compiere.model.GridWindow;
 import org.compiere.model.I_AD_Preference;
 import org.compiere.model.MColumn;
-import org.compiere.model.MLookup;
 import org.compiere.model.MPreference;
 import org.compiere.model.MRole;
 import org.compiere.model.MSysConfig;
@@ -340,6 +340,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         this.windowNo = windowNo;
         this.gridWindow = gridWindow;
         this.gridTab = gridTab;
+        // callout dialog ask for input - devCoffee #3390
+        gridTab.setCalloutUI(new CalloutDialog(Executions.getCurrent().getDesktop(), windowNo));
         this.windowPanel = winPanel;
         gridTab.addDataStatusListener(this);
         this.dataBinder = new GridTabDataBinder(gridTab);
@@ -1375,28 +1377,13 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
             		|| (Core.findCallout(gridTab.getTableName(), mField.getColumnName())).size()>0
             		|| gridTab.hasDependants(mField.getColumnName())))
         {
+	        // IDEMPIERE-4106 Refresh the list (lookup) on dependant fields was moved inside processFieldChange->processDependencies
             String msg = gridTab.processFieldChange(mField);     //  Dependencies & Callout
             if (msg.length() > 0)
             {
                 FDialog.error(windowNo, this, msg);
             }
-
-            // Refresh the list on dependant fields
-    		for (GridField dependentField : gridTab.getDependantFields(mField.getColumnName()))
-    		{
-    			//  if the field has a lookup
-    			if (dependentField != null && dependentField.getLookup() instanceof MLookup)
-    			{
-    				MLookup mLookup = (MLookup)dependentField.getLookup();
-    				//  if the lookup is dynamic (i.e. contains this columnName as variable)
-    				if (mLookup.getValidation().indexOf("@"+mField.getColumnName()+"@") != -1)
-    				{
-    					mLookup.refresh();
-    				}
-    			}
-    		}   //  for all dependent fields
-
-        }
+    	}
         //if (col >= 0)
         if (!uiCreated)
         	createUI();
@@ -1440,11 +1427,11 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         			if (isTreeDrivenByValue())
         				treePanel.prepareForRefresh();
 				}
-        		
+
         		if ("Saved".equals(e.getAD_Message()) && model.find(null, gridTab.getRecord_ID()) != null && !isTreeDrivenByValue())
         		{
         			DefaultTreeNode<Object> treeNode = model.find(null, gridTab.getRecord_ID());
-        			if (treeNode != null) { // 
+        			if (treeNode != null) { //
         				MTreeNode data = (MTreeNode) treeNode.getData();
 
         				String label = (isValueDisplayed() ? (gridTab.getValue("Value").toString() + " - ") : "") + gridTab.get_ValueAsString("Name");

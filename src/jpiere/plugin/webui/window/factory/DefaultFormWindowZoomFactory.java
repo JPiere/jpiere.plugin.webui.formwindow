@@ -41,8 +41,8 @@ public class DefaultFormWindowZoomFactory implements IFormWindowZoomFactory {
 	/* (non-Javadoc)
 	 * @see org.adempiere.webui.factory.IFormFactory#newFormInstance(java.lang.String)
 	 */
-	@Override
-	public ADForm newFormInstance(int AD_Window_ID, MQuery query) {
+	public ADForm newFormInstance(int AD_Window_ID, MQuery query)
+	{
 
 		Object form = null;
 

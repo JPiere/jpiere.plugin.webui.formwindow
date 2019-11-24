@@ -84,7 +84,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
 	public static final String BTNPREFIX = "Btn";
 
-    private static CLogger log = CLogger.getCLogger(JPiereADWindowToolbar.class);
+    private static final CLogger log = CLogger.getCLogger(JPiereADWindowToolbar.class);
 
     private ToolBarButton btnIgnore;
 
