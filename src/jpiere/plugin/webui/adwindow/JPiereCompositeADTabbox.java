@@ -156,6 +156,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 						showLastError();
 					} 
 					tabPanel.getGridTab().dataRefreshAll(true, true);
+					tabPanel.getGridTab().refreshParentTabs();
 				}
 				else if (DetailPane.ON_DELETE_EVENT.equals(event.getName())) {
 					onDelete();

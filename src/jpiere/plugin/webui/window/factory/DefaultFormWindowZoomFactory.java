@@ -15,7 +15,6 @@ package jpiere.plugin.webui.window.factory;
 
 import java.util.logging.Level;
 
-import org.adempiere.webui.factory.IFormWindowZoomFactory;
 import org.adempiere.webui.panel.ADForm;
 import org.compiere.model.MQuery;
 import org.compiere.util.CLogger;
@@ -41,8 +40,8 @@ public class DefaultFormWindowZoomFactory implements IFormWindowZoomFactory {
 	/* (non-Javadoc)
 	 * @see org.adempiere.webui.factory.IFormFactory#newFormInstance(java.lang.String)
 	 */
-	@Override
-	public ADForm newFormInstance(int AD_Window_ID, MQuery query) {
+	public ADForm newFormInstance(int AD_Window_ID, MQuery query)
+	{
 
 		Object form = null;
 
