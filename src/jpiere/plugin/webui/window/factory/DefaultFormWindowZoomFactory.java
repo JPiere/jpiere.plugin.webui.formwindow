@@ -15,7 +15,6 @@ package jpiere.plugin.webui.window.factory;
 
 import java.util.logging.Level;
 
-import org.adempiere.webui.factory.IFormWindowZoomFactory;
 import org.adempiere.webui.panel.ADForm;
 import org.compiere.model.MQuery;
 import org.compiere.util.CLogger;
