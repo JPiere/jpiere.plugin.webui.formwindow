@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="JPiereFormWindowZoomDesktop">
    <implementation class="jpiere.plugin.webui.desktop.JPiereFormWindowZoomDesktop"/>
-   <property name="desktop" type="String">jpiere.plugin.webui.desktop.JPiereFormWindowZoomDesktop</property>
+   <property name="ZK_DESKTOP_CLASS" type="String">jpiere.plugin.webui.desktop.JPiereFormWindowZoomDesktop</property>
    <service>
       <provide interface="org.adempiere.webui.desktop.IDesktop"/>
    </service>
