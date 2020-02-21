@@ -21,7 +21,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -41,6 +40,7 @@ import org.adempiere.webui.adwindow.ADTabpanel;
 import org.adempiere.webui.adwindow.BreadCrumb;
 import org.adempiere.webui.adwindow.BreadCrumbLink;
 import org.adempiere.webui.adwindow.CompositeADTabbox;
+import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
@@ -117,12 +117,10 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.sys.ExecutionCtrl;
 import org.zkoss.zk.ui.util.Clients;
-import org.zkoss.zul.Column;
-import org.zkoss.zul.Columns;
 import org.zkoss.zul.Div;
-import org.zkoss.zul.Grid;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Menupopup;
+import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.Window.Mode;
 
 import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
@@ -949,9 +947,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				}
 			});
 
-			m_popup.setPage(toolbar.getButton("Lock").getPage());
+			m_popup.setPage(toolbar.getToolbarItem("Lock").getPage());
 		}
-		m_popup.open(toolbar.getButton("Lock"));
+		m_popup.open(toolbar.getToolbarItem("Lock"), "after_start");
 	}	//	lock
 	//
 
@@ -974,7 +972,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 			@Override
 			public void onEvent(Event event) throws Exception {
-				toolbar.getButton("Attachment").setPressed(adTabbox.getSelectedGridTab().hasAttachment());
+				toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
 				focusToActivePanel();
 			}
 		};
@@ -1027,7 +1025,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			@Override
 			public void onEvent(Event event) throws Exception {
 				hideBusyMask();
-				toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
+				toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
 				focusToActivePanel();
 			}
 		});
@@ -1068,7 +1066,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     		@Override
     		public void onEvent(Event event) throws Exception {
     			hideBusyMask();
-    			toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
+    			toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
     			focusToActivePanel();
     		}
     	});
@@ -1347,10 +1345,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	{
 		toolbar.enableTabNavigation(breadCrumb.hasParentLink(), adTabbox.getSelectedDetailADTabpanel() != null);
 
-		toolbar.getButton("Attachment").setPressed(adTabbox.getSelectedGridTab().hasAttachment());
-		toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
-		toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
-		toolbar.getButton("Find").setPressed(adTabbox.getSelectedGridTab().isQueryActive());
+		toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
+		toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
+		toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
 
 		if (toolbar.isPersonalLock)
 		{
@@ -1369,6 +1366,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
             toolbar.enableProcessButton(!isNewRow && adtab != null && adtab.getToolbarButtons().size() > 0);
             toolbar.enableCustomize(adtab.isGridView());
         }
+
+		toolbar.setPressed("Find",adTabbox.getSelectedGridTab().isQueryActive() ||
+				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
 
 	}
 
@@ -1684,7 +1684,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         if (canHaveAttachment)
         {
             toolbar.enableAttachment(true);
-            toolbar.getButton("Attachment").setPressed(adTabbox.getSelectedGridTab().hasAttachment());
+            toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
         }
         else
         {
@@ -1705,17 +1705,15 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         if (canHaveChat)
         {
             toolbar.enableChat(true);
-            toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
+            toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
             toolbar.enablePostIt(true);
-            toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
+            toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
         }
         else
         {
         	toolbar.enableChat(false);
         	toolbar.enablePostIt(false);
         }
-
-        toolbar.getButton("Find").setPressed(adTabbox.getSelectedGridTab().isQueryActive());
 
         // Elaine 2008/12/05
         //  Lock Indicator
@@ -1735,6 +1733,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableZoomAcross(!isNewRow);
         toolbar.enableActiveWorkflows(!isNewRow);
         toolbar.enableRequests(!isNewRow);
+		toolbar.setPressed("Find", adTabbox.getSelectedGridTab().isQueryActive() ||
+				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
 
         toolbar.enablePrint(adTabbox.getSelectedGridTab().isPrinted() && !isNewRow);
         toolbar.enableReport(!isNewRow);
@@ -2022,15 +2022,19 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
         clearTitleRelatedContext();
 
-        onSave(false, false, new Callback<Boolean>() {
-
-			@Override
-			public void onCallback(Boolean result) {
-				if (result) {
-					doOnFind();
+        // The record was not changed locally
+        if (adTabbox.getDirtyADTabpanel() == null) {
+        	doOnFind();
+        } else {
+        	onSave(false, false, new Callback<Boolean>() {
+				@Override
+				public void onCallback(Boolean result) {
+					if (result) {
+						doOnFind();
+					}
 				}
-			}
-		});
+			});
+    	}
     }
 
 	private void doOnFind() {
@@ -2096,7 +2100,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			        }
 					else
 					{
-						toolbar.getButton("Find").setPressed(adTabbox.getSelectedGridTab().isQueryActive());
+						toolbar.setPressed("Find",adTabbox.getSelectedGridTab().isQueryActive());
 					}
 			        focusToActivePanel();
 				}
@@ -2158,8 +2162,19 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	        }
 
     	}
-    	if (dirtyTabpanel != null)
+    	if (dirtyTabpanel != null) {
     		focusToTabpanel(dirtyTabpanel);
+    		//ensure row indicator is not lost
+    		if (dirtyTabpanel.getGridView() != null &&
+    				dirtyTabpanel.getGridView().getListbox() != null &&
+    				dirtyTabpanel.getGridView().getListbox().getRowRenderer() != null) {
+    			RowRenderer<Object[]> renderer = dirtyTabpanel.getJPiereGridView().getListbox().getRowRenderer();
+        		GridTabRowRenderer gtr = (GridTabRowRenderer)renderer;
+        		org.zkoss.zul.Row row = gtr.getCurrentRow();
+        		if (row != null)
+        			gtr.setCurrentRow(row);
+    		}
+    	}
     	else
     		focusToActivePanel();
 
@@ -2377,6 +2392,14 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		//other error will be catch in the dataStatusChanged event
 	}
 
+	private void showLastWarning() {
+		String msg = CLogger.retrieveWarningString(null);
+		if (msg != null)
+		{
+			statusBar.setStatusLine(Msg.getMsg(Env.getCtx(), msg), true);
+		}
+	}
+
 	/**
 	 * @see ToolbarListener#onSaveCreate()
 	 */
@@ -2456,9 +2479,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				if (result)
 				{
 		        	//error will be catch in the dataStatusChanged event
-		            adTabbox.getSelectedGridTab().dataDelete();
+		            boolean success = adTabbox.getSelectedGridTab().dataDelete();
 		            adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
 		    		adTabbox.getSelectedGridTab().refreshParentTabs();
+		    		if (!success)
+		    			showLastWarning();
 
 		            adTabbox.getSelectedTabpanel().dynamicDisplay(0);
 		            focusToActivePanel();
@@ -2644,7 +2669,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 					query.addRestriction(link, MQuery.EQUAL,
 						Env.getContext(ctx, curWindowNo, link));
 			}
-			new WZoomAcross(toolbar.getEvent().getTarget(), adTabbox.getSelectedGridTab()
+			new WZoomAcross(toolbar.getToolbarItem("ZoomAcross"), adTabbox.getSelectedGridTab()
 					.getTableName(), adTabbox.getSelectedGridTab().getAD_Window_ID(), query);
 		}
 	}
@@ -2680,7 +2705,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			if(bpartner != null)
 				C_BPartner_ID = Integer.valueOf(bpartner.toString());
 
-			new WRequest(toolbar.getEvent().getTarget(), adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID(), C_BPartner_ID);
+			new WRequest(toolbar.getToolbarItem("Requests"), adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID(), C_BPartner_ID);
 		}
 	}
 	//
@@ -2707,7 +2732,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			if (adTabbox.getSelectedGridTab().getRecord_ID() <= 0)
 				return;
 
-			new WArchive(toolbar.getEvent().getTarget(), adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID());
+			new WArchive(toolbar.getToolbarItem("Archive"), adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID());
 		}
 	}
 
@@ -3327,7 +3352,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		popup.render(adtab.getToolbarButtons());
 		if (popup.getChildren().size() > 0) {
 			popup.setPage(this.getComponent().getPage());
-			popup.open(getToolbar().getButton("Process"), "after_start");
+			popup.open(getToolbar().getToolbarItem("Process"), "after_start");
 		}
 	}
 

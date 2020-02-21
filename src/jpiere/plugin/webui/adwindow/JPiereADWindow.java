@@ -234,7 +234,7 @@ public class JPiereADWindow extends AbstractUIPart
 	 * @return adwindow instance if found, null otherwise
 	 */
 	public static JPiereADWindow findADWindow(Component comp) {
-		Component parent = comp.getParent();
+		Component parent = comp;
 		while(parent != null) {
 			if (parent.getAttribute(AD_WINDOW_ATTRIBUTE_KEY) != null) {
 				JPiereADWindow adwindow = (JPiereADWindow) parent.getAttribute(AD_WINDOW_ATTRIBUTE_KEY);

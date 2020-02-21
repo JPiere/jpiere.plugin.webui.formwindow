@@ -106,7 +106,7 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 	}	//	ADSortTab
 
 	/**	Logger			*/
-	static CLogger log = CLogger.getCLogger(JPiereADSortTab.class);
+	protected static final  CLogger log = CLogger.getCLogger(JPiereADSortTab.class);
 	private int			m_WindowNo;
 	private int			m_AD_Table_ID;
 	private String		m_TableName = null;
