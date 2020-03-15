@@ -1,4 +1,21 @@
 /******************************************************************************
+ * Product: Posterita Ajax UI 												  *
+ * Copyright (C) 2007 Posterita Ltd.  All Rights Reserved.                    *
+ * This program is free software; you can redistribute it and/or modify it    *
+ * under the terms version 2 of the GNU General Public License as published   *
+ * by the Free Software Foundation. This program is distributed in the hope   *
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * See the GNU General Public License for more details.                       *
+ * You should have received a copy of the GNU General Public License along    *
+ * with this program; if not, write to the Free Software Foundation, Inc.,    *
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
+ * For the text or an alternative of this public license, you may reach us    *
+ * Posterita Ltd., 3, Draper Avenue, Quatre Bornes, Mauritius                 *
+ * or via info@posterita.org or http://www.posterita.org/                     *
+ *****************************************************************************/
+
+/******************************************************************************
  * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
@@ -45,7 +62,9 @@ import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent; //JPIERE
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager; //JPIERE
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
@@ -68,6 +87,10 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+import jpiere.plugin.webui.panel.action.JPiereExportAction; //JPIERE
+import org.adempiere.webui.panel.action.ExportAction;
+import jpiere.plugin.webui.panel.action.JPiereFileImportAction;//JPIERE
+import jpiere.plugin.webui.panel.action.JPiereReportAction; //JPIERE
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
@@ -125,12 +148,6 @@ import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Menupopup;
 import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.Window.Mode;
-
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent;
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager;
-import jpiere.plugin.webui.panel.action.JPiereExportAction;
-import jpiere.plugin.webui.panel.action.JPiereFileImportAction;
-import jpiere.plugin.webui.panel.action.JPiereReportAction;
 
 /**
  *
