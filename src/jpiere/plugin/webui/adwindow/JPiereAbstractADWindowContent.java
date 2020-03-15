@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -117,6 +118,8 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.sys.ExecutionCtrl;
 import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.Column;
+import org.zkoss.zul.Columns;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Menupopup;
@@ -1370,6 +1373,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		toolbar.setPressed("Find",adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
 
+		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), findWindow != null ? findWindow.getAD_UserQuery_ID() : 0);
 	}
 
 	/**
@@ -1735,6 +1739,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableRequests(!isNewRow);
 		toolbar.setPressed("Find", adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
+		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), findWindow != null ? findWindow.getAD_UserQuery_ID() : 0);
 
         toolbar.enablePrint(adTabbox.getSelectedGridTab().isPrinted() && !isNewRow);
         toolbar.enableReport(!isNewRow);
@@ -2097,6 +2102,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				        			adTabbox.getSelectedTabpanel().switchRowPresentation();
 				        	}
 				        }
+				        toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), findWindow.getAD_UserQuery_ID());
 			        }
 					else
 					{
@@ -2761,6 +2767,67 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	public void onCSVImport() {
 //		CSVImportAction action = new CSVImportAction(this);//JPIERE-0014
 //		action.fileImport();
+	}
+
+	@Override
+	public void onSearchQuery() {
+		if (adTabbox.getSelectedGridTab() == null)
+            return;
+
+        clearTitleRelatedContext();
+
+		// The record was not changed locally
+        if (adTabbox.getDirtyADTabpanel() == null) {
+        	doOnQueryChange();
+        } else {
+            onSave(false, false, new Callback<Boolean>() {
+    			@Override
+    			public void onCallback(Boolean result) {
+    				if (result) {
+    					doOnQueryChange();
+    				}
+    			}
+    		});        	
+        }
+	}
+	
+	/**
+	 * Simulate opening the Find Window, selecting a user query and click ok
+	 */
+	public void doOnQueryChange() {
+		//  Gets Fields from AD_Field_v
+		GridField[] findFields = adTabbox.getSelectedGridTab().getFields();
+		if (findWindow == null || !findWindow.validate(adTabbox.getSelectedGridTab().getWindowNo(), adTabbox.getSelectedGridTab().getName(),
+				adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getTableName(),
+				adTabbox.getSelectedGridTab().getWhereExtended(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID())) {
+			findWindow = new FindWindow (adTabbox.getSelectedGridTab().getWindowNo(), adTabbox.getSelectedGridTab().getName(),
+					adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getTableName(),
+					adTabbox.getSelectedGridTab().getWhereExtended(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID());
+
+			setupEmbeddedFindwindow();	        
+			if (!findWindow.initialize()) {
+				if (findWindow.getTotalRecords() == 0) {
+					FDialog.info(curWindowNo, getComponent(), "NoRecordsFound");
+				}
+				return;
+			}
+		}
+
+		findWindow.setAD_UserQuery_ID(toolbar.getAD_UserQuery_ID());
+		findWindow.advancedOkClick();
+		MQuery query = findWindow.getQuery();
+
+		//  Confirmed query
+		if (query != null) {
+			m_onlyCurrentRows = false;
+			adTabbox.getSelectedGridTab().setQuery(query);
+			adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());   //  autoSize
+		}
+
+		adTabbox.getSelectedGridTab().dataRefresh(false);
+
+		focusToActivePanel();
+		findWindow.dispose();
 	}
 
 	/**************************************************************************
