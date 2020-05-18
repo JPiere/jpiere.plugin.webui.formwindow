@@ -111,6 +111,7 @@ import org.compiere.model.GridWindow;
 import org.compiere.model.GridWindowVO;
 import org.compiere.model.I_M_Product;
 import org.compiere.model.MImage;
+import org.compiere.model.MPInstance;
 import org.compiere.model.MProcess;
 import org.compiere.model.MProjectIssue;
 import org.compiere.model.MQuery;
@@ -1171,13 +1172,25 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     	}
     	else if (event.getTarget() instanceof ProcessModalDialog)
     	{
+    		if (!DialogEvents.ON_WINDOW_CLOSE.equals(event.getName())){
+    			return;
+    		}
+
     		hideBusyMask();
     		ProcessModalDialog dialog = (ProcessModalDialog) event.getTarget();
-    		onModalClose(dialog.getProcessInfo());
+    		ProcessInfo pi = dialog.getProcessInfo();
+
+    		onModalClose(pi);
     		String s = statusBar.getStatusLine();
     		boolean b = statusBar.getStatusError();
     		ProcessInfoLog[] logs = statusBar.getPLogs();
-    		onRefresh(true, false);
+
+			MPInstance instance = new MPInstance(ctx, pi.getAD_PInstance_ID(), "false");
+			if (!instance.isRunAsJob()){
+				// when run as job, don't expect see its effect when close parameter panel, so don't refresh 
+    			onRefresh(true, false);
+			}
+
     		statusBar.setStatusLine(s, b, logs);
     	}
     	else if (ADTabpanel.ON_DYNAMIC_DISPLAY_EVENT.equals(event.getName()))
@@ -2707,7 +2720,12 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			if (adTabbox.getSelectedGridTab().getRecord_ID() <= 0)
 				return;
 			else
-				AEnv.startWorkflowProcess(adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID());
+				try {
+					AEnv.startWorkflowProcess(adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID());
+				} catch (Exception e) {
+					CLogger.get().saveError("Error", e);
+					throw new ApplicationException(e.getMessage(), e);
+				}
 		}
 	}
 	//
