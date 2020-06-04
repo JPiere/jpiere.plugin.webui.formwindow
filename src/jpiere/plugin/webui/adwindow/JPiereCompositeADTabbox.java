@@ -171,9 +171,10 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 					final IADTabpanel tabPanel = getSelectedDetailADTabpanel();
 					if (!tabPanel.getGridTab().dataSave(true)) {
 						showLastError();
-					} 
-					tabPanel.getGridTab().dataRefreshAll(true, true);
-					tabPanel.getGridTab().refreshParentTabs();
+					} else {
+						tabPanel.getGridTab().dataRefreshAll(true, true);
+						tabPanel.getGridTab().refreshParentTabs();
+					}
 				}
 				else if (DetailPane.ON_DELETE_EVENT.equals(event.getName())) {
 					onDelete();

@@ -448,10 +448,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				{
 					GridTab parentTab = null;
 					Map<Integer, MQuery>queryMap = new TreeMap<Integer, MQuery>();
+					Map<Integer, MQuery>childrenQueryMap = new TreeMap<Integer, MQuery>();//JPIERE-0464: JPiere Zoom to Detail
 
 					for (int parentId : parentIds)
 					{
 						Map<Integer, Object[]>parentMap = new TreeMap<Integer, Object[]>();
+						Map<Integer, Object[]>childrenMap = new TreeMap<Integer, Object[]>();//JPIERE-0464: JPiere Zoom to Detail
+
 						int index = tabIndex;
 						int oldpid = parentId;
 						GridTab currentTab = gTab;
@@ -471,7 +474,15 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 										int pid = DB.getSQLValue(null, "SELECT " + pTab.getLinkColumnName() + " FROM " + pTab.getTableName() + " WHERE " + currentTab.getLinkColumnName() + " = ?", oldpid);
 										if (pid > 0)
 										{
+											//JPIERE-0464: JPiere Zoom to Detail -- start
+											if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
+											{
+												parentMap.put(index, new Object[]{pTab.getLinkColumnName(), pid});
+												childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+											}else {
 											parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+											}
+											//JPIERE-0464: JPiere Zoom to Detail -- end
 											oldpid = pid;
 											currentTab = pTab;
 										}
@@ -485,6 +496,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 								else
 								{
 									parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+									childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});//JPIERE-0464: JPiere Zoom to Detail
 								}
 							}
 						}
@@ -505,6 +517,28 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 								pquery.addRestriction((String)value[0], "=", value[1], null, null, false, 0);
 							}
 						}
+
+						//JPIERE-0464: JPiere Zoom to Detail -- start
+						if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
+						{
+							for(Map.Entry<Integer, Object[]> entry : childrenMap.entrySet())
+							{
+								GridTab pTab = gridWindow.getTab(entry.getKey());
+								Object[] value = entry.getValue();
+								MQuery pquery = childrenQueryMap.get(entry.getKey());
+								if (pquery == null)
+								{
+									pquery = new MQuery(pTab.getAD_Table_ID());
+									pquery.setZoomValue(value[1]);
+									childrenQueryMap.put(entry.getKey(), pquery);
+									pquery.addRestriction((String)value[0], "=", value[1]);
+								}
+								else
+								{
+									pquery.addRestriction((String)value[0], "=", value[1], null, null, false, 0);
+								}
+							}
+						}//JPIERE-0464 -- end
 					}
 
 					for (Map.Entry<Integer, MQuery> entry : queryMap.entrySet())
@@ -522,6 +556,51 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         					tp.query();
         					pTab.setQuery(entry.getValue());
         					tp.query();
+
+        					//JPIERE-0464: JPiere Zoom to Detail -- start
+        					if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
+    						{
+        						MQuery childQuery = childrenQueryMap.get(entry.getKey());
+            					int zoom_ID = Integer.parseInt(childQuery.getZoomValue().toString());
+
+            					int zoomColumnIndex = -1;
+            					GridTable table = pTab.getTableModel();
+            					for (int i = 0; i < table.getColumnCount(); i++)
+            					{
+            						if (table.getColumnName(i).equalsIgnoreCase(gTab.getLinkColumnName()))
+            						{
+            							zoomColumnIndex = i;
+            							break;
+            						}
+            					}
+
+                				int count = table.getRowCount();
+                				for(int i = 0; i < count; i++)
+                				{
+                					int id = -1;
+                					if (zoomColumnIndex >= 0)
+                					{
+                						Object zoomValue = table.getValueAt(i, zoomColumnIndex);
+                						if (zoomValue != null && zoomValue instanceof Number)
+                						{
+                							id = ((Number)zoomValue).intValue();
+                						}
+                					}
+                					else
+                					{
+                						id = table.getKeyID(i);
+                					}
+
+                					if (id == zoom_ID)
+                					{
+                						pTab.setCurrentRow(i);
+                						parentTab = pTab;
+                						//tp.getGridView().onPostSelectedRowChanged();
+                						break;
+                					}
+                				}
+    						}
+            				//JPIERE-0464 -- end
         				}
 					}
 
@@ -1762,6 +1841,17 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	adTabbox.evaluate(e);
         }
 
+        //JPIERE-0181 & 0466 -- start
+        if(!detailTab
+        	&& MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
+        	&& isMaxRecords(true, e))
+        {
+
+        	toolbar.enableNew(false);
+        	toolbar.enableCopy(false);
+        }
+        //JPIERE-0181 & 0466  -- end
+
         boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
         toolbar.enableArchive(!isNewRow);
         toolbar.enableZoomAcross(!isNewRow);
@@ -1906,6 +1996,12 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     @Override
     public void onNew()
     {
+    	//JPIERE-0181 & 0466 -- start
+    	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
+    		&& isMaxRecords(true, null))
+    		return;
+    	//JPIERE-0181 & 0466 -- end
+
     	final Callback<Boolean> postCallback = new Callback<Boolean>() {
 			@Override
 			public void onCallback(Boolean result) {
@@ -1989,6 +2085,12 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     @Override
     public void onCopy()
     {
+    	//JJPIERE-0181 & 0466 -- start
+    	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
+    		&& isMaxRecords(true, null))
+    		return;
+    	//JPIERE-0181 & 0466 -- end
+
     	final Callback<Boolean> postCallback = new Callback<Boolean>() {
 			@Override
 			public void onCallback(Boolean result) {
@@ -2112,6 +2214,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				        	onNew();
 				        else {
 				        	adTabbox.getSelectedGridTab().dataRefresh(false); // Elaine 2008/07/25
+
+				        	isMaxRecords(true, null);//JPIERE-0181 & 0466
 
 				        	if (!adTabbox.getSelectedTabpanel().isGridView()) { // See if we should force the grid view
 
@@ -3515,4 +3619,41 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	}
 
+	/**
+	 *
+	 * JPIERE-0464: Improvement of Max Records Controle at Window.
+	 * JPIERE-0181: Peformace improvement to Find Widnow
+	 *
+	 * @param isDisplayDialog
+	 * @param dse
+	 * @return
+	 */
+	private boolean isMaxRecords(boolean isDisplayDialog, DataStatusEvent dse)
+	{
+		if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx())))
+			return false;
+
+		int maxRow = adTabbox.getSelectedGridTab().getMaxQueryRecords();
+		if(maxRow <= 0)
+			return false;
+
+    	int rowCount =adTabbox.getSelectedGridTab().getTableModel().getRowCount();
+    	boolean isMaxRecords = rowCount >= maxRow;
+    	if(isMaxRecords &&  isDisplayDialog && (dse == null || !isDisplayedDeialog))
+    	{
+    		isDisplayedDeialog = true;
+
+        	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx())))
+        	{
+        		FDialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), null, "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow)
+        									+ System.lineSeparator() + Msg.getMsg(ctx, "JP_FindWindow_Count_Action_Control"));
+        	}else {
+        		FDialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), null, "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow));
+        	}
+    	}
+
+		return isMaxRecords;
+	}
+
+	private boolean isDisplayedDeialog = false;//JPIERE-0464 & 0181
 }
