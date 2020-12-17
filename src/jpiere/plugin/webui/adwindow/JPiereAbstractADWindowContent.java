@@ -399,6 +399,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
         toolbar.updateToolbarAccess(adWindowId);
         updateToolbar();
+        if (query == null && toolbar.initDefaultQuery()) {
+        	doOnQueryChange();
+        }
 
         if (detailQuery != null && zoomToDetailTab(detailQuery))
         {
@@ -1523,6 +1526,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		        	|| GridTable.DATA_INSERTED_MESSAGE.equals(adInfo)
 	        	    || GridTable.DATA_IGNORED_MESSAGE.equals(adInfo)
 		        	|| GridTable.DATA_UPDATE_COPIED_MESSAGE.equals(adInfo)
+	        		|| GridTable.DATA_SAVED_MESSAGE.equals(adInfo)
 		           ) {
 
 	        String prefix = null;
