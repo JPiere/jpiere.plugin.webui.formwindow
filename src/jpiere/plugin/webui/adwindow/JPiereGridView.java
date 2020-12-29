@@ -64,6 +64,7 @@ import org.compiere.model.MTab;
 import org.compiere.model.StateChangeEvent;
 import org.compiere.model.StateChangeListener;
 import org.compiere.util.CCache;
+import org.compiere.util.CLogger;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -81,6 +82,7 @@ import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Auxhead;					//JPIERE-0014
 import org.zkoss.zul.Auxheader;					//JPIERE-0014
 import org.zkoss.zul.Cell;
+import org.zkoss.zul.Center;
 import org.zkoss.zul.Column;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Frozen;
@@ -100,6 +102,8 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  */
 public class JPiereGridView extends Vlayout implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
 {
+	private static final int MIN_COLUMN_MOBILE_WIDTH = 100;
+
 	/**
 	 *
 	 */
@@ -122,6 +126,9 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	private static final int MIN_NUMERIC_COL_WIDTH = 120;
 
 	private static final String ATTR_ON_POST_SELECTED_ROW_CHANGED = "org.adempiere.webui.adwindow.GridView.onPostSelectedRowChanged";
+
+	/**	Static Logger	*/
+	private static CLogger	s_log	= CLogger.getCLogger (JPiereGridView.class);
 
 	private Grid listbox = null;
 
@@ -166,12 +173,13 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 	boolean isHasCustomizeData = false;
 
+	private boolean showCurrentRowIndicatorColumn = true;
+
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
-
-	/**	Cache						*/
-	private static CCache<Integer,MTab> s_cache	= new CCache<Integer,MTab>("AD_Tab", 40, 10);	//	10 minutes
-
-
+	
+	/**    Cache                        */
+    private static CCache<Integer,MTab> s_cache    = new CCache<Integer,MTab>("AD_Tab", 40, 10);    //    10 minutes
+	
 	public JPiereGridView()
 	{
 		this(0);
@@ -312,7 +320,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		columnWidthMap = new HashMap<Integer, String>();
 		GridField[] tmpFields = ((GridTable)tableModel).getFields();
 		MTabCustomization tabCustomization = MTabCustomization.get(Env.getCtx(), Env.getAD_User_ID(Env.getCtx()), gridTab.getAD_Tab_ID(), null);
-		isHasCustomizeData = tabCustomization != null && tabCustomization.getAD_Tab_Customization_ID() > 0 
+		isHasCustomizeData = tabCustomization != null && tabCustomization.getAD_Tab_Customization_ID() > 0
 				&& tabCustomization.getCustom() != null && tabCustomization.getCustom().trim().length() > 0;
 		if (isHasCustomizeData) {
 			String custom = tabCustomization.getCustom().trim();
@@ -862,6 +870,18 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		}
 	}
 
+	private Center findCenter(JPiereGridView gridView) {
+		if (gridView == null)
+			return null;
+		Component p = gridView.getParent();
+		while (p != null) {
+			if (p instanceof Center)
+				return (Center)p;
+			p = p.getParent();
+		}
+		return null;
+	}
+
 	private boolean isAllSelected() {
 		org.zkoss.zul.Rows rows = listbox.getRows();
 		List<Component> childs = rows.getChildren();
@@ -1319,5 +1339,9 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	public void editorTraverse(Callback<WEditor> editorTaverseCallback) {
 		editorTraverse(editorTaverseCallback, renderer.getEditors());
 
+	}
+
+	public boolean isShowCurrentRowIndicatorColumn() {
+		return showCurrentRowIndicatorColumn;
 	}
 }

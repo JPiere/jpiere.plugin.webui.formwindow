@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.adempiere.util.GridRowCtx;
+import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ADWindow;					//JPIERE-0014
 import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE-0014
@@ -46,6 +47,7 @@ import org.adempiere.webui.component.EditorBox;
 import org.adempiere.webui.component.NumberBox;
 import org.adempiere.webui.component.Textbox;
 import org.adempiere.webui.component.Urlbox;
+import org.adempiere.webui.editor.IEditorConfiguration;
 import org.adempiere.webui.editor.WButtonEditor;
 import org.adempiere.webui.editor.WEditor;
 import org.adempiere.webui.editor.WEditorPopupMenu;
@@ -136,6 +138,18 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	/** DefaultFocusField		*/
 	private WEditor	defaultFocusField = null;
 
+	private final static IEditorConfiguration readOnlyEditorConfiguration = new IEditorConfiguration() {
+		@Override
+		public Boolean getReadonly() {
+			return Boolean.TRUE;
+		}
+
+		@Override
+		public Boolean getMandatory() {
+			return Boolean.FALSE;
+		}
+	};
+	
 	/**
 	 *
 	 * @param gridTab
@@ -535,7 +549,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 					}
 
 					//readonly for display text
-					WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true);
+					WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true, readOnlyEditorConfiguration);
 					if (readOnlyEditor != null) {
 						readOnlyEditor.setReadWrite(false);
 						readOnlyEditors.put(gridPanelFields[i], readOnlyEditor);
@@ -723,6 +737,10 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	 * Enter edit mode
 	 */
 	public void editCurrentRow() {
+		if (ClientInfo.isMobile()) {
+			if (!MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_MOBILE_EDITABLE, false))
+				return;
+		}
 		if (currentRow != null && currentRow.getParent() != null && currentRow.isVisible()
 			&& grid != null && grid.isVisible() && grid.getParent() != null && grid.getParent().isVisible()) {
 			GridField[] gridPanelFields = gridPanel.getFields();
@@ -1000,4 +1018,9 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			Events.sendEvent(gridPanel, new Event("onSelectRow", gridPanel, checkBox));
 		}
 	}
+
+	private boolean isShowCurrentRowIndicatorColumn() {
+		return gridPanel != null && gridPanel.isShowCurrentRowIndicatorColumn();
+	}
+
 }

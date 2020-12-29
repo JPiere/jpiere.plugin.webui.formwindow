@@ -41,7 +41,6 @@ import java.util.Properties;
 
 import org.adempiere.util.Callback;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.BreadCrumb;//JPIERE-0014
 import org.adempiere.webui.component.Tabbox;
 import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBarButton;
@@ -114,7 +113,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
         ZKUpdateUtil.setVflex(north, "0");
         toolbar.setParent(div);
         toolbar.setWindowNo(getWindowNo());
-        breadCrumb = new BreadCrumb(getWindowNo());
+        breadCrumb = new JPiereBreadCrumb(this, getWindowNo());
         breadCrumb.setToolbarListener(this);
         breadCrumb.setId("breadCrumb");
         div.appendChild(breadCrumb);
@@ -269,26 +268,26 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 	@Override
 	protected void switchEditStatus(boolean editStatus) {
 		layout.setWidgetOverride("isEditting", "'" + String.valueOf(editStatus) + "'");
-	}	
-	
+	}
+
 	//JPIERE-0014 - set Tab Close handler - Start
 	private boolean isSetOnCloseHandler = false;
-	
+
     private void setOnCloseHandler()
     {
     	if(isSetOnCloseHandler)
     		return ;
-    	
+
     	Component customForm = this.getADTab().getSelectedTabpanel().getParent().getParent().getParent().getParent();
     	if(customForm.getParent() == null)
     		return ;
-    	
+
     	Component tabboxComponent = customForm.getParent().getParent().getParent();
     	if(tabboxComponent instanceof Tabbox)
     	{
     		Tabbox tabbox = (Tabbox)tabboxComponent;
     		org.zkoss.zul.Tabpanel selectedPanel = tabbox.getSelectedPanel();
-	        if (selectedPanel instanceof org.zkoss.zul.Tabpanel) 
+	        if (selectedPanel instanceof org.zkoss.zul.Tabpanel)
 	        {
 	        	TabOnCloseHanlder handler = new TabOnCloseHanlder();
 	        	((org.adempiere.webui.component.Tabpanel)selectedPanel).setOnCloseHandler(handler);
@@ -296,7 +295,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 	        }
     	}
     }
-    
+
     @Override
     public void dataStatusChanged(DataStatusEvent e)
     {

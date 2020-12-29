@@ -44,8 +44,8 @@ import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.action.Actions;
 import org.adempiere.webui.action.IAction;
-import org.adempiere.webui.component.Combobox;
 import org.adempiere.webui.adwindow.ToolbarCustomButton;//JPIERE-0014
+import org.adempiere.webui.component.Combobox;
 import org.adempiere.webui.component.FToolbar;
 import org.adempiere.webui.component.Menupopup;
 import org.adempiere.webui.component.Tabpanel;
@@ -59,6 +59,7 @@ import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridTab;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MToolBarButton;
 import org.compiere.model.MUserQuery;
 import org.compiere.util.CLogger;
@@ -68,7 +69,6 @@ import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.compiere.util.ValueNamePair;
 import org.zkoss.image.AImage;
-import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Page;
@@ -80,9 +80,13 @@ import org.zkoss.zk.ui.event.KeyEvent;
 import org.zkoss.zk.ui.event.OpenEvent;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.A;
+import org.zkoss.zul.Cell;
 import org.zkoss.zul.Comboitem;
+import org.zkoss.zul.Grid;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Popup;
+import org.zkoss.zul.Row;
+import org.zkoss.zul.Rows;
 import org.zkoss.zul.Separator;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.Toolbarbutton;
@@ -104,13 +108,16 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = -5540268492066600133L;
+	private static final long serialVersionUID = -8494819673584541046L;
 
 	public static final String BTNPREFIX = "Btn";
-	
+
 	public static final String MNITMPREFIX = "Mnitm";
 
     private static final CLogger log = CLogger.getCLogger(JPiereADWindowToolbar.class);
+
+	/** Search messages using translation */
+	private String				m_sNew;
 
     private Combobox fQueryName;
 	private MUserQuery[] userQueries;
@@ -144,13 +151,13 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
     private ToolBarButton btnProcess;
 
+    private ToolBarButton btnQuickForm;
+
     private ToolBarButton btnShowMore;
-    private Menupopup menupopup;
 
     private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
-    private HashMap<ToolBarButton, Menuitem> menuItems = new HashMap<ToolBarButton, Menuitem>();
 	private ArrayList<ToolBarButton> mobileShowMoreButtons = new ArrayList<ToolBarButton>();
-	
+
 //    private ToolBarButton btnExit;
 
     private ArrayList<ToolbarListener> listeners = new ArrayList<ToolbarListener>();
@@ -174,6 +181,10 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
 	private KeyEvent prevKeyEvent;
 
+	// Maintain hierarchical Quick form by its parent-child tab while open leaf
+	// tab once & dispose and doing same action
+	private int							quickFormTabHrchyLevel		= 0;
+
 	private A overflowButton;
 
 	private ArrayList<ToolBarButton> overflows;
@@ -182,16 +193,19 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
 	private int prevWidth;
 
+	private JPiereAbstractADWindowContent windowContent;
+
 	/**	Last Modifier of Action Event					*/
 //	public int 				lastModifiers;
 	//
 
     public JPiereADWindowToolbar()
     {
-    	this(0);
+    	this(null, 0);
     }
 
-    public JPiereADWindowToolbar(int windowNo) {
+    public JPiereADWindowToolbar(JPiereAbstractADWindowContent windowContent,int windowNo) {
+    	this.windowContent = windowContent;
     	setWindowNo(windowNo);
         init();
         if (ClientInfo.isMobile()) {
@@ -203,18 +217,15 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     {
     	LayoutUtils.addSclass("adwindow-toolbar", this);
 
-    	//Show more menu pop up
-        menupopup = new Menupopup();
-        this.appendChild(menupopup);
-
         //IDEMPIERE-4085
+        m_sNew = "** ".concat(Msg.getMsg(Env.getCtx(), "New Query")).concat(" **");
         fQueryName = new Combobox();
-        fQueryName.setTooltiptext(Msg.getMsg(Env.getCtx(),"QueryName"));
-        fQueryName.setPlaceholder(Msg.getMsg(Env.getCtx(),"QueryName"));
+        fQueryName.setTooltiptext(Msg.getMsg(Env.getCtx(),"SelectQuery"));
+        fQueryName.setPlaceholder(Msg.getMsg(Env.getCtx(),"SelectQuery"));
         fQueryName.setId(BTNPREFIX + "SearchQuery");
         fQueryName.addEventListener(Events.ON_SELECT, this);
         LayoutUtils.addSclass("toolbar-searchbox", fQueryName);
-				
+
         btnIgnore = createButton("Ignore", "Ignore", "Ignore");
         btnIgnore.setTooltiptext(btnIgnore.getTooltiptext()+ "    Alt+Z");
         btnHelp = createButton("Help", "Help","Help");
@@ -236,11 +247,11 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         btnAttachment = createButton("Attachment", "Attachment", "Attachment");
         btnPostIt = createButton("PostIt", "PostIt", "PostIt");
         btnChat = createButton("Chat", "Chat", "Chat");
-        btnGridToggle = createButton("Toggle", "Multi", "Multi");
+        btnGridToggle = createButton("Toggle", "Multi", "Toggle");
         btnGridToggle.setTooltiptext(btnGridToggle.getTooltiptext()+ "    Alt+T");
-        btnParentRecord = createButton("ParentRecord", "Parent", "Parent");
+        btnParentRecord = createButton("ParentRecord", "Parent", "ParentRecord");
         btnParentRecord.setTooltiptext(btnParentRecord.getTooltiptext()+ "   Alt+Up");
-        btnDetailRecord = createButton("DetailRecord", "Detail", "Detail");
+        btnDetailRecord = createButton("DetailRecord", "Detail", "DetailRecord");
         btnDetailRecord.setTooltiptext(btnDetailRecord.getTooltiptext()+ "   Alt+Down");
         btnReport = createButton("Report", "Report", "Report");
         btnReport.setTooltiptext(btnReport.getTooltiptext()+ "    Alt+R");
@@ -253,10 +264,10 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     		btnLock.setVisible(isPersonalLock);
         }
 		btnZoomAcross = createButton("ZoomAcross", "ZoomAcross", "ZoomAcross");
-        btnActiveWorkflows = createButton("ActiveWorkflows", "WorkFlow", "WorkFlow");
-        btnRequests = createButton("Requests", "Request", "Request");
+        btnActiveWorkflows = createButton("ActiveWorkflows", "WorkFlow", "ActiveWorkflows");
+        btnRequests = createButton("Requests", "Request", "Requests");
         if (isAllowProductInfo) {
-            btnProductInfo = createButton("ProductInfo", "Product", "InfoProduct");
+            btnProductInfo = createButton("ProductInfo", "Product", "ProductInfo");
             btnProductInfo.setDisabled(!isAllowProductInfo); // Elaine 2008/07/22
             btnProductInfo.setVisible(isAllowProductInfo);
         }
@@ -267,6 +278,9 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         btnProcess= createButton("Process", "Process", "Process");
         btnProcess.setTooltiptext(btnProcess.getTooltiptext()+ "    Alt+O");
         btnProcess.setDisabled(false);
+
+        btnQuickForm = createButton("QuickForm", "QuickForm", "QuickForm");
+        btnQuickForm.setDisabled(false);
 
         // Help and Exit should always be enabled
         btnHelp.setDisabled(false);
@@ -288,6 +302,8 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         btnShowMore.setDisabled(true);
         btnShowMore.setVisible(false);
 
+        if (!ClientInfo.isMobile())
+        	overflows = new ArrayList<ToolBarButton>();
         MToolBarButton[] officialButtons = MToolBarButton.getToolbarButtons("W", null);
         for (MToolBarButton button : officialButtons) {
         	if (! button.isActive()) {
@@ -323,7 +339,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         				ToolbarCustomButton toolbarCustomBtn = new ToolbarCustomButton(button, btn, actionId, windowNo);
         				toolbarCustomButtons.add(toolbarCustomBtn);
 
-        				if (ClientInfo.isMobile() && button.isShowMore()) 
+        				if (ClientInfo.isMobile() && button.isShowMore())
         					mobileShowMoreButtons.add(btn);
         				else if (!button.isShowMore()) {
         				this.appendChild(btn);
@@ -332,10 +348,10 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         			}
         		}
         		if (buttons.get(button.getComponentName()) != null) {
-        			if (ClientInfo.isMobile() && button.isShowMore()) 
+        			if (ClientInfo.isMobile() && button.isShowMore())
     					mobileShowMoreButtons.add(buttons.get(button.getComponentName()));
     				else if (button.isShowMore())
-        				createMenuitem(buttons.get(button.getComponentName()));
+        				overflows.add(buttons.get(button.getComponentName()));
         			else {
         				this.appendChild(buttons.get(button.getComponentName()));
         				if (button.isAddSeparator()) {
@@ -343,13 +359,11 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         				}
         			}
         		} else if (button.isSearchQueryComponent())
-    		        this.appendChild(fQueryName); 
+    		        this.appendChild(fQueryName);
         	}
         }
-        if (!ClientInfo.isMobile() && !menuItems.isEmpty()) {
-            this.appendChild(btnShowMore);
-            btnShowMore.setDisabled(false);
-            btnShowMore.setVisible(true);
+        if (!ClientInfo.isMobile() && overflows.size() > 0) {
+            enableShowMore();
         }
 
     	configureKeyMap();
@@ -365,7 +379,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         btn.setId(btn.getName());
         if (image != null)
         {
-        	if (ThemeManager.isUseFontIconForImage()) 
+        	if (ThemeManager.isUseFontIconForImage())
         	{
         		String iconSclass = "z-icon-" + image;
         		btn.setIconSclass(iconSclass);
@@ -395,29 +409,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         return btn;
     }
 
-    /**
-     * Create Menu Item based on ToolBar button
-     * @param button
-     * @return
-     */
-    private Menuitem createMenuitem(ToolBarButton button){
-		Menuitem item = new Menuitem(button.getTooltiptext());
-		if (button.getImage() != null)
-			item.setImage(button.getImage());
-		else if (button.getImageContent() != null)
-			item.setImageContent(button.getImageContent());
-		else if (ThemeManager.isUseFontIconForImage()) { 
-			item.setIconSclass(button.getIconSclass());
-    		LayoutUtils.addSclass("font-icon-menuitem", item);
-		}
-		item.setId(MNITMPREFIX+button.getName());
-		item.setValue(button.getName());
-		item.addEventListener(Events.ON_CLICK, evt -> Events.sendEvent(new Event(Events.ON_CLICK, button)));
-		menupopup.appendChild(item);
-		menuItems.put(button, item);
-		return item;
-    }    
-
     public ToolBarButton getButton(String name)
     {
     	return buttons.get(name);
@@ -425,8 +416,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
     public LabelImageElement getToolbarItem(String name)
     {
-    	return menuItems.get(buttons.get(name)) != null ? buttons.get("ShowMore") : 
-    		buttons.get(name);
+    	return	buttons.get(name);
     }
 
     /** VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) */
@@ -474,6 +464,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		altKeyMap.put(VK_R, btnReport);
 		altKeyMap.put(VK_P, btnPrint);
 		altKeyMap.put(VK_O, btnProcess);
+		altKeyMap.put(VK_L, btnCustomize);
 	}
 
 	protected void addSeparator()
@@ -505,11 +496,16 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
             	if (!event.getTarget().getId().contentEquals(BTNPREFIX+"ShowMore"))
             		doOnClick(event);
             	else
-            		menupopup.open(btnShowMore, "after_start");
+            		onShowMore();
             }
         } else if (eventName.equals(Events.ON_CTRL_KEY))
         {
         	KeyEvent keyEvent = (KeyEvent) event;
+
+			// If Quick form is opened then prevent toolbar shortcut key events.
+			if (!(keyEvent.getKeyCode() == KeyEvent.F2) && windowContent != null && windowContent.getOpenQuickFormTabs().size() > 0)
+				return;
+
         	if (LayoutUtils.isReallyVisible(this)) {
 	        	//filter same key event that is too close
 	        	//firefox fire key event twice when grid is visible
@@ -526,12 +522,16 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	        	}
 	        	this.onCtrlKeyEvent(keyEvent);
         	}
-        } else if (Events.ON_SELECT.equals(eventName)) 
+        } else if (Events.ON_SELECT.equals(eventName))
         {
         	int index = fQueryName.getSelectedIndex();
         	if (index < 0) return;
         	if (index == 0) // no query - refresh
         		setSelectedUserQuery(null);
+        	else if (m_sNew.equals(fQueryName.getValue())) { //On new send the Event to open the FindWindow
+        		Events.sendEvent(Events.ON_CLICK, btnFind, null);
+        		return;
+        	}
         	else
 				setSelectedUserQuery(userQueries[index-1]);
 
@@ -591,22 +591,17 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     {
         this.btnParentRecord.setDisabled(!enableParent);
         this.btnDetailRecord.setDisabled(!enableDetail);
-        enableMenuitem(btnParentRecord, enableParent);
-        enableMenuitem(btnDetailRecord, enableDetail);
     }
 
     public void enableRefresh(boolean enabled)
     {
         this.btnRefresh.setDisabled(!enabled);
-        enableMenuitem(btnRefresh, enabled);
     }
 
     public void enableSave(boolean enabled)
     {
         this.btnSave.setDisabled(!enabled);
     	this.btnSaveAndCreate.setDisabled(!enabled);
-        enableMenuitem(btnSave, enabled);
-        enableMenuitem(btnSaveAndCreate, enabled);
     }
 
     public boolean isSaveEnable() {
@@ -621,7 +616,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     public void enableDelete(boolean enabled)
     {
         this.btnDelete.setDisabled(!enabled);
-        enableMenuitem(btnDelete, enabled);
     }
 
     public boolean isDeleteEnable()
@@ -636,90 +630,76 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     public void enableIgnore(boolean enabled)
     {
         this.btnIgnore.setDisabled(!enabled);
-        enableMenuitem(btnIgnore, enabled);
     }
 
     public void enableNew(boolean enabled)
     {
         this.btnNew.setDisabled(!enabled);
-        enableMenuitem(btnNew, enabled);
     }
 
     public void enableCopy(boolean enabled)
     {
         this.btnCopy.setDisabled(!enabled);
-        enableMenuitem(btnCopy, enabled);
     }
 
     public void enableAttachment(boolean enabled)
     {
         this.btnAttachment.setDisabled(!enabled);
-        enableMenuitem(btnAttachment, enabled);
     }
 
     public void enableChat(boolean enabled)
     {
         this.btnChat.setDisabled(!enabled);
-        enableMenuitem(btnChat, enabled);
     }
 
     public void enablePrint(boolean enabled)
     {
     	this.btnPrint.setDisabled(!enabled);
-        enableMenuitem(btnPrint, enabled);
     }
 
     public void enableReport(boolean enabled)
     {
     	this.btnReport.setDisabled(!enabled);
-        enableMenuitem(btnReport, enabled);
     }
 
     public void enableFind(boolean enabled)
     {
         this.btnFind.setDisabled(!enabled);
-        enableMenuitem(btnFind, enabled);
     }
 
     public void enableGridToggle(boolean enabled)
     {
     	btnGridToggle.setDisabled(!enabled);
-    	enableMenuitem(btnGridToggle, enabled);
     }
 
     public void enableCustomize(boolean enabled)
     {
     	btnCustomize.setDisabled(true);//JPIERE-0014
-    	enableMenuitem(btnCustomize, enabled);
     }
 
     public void enableArchive(boolean enabled)
     {
     	btnArchive.setDisabled(!enabled);
-    	enableMenuitem(btnArchive, enabled);
     }
 
     public void enableZoomAcross(boolean enabled)
     {
     	btnZoomAcross.setDisabled(!enabled);
-    	enableMenuitem(btnZoomAcross, enabled);
     }
 
     public void enableActiveWorkflows(boolean enabled)
     {
     	btnActiveWorkflows.setDisabled(!enabled);
-    	enableMenuitem(btnActiveWorkflows, enabled);
     }
 
     public void enableRequests(boolean enabled)
     {
     	btnRequests.setDisabled(!enabled);
-    	enableMenuitem(btnRequests, enabled);
     }
 
-    public void enableMenuitem(Toolbarbutton button, boolean enabled) {
-        if (menuItems.get(button) != null)
-			menuItems.get(button).setDisabled(!enabled);
+	public void enableQuickForm(boolean enabled)
+	{
+		btnQuickForm.setDisabled(!enabled);
     }
 
     public void lock(boolean locked)
@@ -731,10 +711,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
       		String iconSclass = "z-icon-" + (this.btnLock.isPressed() ? "lock" : "unlock") ;
       		this.btnLock.setIconSclass(iconSclass);
       		LayoutUtils.addSclass("font-icon-toolbar-button", this.btnLock);
-      		if (menuItems.get(btnLock) != null) {
-    			menuItems.get(btnLock).setIconSclass(iconSclass);
-    			LayoutUtils.addSclass("font-icon-menuitem", menuItems.get(btnLock));
-    		}
       	}
       	else
       	{
@@ -747,16 +723,12 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
   			String imgURL = "images/"+ (this.btnLock.isPressed() ? "LockX" : "Lock") + suffix;
     		imgURL = ThemeManager.getThemeResource(imgURL);
 			this.btnLock.setImage(imgURL);
-    		if (menuItems.get(btnLock) != null) {
-    			menuItems.get(btnLock).setImage(imgURL);
-    		}
     	}
     }
 
     public void enablePostIt(boolean enabled)
     {
         this.btnPostIt.setDisabled(!enabled);
-    	enableMenuitem(btnPostIt, enabled);
     }
 
     public Event getEvent()
@@ -784,20 +756,47 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 			}
 		}
 		else if (!keyEvent.isAltKey() && keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
+		{
+			if (keyEvent.getKeyCode() == KeyEvent.F2)
+			{
+				quickFormTabHrchyLevel = quickFormTabHrchyLevel + 1;
+				fireButtonClickEvent(keyEvent, btnDetailRecord);
+				if (!btnQuickForm.isDisabled() && btnQuickForm.isVisible())
+				{
+					fireButtonClickEvent(keyEvent, btnQuickForm);
+				}
+				else if (!btnParentRecord.isDisabled() && btnParentRecord.isVisible())
+				{
+					fireButtonClickEvent(keyEvent, btnParentRecord);
+					quickFormTabHrchyLevel = quickFormTabHrchyLevel - 1;
+				}
+				return;
+			}
+			else
+			{
 			btn = ctrlKeyMap.get(keyEvent.getKeyCode());
+			}
+		}
 		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
 			btn = keyMap.get(keyEvent.getKeyCode());
+		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && keyEvent.isShiftKey())
+		{
+			if (keyEvent.getKeyCode() == KeyEvent.F2)
+			{
+				btn = btnQuickForm;
+			}
+		}
+		fireButtonClickEvent(keyEvent, btn);
+	}
 
+	private void fireButtonClickEvent(KeyEvent keyEvent, ToolBarButton btn)
+	{
 		if (btn != null) {
 			prevKeyEventTime = System.currentTimeMillis();
         	prevKeyEvent = keyEvent;
 			keyEvent.stopPropagation();
 			if (!btn.isDisabled() && btn.isVisible()) {
 				Events.sendEvent(btn, new Event(Events.ON_CLICK, btn));
-				//client side script to close combobox popup
-				String script = "var w=zk.Widget.$('#" + btn.getUuid()+"'); " +
-						"zWatch.fire('onFloatUp', w);";
-				Clients.response(new AuScript(script));
 			}
 		}
 	}
@@ -812,10 +811,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		{
 			btn.setVisible(visible);
 		}
-		for (Menuitem mn : menuItems.values())
-		{
-			mn.setVisible(visible);
-		}
 	}
 
 	/**
@@ -829,11 +824,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		if (btn != null)
 		{
 			btn.setVisible(visible);
-		}
-		Menuitem mn = menuItems.get(btn);
-		if (mn != null)
-		{
-			mn.setVisible(visible);
 		}
 	}
 
@@ -852,7 +842,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	public void enableExport(boolean b) {
 		if (btnExport != null)
 			btnExport.setDisabled(!b);
-    	enableMenuitem(btnExport, b);
 	}
 
 	/**
@@ -862,7 +851,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	public void enableFileImport(boolean b) {
 		if (btnFileImport != null)
 			btnFileImport.setDisabled(!b);
-    	enableMenuitem(btnFileImport, b);
 	}
 
 	/**
@@ -872,7 +860,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	public void enableCSVImport(boolean b) {
 		if (btnCSVImport != null)
 			btnCSVImport.setDisabled(!b);
-    	enableMenuitem(btnCSVImport, b);
 	}
 
 	private boolean ToolBarMenuRestictionLoaded = false;
@@ -896,8 +883,8 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 						if ( p1 instanceof Menuitem && restrictName.equals((((Menuitem)p1).getValue())) ) {
 							p.removeChild(p1);
 							break;
-						}					
-					}					
+						}
+					}
 				}
 			}
 
@@ -919,7 +906,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 							if ( p1 instanceof Menuitem && advancedName.equals((((Menuitem)p1).getValue())) ) {
 								p.removeChild(p1);
 								break;
-							}					
+							}
 					    }
 				    }
 				}
@@ -933,7 +920,6 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 			GridTab gridTab = adwindow.getJPiereADWindowContent().getActiveGridTab();
 			if (gridTab != null){
 				btnActiveWorkflows.setDisabled(!hasWorkflow(gridTab));
-				enableMenuitem(btnActiveWorkflows, !btnActiveWorkflows.isDisabled());
 			}
 		}
 		ToolBarMenuRestictionLoaded = true;
@@ -949,17 +935,15 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	public void enableProcessButton(boolean b) {
 		if (btnProcess != null) {
 			btnProcess.setDisabled(!b);
-			enableMenuitem(btnProcess, b);
 		}
 	}
 
 	public void dynamicDisplay() {
 		List<Toolbarbutton> customButtons = new ArrayList<Toolbarbutton>();
 		for(ToolbarCustomButton toolbarCustomBtn : toolbarCustomButtons) {
-			toolbarCustomBtn.dynamicDisplay(menuItems.get(toolbarCustomBtn.getToolbarbutton()) != null);
+			if (overflows != null)
+				toolbarCustomBtn.dynamicDisplay(overflows.contains(toolbarCustomBtn.getToolbarbutton()));
 			customButtons.add(toolbarCustomBtn.getToolbarbutton());
-			if (menuItems.get(toolbarCustomBtn.getToolbarbutton()) != null)
-				menuItems.get(toolbarCustomBtn.getToolbarbutton()).setVisible(toolbarCustomBtn.getToolbarbutton().isVisible());
 		}
 
 		JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
@@ -1019,7 +1003,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		this.setWidgetOverride("toolbarScrollable", "function (wgt) {\n" +
 				"	var total = jq(wgt.$n()).width();\n" +
 				"	var w = wgt.firstChild;\n" +
-				"	var a = " + !mobileShowMoreButtons.isEmpty() + ";\n" + 
+				"	var a = " + !mobileShowMoreButtons.isEmpty() + ";\n" +
 				"\n" +
 				"	// make sure all images are loaded.\n" +
 				"	if (zUtl.isImageLoading()) {\n" +
@@ -1030,16 +1014,17 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 				"		return;\n" +
 				"	}\n" +
 				"	for (; w; w = w.nextSibling) {\n" +
-				"		total -= jq(w.$n()).outerWidth(true);\n" +
+				"		var ow = jq(w.$n()).outerWidth(true);\n" +
+				"		if (typeof ow != 'undefined') {total -= ow;}\n" +
 				"		if (total < 0 && w.className == 'zul.wgt.Toolbarbutton') {\n" +
 				"			break;\n" +
 				"		}\n" +
 				"	}\n" +
-				"	if (w) {\n" +
+				"	if (w && total < 0) {\n" +
 				"       var event = new zk.Event(wgt, 'onOverflowButton', w.uuid, {toServer: true}); \n" +
 				"       zAu.send(event); \n" +
 				"	}\n" +
-				"	else if (a) {\n" + 
+				"	else if (a) {\n" +
 				"       var event = new zk.Event(wgt, 'onOverflowButton', null, {toServer: true}); \n" +
 				"       zAu.send(event); \n" +
 				"	}\n" +
@@ -1098,30 +1083,40 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		for (ToolBarButton toolbarButton : mobileShowMoreButtons)
 			overflows.add(toolbarButton);
 		if (overflows.size() > 0) {
-			overflowButton = new A();
-			overflowButton.setIconSclass("z-icon-ShowMore");
-			overflowButton.setStyle("position: absolute; right: 4px; font-size: 18px; font-weight: 500; color: #333");
-			appendChild(overflowButton);
-			overflowPopup = new Popup();
-			overflowPopup.addEventListener(Events.ON_OPEN, (OpenEvent oe) -> {
-				if (!oe.isOpen()) {
-					overflowPopup.setAttribute("popup.close", System.currentTimeMillis());
+			createOverflowButton();
+			populateOverflowPopup();
+		}
+	}
+
+	private void populateOverflowPopup() {
+		boolean vertical = !ClientInfo.isMobile() && MSysConfig.getBooleanValue(MSysConfig.ZK_TOOLBAR_SHOW_MORE_VERTICAL, true, Env.getAD_Client_ID(Env.getCtx()));
+		if (vertical) {
+			Grid grid = new Grid();
+			grid.setHflex("min");
+			grid.setStyle("border:none;");
+			Rows rows = new Rows();
+			rows.setParent(grid);
+			overflowPopup.appendChild(grid);
+			LayoutUtils.addSclass("toolbar-overflow-popup-vertical", overflowPopup);
+			for(ToolBarButton btn : overflows) {
+				Row row = new Row();
+				row.setParent(rows);
+				Cell cell1 = new Cell();
+				cell1.setParent(row);
+				cell1.appendChild(btn);
+				cell1.setStyle("border:none;");
+				String msgValue = btn.getName().substring(BTNPREFIX.length());
+				String msg = Msg.getMsg(Env.getCtx(), msgValue);
+				btn.setLabel(msg);
+				btn.setHflex("1");
 				}
-			});
-			appendChild(overflowPopup);
+		} else {
 			for(ToolBarButton btn : overflows) {
 				overflowPopup.appendChild(btn);
 			}
-			overflowButton.addEventListener(Events.ON_CLICK, e -> {
-				Long ts = (Long) overflowPopup.removeAttribute("popup.close");
-				if (ts != null) {
-					if (System.currentTimeMillis() - ts.longValue() < 500) {
-						return;
-					}
 				}
-				overflowPopup.open(overflowButton, "after_end");
-			});
 
+		if (!vertical) {
 			int cnt = 0;
 			for(Component c : getChildren()) {
 				if (c instanceof ToolBarButton)
@@ -1138,25 +1133,86 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		}
 	}
 
+	private void enableShowMore() {
+		this.appendChild(btnShowMore);
+        btnShowMore.setDisabled(false);
+        btnShowMore.setVisible(true);
+		newOverflowPopup();
+		appendChild(overflowPopup);
+		populateOverflowPopup();
+	}
+
+	private void onShowMore() {
+		Long ts = (Long) overflowPopup.removeAttribute("popup.close");
+		if (ts != null) {
+			if (System.currentTimeMillis() - ts.longValue() < 500) {
+				return;
+			}
+		}
+		overflowPopup.open(btnShowMore, "after_end");
+	}
+
+	private void createOverflowButton() {
+		overflowButton = new A();
+		overflowButton.setTooltiptext(Msg.getMsg(Env.getCtx(), "ShowMore"));
+		overflowButton.setIconSclass("z-icon-ShowMore");
+		overflowButton.setSclass("font-icon-toolbar-button toolbar-button mobile-overflow-link");
+		appendChild(overflowButton);
+		newOverflowPopup();
+		appendChild(overflowPopup);
+		overflowButton.addEventListener(Events.ON_CLICK, e -> {
+			Long ts = (Long) overflowPopup.removeAttribute("popup.close");
+			if (ts != null) {
+				if (System.currentTimeMillis() - ts.longValue() < 500) {
+					return;
+				}
+			}
+			overflowPopup.open(overflowButton, "after_end");
+		});
+	}
+
+	private void newOverflowPopup() {
+		overflowPopup = new Popup();
+		overflowPopup.addEventListener(Events.ON_OPEN, (OpenEvent oe) -> {
+			if (!oe.isOpen()) {
+				overflowPopup.setAttribute("popup.close", System.currentTimeMillis());
+				Component[] childrens = overflowPopup.getChildren().toArray(new Component[0]);
+				for (Component child : childrens) {
+					if (child instanceof Grid || child instanceof Toolbarbutton)
+						continue;
+					child.detach();
+				}
+			}
+		});
+	}
+
 	public void onPostAfterSize() {
 		if (this.getPage() != null) {
 			String script = "var w = zk.Widget.$('#" + getUuid() + "'); w.toolbarScrollable(w);";
 			Clients.evalJavaScript(script);
 		}
 	}
-	
+
     public void setPressed(String buttonName, boolean pressed) {
     	getButton(buttonName).setPressed(pressed);
-    	if (menuItems.get(getButton(buttonName)) != null) {
-    		if (pressed)
-    			menuItems.get(getButton(buttonName)).setSclass("z-toolbarbutton-checked font-icon-menuitem");
-    		else {
-    			menuItems.get(getButton(buttonName)).setClass("");
-    			menuItems.get(getButton(buttonName)).setClass("font-icon-menuitem z-menu-item");
     		}
+
+	/**
+	 * @return
+	 */
+	public int getQuickFormTabHrchyLevel()
+	{
+		return quickFormTabHrchyLevel;
     	}
+
+	/**
+	 * @param quickFormHrchyTabLevel
+	 */
+	public void setQuickFormTabHrchyLevel(int quickFormHrchyTabLevel)
+	{
+		this.quickFormTabHrchyLevel = quickFormHrchyTabLevel;
     }
-    
+
     public void refreshUserQuery(int AD_Tab_ID, int AD_UserQuery_ID) {
     	fQueryName.getItems().clear();
         userQueries = MUserQuery.get(Env.getCtx(), AD_Tab_ID);
@@ -1164,13 +1220,27 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         for (int i = 0; i < userQueries.length; i++) {
 	       	Comboitem li = fQueryName.appendItem(userQueries[i].getName());
 	       	li.setValue(userQueries[i].getAD_UserQuery_ID());
-	       	if (AD_UserQuery_ID == userQueries[i].getAD_UserQuery_ID())
+	       	if (AD_UserQuery_ID == userQueries[i].getAD_UserQuery_ID()) {
 	       		fQueryName.setSelectedItem(li);
+	       		if (AD_UserQuery_ID != getAD_UserQuery_ID())
+	       			setSelectedUserQuery(AD_UserQuery_ID);
+	       	}
         }
-        if (AD_UserQuery_ID <= 0 || fQueryName.getItemCount() <= 1)
-        	fQueryName.setValue("");
+        fQueryName.appendItem(m_sNew, 0);
+        if (AD_UserQuery_ID <= 0 || fQueryName.getItemCount() <= 1
+        		|| fQueryName.getSelectedItem() == null)
+        	fQueryName.setSelectedIndex(0);
     }
-    
+
+	public void setSelectedUserQuery(int AD_UserQuery_ID) {
+		for (MUserQuery userQuery : userQueries) {
+			if (AD_UserQuery_ID == userQuery.getAD_UserQuery_ID()) {
+				selectedUserQuery = userQuery;
+				break;
+        	}
+    	}
+	}
+
 	public void setSelectedUserQuery(MUserQuery selectedUserQuery) {
 		this.selectedUserQuery = selectedUserQuery;
 		if (selectedUserQuery != null)
@@ -1191,9 +1261,9 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 		if(userQueries != null) {
 	        for (int i = 0; i < userQueries.length; i++) {
 	        	if(userQueries[i].isDefault()) {
-		       		fQueryName.setSelectedIndex(i);		       		
+		       		fQueryName.setSelectedIndex(i);
 		       		setSelectedUserQuery(userQueries[i]);
-		       		return true;		       		
+		       		return true;
 	        	}
 	        }
 		}
