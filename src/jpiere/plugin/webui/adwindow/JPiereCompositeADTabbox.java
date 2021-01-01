@@ -450,7 +450,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     			headerTab.setJPiereDetailPane(createDetailPane());
     		} else
     			tabPanel.setVisible(false);
-    		ZKUpdateUtil.setHflex(headerTab.getDetailPane(), "1");
+    		ZKUpdateUtil.setHflex(headerTab.getJPiereDetailPane(), "1");
     		headerTab.getJPiereDetailPane().addADTabpanel(tabPanel, tabLabel);
     		tabPanel.setDetailPaneMode(true);
     		headerTab.getJPiereDetailPane().setVflex("true");
@@ -515,7 +515,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     			hasChanges = true;
     		}
     		if (hasChanges) {
-    			headerTab.getDetailPane().getParent().invalidate();
+    			headerTab.getJPiereDetailPane().getParent().invalidate();
     		}
     	}
 	}

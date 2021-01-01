@@ -117,44 +117,6 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
         breadCrumb.setToolbarListener(this);
         breadCrumb.setId("breadCrumb");
         div.appendChild(breadCrumb);
-        div.addEventListener(Events.ON_SWIPE, new EventListener<SwipeEvent>() {
-			@Override
-			public void onEvent(SwipeEvent event) throws Exception {
-				if ("right".equals(event.getSwipeDirection())) {
-					ToolBarButton nextBtn = breadCrumb.getNextButton();
-					if (!nextBtn.isDisabled()) {
-						nextBtn.setDisabled(true);
-						String script = "var w=zk.Widget.$('#"+nextBtn.getUuid()+"');" +
-								"w.fire('onClick',null,{toServer:true});";
-						Clients.response(new AuScript(script));
-					}
-				} else if ("left".equals(event.getSwipeDirection())) {
-					ToolBarButton previousBtn = breadCrumb.getPreviousButton();
-					if (!previousBtn.isDisabled()) {
-						previousBtn.setDisabled(true);
-						String script = "var w=zk.Widget.$('#"+previousBtn.getUuid()+"');" +
-								"w.fire('onClick',null,{toServer:true});";
-						Clients.response(new AuScript(script));
-					}
-				} else if ("up".equals(event.getSwipeDirection())) {
-					ToolBarButton parentBtn = toolbar.getButton("ParentRecord");
-					if (!parentBtn.isDisabled()) {
-						parentBtn.setDisabled(true);
-						String script = "var w=zk.Widget.$('#"+parentBtn.getUuid()+"');" +
-								"w.fire('onClick',null,{toServer:true});";
-						Clients.response(new AuScript(script));
-					}
-				} else if ("down".equals(event.getSwipeDirection())) {
-					ToolBarButton detailBtn = toolbar.getButton("DetailRecord");
-					if (!detailBtn.isDisabled()) {
-						detailBtn.setDisabled(true);
-						String script = "var w=zk.Widget.$('#"+detailBtn.getUuid()+"');" +
-								"w.fire('onClick',null,{toServer:true});";
-						Clients.response(new AuScript(script));
-					}
-				}
-			}
-		});
 
         //status bar
         div.appendChild(statusBar);

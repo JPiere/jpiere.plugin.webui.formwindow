@@ -61,13 +61,16 @@ import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
 import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.apps.form.WCreateFromFactory;
 import org.adempiere.webui.apps.form.WCreateFromWindow;
+import org.adempiere.webui.apps.form.WQuickForm;
 import org.adempiere.webui.component.Mask;
 import org.adempiere.webui.component.ProcessInfoDialog;
 import org.adempiere.webui.component.Window;
@@ -84,6 +87,10 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+import org.adempiere.webui.panel.action.CSVImportAction;
+import org.adempiere.webui.panel.action.ExportAction;
+import org.adempiere.webui.panel.action.FileImportAction;
+import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
@@ -1951,6 +1958,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         }
         //JPIERE-0181 & 0466  -- end
 
+		int record_ID = adTabbox.getSelectedGridTab().getRecord_ID();
+
+        if (adTabbox.getSelectedGridTab().getTabLevel() == 0 && record_ID != masterRecord) {
+        	clenFindWindowHashMap();
+        	masterRecord = record_ID;
+        }
+        
         boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
         toolbar.enableArchive(!isNewRow);
         toolbar.enableZoomAcross(!isNewRow);
