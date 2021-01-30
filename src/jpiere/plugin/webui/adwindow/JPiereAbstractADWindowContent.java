@@ -34,6 +34,7 @@ package jpiere.plugin.webui.adwindow;
 import static org.compiere.model.MSysConfig.*;
 import static org.compiere.model.SystemIDs.*;
 
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +46,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
+import org.adempiere.exceptions.DBException;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
@@ -61,16 +63,13 @@ import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
-import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
-import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
 import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.apps.form.WCreateFromFactory;
 import org.adempiere.webui.apps.form.WCreateFromWindow;
-import org.adempiere.webui.apps.form.WQuickForm;
 import org.adempiere.webui.component.Mask;
 import org.adempiere.webui.component.ProcessInfoDialog;
 import org.adempiere.webui.component.Window;
@@ -87,10 +86,6 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
-import org.adempiere.webui.panel.action.CSVImportAction;
-import org.adempiere.webui.panel.action.ExportAction;
-import org.adempiere.webui.panel.action.FileImportAction;
-import org.adempiere.webui.panel.action.ReportAction;
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
@@ -768,7 +763,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		    	fTabPanel.createUI();
 		    	if (!m_queryInitiating)
 				{
-					initFirstTabpanel();
+		    		try {
+						initFirstTabpanel();
+		    		} catch (Exception e) {
+		        		if (DBException.isTimeout(e)) {
+		        			FDialog.error(curWindowNo, GridTable.LOAD_TIMEOUT_ERROR_MESSAGE);
+						}
+		    		}
 				}
 		    }
 
@@ -1964,7 +1965,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	clenFindWindowHashMap();
         	masterRecord = record_ID;
         }
-        
+
         boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
         toolbar.enableArchive(!isNewRow);
         toolbar.enableZoomAcross(!isNewRow);
@@ -1972,8 +1973,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableRequests(!isNewRow);
 		toolbar.setPressed("Find", adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
-		/*if (adTabbox.getSelectedGridTab().isQueryActive() && 
-				tabFindWindowHashMap.get(adTabbox.getSelectedGridTab()) != null) 
+		/*if (adTabbox.getSelectedGridTab().isQueryActive() &&
+				tabFindWindowHashMap.get(adTabbox.getSelectedGridTab()) != null)
 			findWindow = tabFindWindowHashMap.get(adTabbox.getSelectedGridTab());*/
 		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), getCurrentFindWindow() != null ? getCurrentFindWindow().getAD_UserQuery_ID() : 0);
 
@@ -2043,7 +2044,19 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	protected void doOnRefresh(final boolean fireEvent) {
 		JPiereIADTabpanel headerTab = adTabbox.getSelectedTabpanel();
 		JPiereIADTabpanel detailTab = adTabbox.getSelectedDetailADTabpanel();
-		adTabbox.getSelectedGridTab().dataRefreshAll(fireEvent, true);
+		try {
+			adTabbox.getSelectedGridTab().dataRefreshAll(fireEvent, true);
+		} catch (Exception e) {
+			if (DBException.isTimeout(e)) {
+				FDialog.error(getWindowNo(), "GridTabLoadTimeoutError");
+			} else {
+				FDialog.error(getWindowNo(), "Error", e.getMessage());
+				logger.log(Level.SEVERE, e.getMessage(), e);
+			}
+			adTabbox.getSelectedGridTab().reset();
+			return;
+		}
+
 		adTabbox.getSelectedGridTab().refreshParentTabs();
 		headerTab.dynamicDisplay(0);
 		if (detailTab != null)
@@ -2356,7 +2369,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         }
 
         getComponent().getParent().appendChild(getCurrentFindWindow());
-        showBusyMask(getCurrentFindWindow());                
+        showBusyMask(getCurrentFindWindow());
         LayoutUtils.openEmbeddedWindow(toolbar, getCurrentFindWindow(), "after_start");
 	}
 
@@ -3117,7 +3130,18 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		if (query != null) {
 			m_onlyCurrentRows = false;
 			adTabbox.getSelectedGridTab().setQuery(query);
-			adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());   //  autoSize
+			try {
+				adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());   //  autoSize
+			} catch (Exception e) {
+				if (   e.getCause() != null
+					&& e.getCause() instanceof SQLException
+					&& DB.getDatabase().isQueryTimeout((SQLException)e.getCause())) {
+					// ignore, is captured somewhere else
+	        		return;
+				} else {
+					throw new DBException(e);
+				}
+			}
 		}
 
 		adTabbox.getSelectedGridTab().dataRefresh(false);
@@ -3193,7 +3217,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	 */
 	private void actionButton0 (String col, final IProcessButton wButton)
 	{
-		//To perform button action (adtabPanel is null in QuickForm)  
+		//To perform button action (adtabPanel is null in QuickForm)
 		IADTabpanel adtabPanel = null;
 		if (adTabbox.getSelectedGridTab().isQuickForm())
 		{
