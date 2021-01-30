@@ -886,6 +886,12 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 						}
 					}
 				}
+				else if (p instanceof Combobox) {
+					if (restrictName.equals(((Combobox) p).getId())) {
+						this.removeChild(p);
+						break;
+					}
+				}
 			}
 
 		}	// All restrictions
@@ -908,7 +914,12 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 								break;
 							}
 					    }
-				    }
+					} else if (p instanceof Combobox) {
+						if (advancedName.equals(((Combobox) p).getId())) {
+							this.removeChild(p);
+							break;
+				    	}
+					}
 				}
 
 			}	// All advanced btn
@@ -956,6 +967,8 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 				if (p instanceof ToolBarButton) {
 					if (!customButtons.contains(p) && !p.isVisible())
 						p.setVisible(true);
+				} else if (p instanceof Combobox && !p.isVisible()) {
+					p.setVisible(true);
 				}
 			}
 
@@ -973,6 +986,11 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 								p.removeChild(p1);
 								break;
 							}
+						}
+					}  else if (p instanceof Combobox) {
+						if (restrictName.equals(((Combobox) p).getId())) {
+							p.setVisible(false);
+							break;
 						}
 					}
 				}
