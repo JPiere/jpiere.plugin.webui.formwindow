@@ -176,10 +176,10 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	private boolean showCurrentRowIndicatorColumn = true;
 
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
-	
+
 	/**    Cache                        */
     private static CCache<Integer,MTab> s_cache    = new CCache<Integer,MTab>("AD_Tab", 40, 10);    //    10 minutes
-	
+
 	public JPiereGridView()
 	{
 		this(0);
@@ -220,7 +220,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 		//default true for better UI experience
 		if (ClientInfo.isMobile())
-			modeless = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_MOBILE_EDIT_MODELESS, false);
+			modeless = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_MOBILE_EDIT_MODELESS, false) && MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_MOBILE_EDITABLE, false);
 		else
 			modeless = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_EDIT_MODELESS, true);
 
@@ -244,17 +244,60 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		listbox.setEmptyMessage(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Processing")));
 	}
 
-	public void setDetailPaneMode(boolean detailPaneMode) {
+	public void setDetailPaneMode(boolean detailPaneMode, GridTab gridTab) {
 		if (this.detailPaneMode != detailPaneMode) {
 			this.detailPaneMode = detailPaneMode;
-			pageSize = detailPaneMode ? getDetailPageSize() : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0014:Form Window
+			pageSize = detailPaneMode ? getDetailPageSize(gridTab) : MSysConfig.getIntValue("JPIERE_FORMWINDOW_PAGING_SIZE", DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0014:Form Window
 			updatePaging();
 		}
 	}
 
-	/** Returns the number of records to be displayed in detail grid (TODO : manage exceptions defined in SysConfig - see https://idempiere.atlassian.net/browse/IDEMPIERE-3786) */
-	int getDetailPageSize() {
-		return MSysConfig.getIntValue(MSysConfig.ZK_PAGING_DETAIL_SIZE, DEFAULT_DETAIL_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));
+	/** Returns the number of records to be displayed in detail grid */
+	private int getDetailPageSize(GridTab gridTab) {
+		int size = DEFAULT_DETAIL_PAGE_SIZE;
+		String pageDetailSizes = MSysConfig.getValue(MSysConfig.ZK_PAGING_DETAIL_SIZE, Env.getAD_Client_ID(Env.getCtx()));
+		if (Util.isEmpty(pageDetailSizes, true)) {
+			return size;
+		}
+		/* Format of ZK_PAGING_DETAIL_SIZE is a list of components separated by ;
+		 * first component is the wide default
+		 * next components are exceptions defined as pair of tab:size - where tab can be AD_Tab_ID, AD_Tab_UU or AD_TableName
+		 */
+		for (String pageDetailSize : pageDetailSizes.split(";")) {
+			String[] parts = pageDetailSize.split(":");
+			if (parts.length < 1 || parts.length > 2) {
+				s_log.warning("Misconfiguration of ZK_PAGING_DETAIL_SIZE - cannot split : in -> " + pageDetailSize);
+				return size;
+			}
+			String sizeToParse = null;
+			if (parts.length == 1) {
+				sizeToParse = parts[0];
+			} else {
+				String tab = parts[0];
+				if (   tab.equalsIgnoreCase(String.valueOf(gridTab.getAD_Tab_ID()))
+					|| tab.equalsIgnoreCase(String.valueOf(gridTab.getAD_Tab_UU()))
+					|| tab.equalsIgnoreCase(String.valueOf(gridTab.getTableName()))) {
+					sizeToParse = parts[1];
+				}
+			}
+			if (sizeToParse != null) {
+				int sizeParsed = -1;
+				try {
+					sizeParsed = Integer.valueOf(sizeToParse);
+				} catch (NumberFormatException e) {
+					s_log.warning("Misconfiguration of ZK_PAGING_DETAIL_SIZE - cannot parse as integer -> " + sizeToParse);
+					return size;
+				}
+				if (sizeParsed > 0) {
+					size = sizeParsed;
+					if (parts.length > 1) {
+						// found a specific tab size configuration
+						break;
+					}
+				}
+			}
+		}
+		return size;
 	}
 
 	public boolean isDetailPaneMode() {
@@ -288,9 +331,6 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 		setupColumns();
 		render();
-		if (listbox.getFrozen() != null){
-			listbox.getFrozen().setWidgetOverride("syncScroll", "function (){syncScrollOVR(this);}");
-		}
 
 		updateListIndex();
 
@@ -395,7 +435,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 			showRecordsCount();
 		}
 		if (this.isVisible())
-			Clients.resize(listbox);
+			listbox.invalidate();
 	}
 
 	/**
@@ -1045,7 +1085,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 				}
 			}
 			if (cmp != null)
-				Clients.response(new AuScript(null, "scrollToRow('" + cmp.getUuid() + "');"));
+				Clients.response(new AuScript(null, "idempiere.scrollToRow('" + cmp.getUuid() + "');"));
 
 			if (columnOnClick != null && columnOnClick.trim().length() > 0) {
 				List<?> list = row.getChildren();
@@ -1054,7 +1094,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 						Div div = (Div) element;
 						if (columnOnClick.equals(div.getAttribute("columnName"))) {
 							cmp = div.getFirstChild();
-							Clients.response(new AuScript(null, "scrollToRow('" + cmp.getUuid() + "');"));
+							Clients.response(new AuScript(null, "idempiere.scrollToRow('" + cmp.getUuid() + "');"));
 							break;
 						}
 					}
@@ -1082,6 +1122,19 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		}
 
 		if (gridTab.getCurrentRow() != rowIndex) {
+			JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
+			if (adwindow != null) {
+				final boolean[] retValue = new boolean[] {false};
+				final int index = rowIndex;
+				adwindow.getJPiereADWindowContent().saveAndNavigate(e -> {
+					if (e) {
+						gridTab.navigate(index);
+						retValue[0] = true;
+					}
+				});
+				return retValue[0];
+			}
+
 			gridTab.navigate(rowIndex);
 			return true;
 		}
@@ -1241,7 +1294,18 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 		refresh(gridTab);
 		scrollToCurrentRow();
-		Clients.resize(listbox);
+		invalidateGridView();
+	}
+
+	/**
+	 * redraw grid view
+	 */
+	public void invalidateGridView() {
+		Center center = findCenter(this);
+		if (center != null)
+			center.invalidate();
+		else
+			this.invalidate();
 	}
 
 	/**

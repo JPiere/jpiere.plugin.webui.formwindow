@@ -43,6 +43,7 @@ import java.util.logging.Level;
 
 import org.adempiere.base.Core;
 import org.adempiere.exceptions.AdempiereException;
+import org.adempiere.exceptions.DBException;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
@@ -122,7 +123,6 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.event.OpenEvent;
-import org.zkoss.zk.ui.event.SwipeEvent;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Cell;
@@ -300,7 +300,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	        				LayoutUtils.addSclass(SLIDE_RIGHT_OUT_CSS, form);
 	    					windowPanel.onPrevious();
 	        			}
-	        		});	        		
+	        		});
 	        	}
 	        });
 	        form.addEventListener("onSwipeLeft", e -> {
@@ -308,10 +308,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	        	{
 	        		windowPanel.saveAndNavigate(b -> {
 	        			if (b) {
-	        				LayoutUtils.addSclass(SLIDE_LEFT_OUT_CSS, form);	        	
+	        				LayoutUtils.addSclass(SLIDE_LEFT_OUT_CSS, form);
 	    					windowPanel.onNext();
 	        			}
-	        		});	        		
+	        		});
 	        	}
 	        });
         }
@@ -346,7 +346,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				+ "});");
 		Clients.response(new AuScript(script.toString()));
 	}
-    
+
 	@Override
     public void setJPiereDetailPane(JPiereDetailPane component) {
     	JPieredetailPane = component;
@@ -930,7 +930,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         		Executions.schedule(getDesktop(), e1 -> onAfterSlide(e1), new Event("onAfterSlide", form));
         	}, new Event("onAfterSlideLeftOut", form));
         }
-        
+
     	List<Group> collapsedGroups = new ArrayList<Group>();
     	for (Group group : allCollapsibleGroups) {
     		if (! group.isOpen())
@@ -1184,9 +1184,23 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     public void query (boolean onlyCurrentRows, int onlyCurrentDays, int maxRows)
     {
     	boolean open = gridTab.isOpen();
-        gridTab.query(onlyCurrentRows, onlyCurrentDays, maxRows);
-        if (listPanel.isVisible() && !open)
-        	gridTab.getTableModel().fireTableDataChanged();
+    	try
+    	{
+        	gridTab.query(onlyCurrentRows, onlyCurrentDays, maxRows);
+        	if (listPanel.isVisible() && !open)
+        		gridTab.getTableModel().fireTableDataChanged();
+    	}
+    	catch (Exception e)
+    	{
+    		if (DBException.isTimeout(e))
+    		{
+    			throw e;
+    		}
+    		else
+    		{
+    			FDialog.error(windowNo, e.getMessage());
+    		}
+    	}
     }
 
     /**
@@ -1395,8 +1409,12 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     			tabPanel.getGridView().invalidateGridView();
     		}
 	    	if (!tabPanel.isGridView()) {
-	    		tabPanel.switchRowPresentation();
-	    	}
+	    		if (JPieredetailPane.getSelectedPanel().isToggleToFormView()) {
+	    			JPieredetailPane.getSelectedPanel().afterToggle();
+	    		} else {
+	    			tabPanel.switchRowPresentation();
+	    		}
+    		}
     	}
     }
 
@@ -1595,7 +1613,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         	listPanel.dynamicDisplay(col);
         	if (GridTable.DATA_REFRESH_MESSAGE.equals(e.getAD_Message()) ||
             		"Sorted".equals(e.getAD_Message())) {
-        		listPanel.getListbox().invalidate();
+        		listPanel.invalidateGridView();
             }
         }
     }
@@ -1748,7 +1766,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		if (listPanel.isVisible()) {
 			listPanel.refresh(gridTab);
 			listPanel.scrollToCurrentRow();
-			Clients.resize(listPanel.getListbox());
+			listPanel.invalidate();
 		} else {
 			listPanel.deactivate();
 		}
@@ -1845,7 +1863,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 				attachDetailPane();
 			}
 			ZKUpdateUtil.setVflex(this, "true");
-			listPanel.setDetailPaneMode(detailPaneMode);
+			listPanel.setDetailPaneMode(detailPaneMode, gridTab);
 		}
 	}
 
@@ -1941,6 +1959,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	 *
 	 * @return true if the detailpane is visible
 	 */
+	@Override
 	public boolean isDetailVisible() {
 		if (formContainer.getSouth() == null || !formContainer.getSouth().isVisible()
 			|| !formContainer.getSouth().isOpen()) {
@@ -2112,7 +2131,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	{
 		boolean hasQuickForm = false;
 		int tabID = getGridTab().getAD_Tab_ID();
-		
+
 		if (quickFormCache.containsKey(tabID))
 		{
 			hasQuickForm = quickFormCache.get(tabID);
@@ -2129,7 +2148,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 			}
 			quickFormCache.put(tabID, hasQuickForm);
 		}
-		
+
 		return hasQuickForm;
 	}
 

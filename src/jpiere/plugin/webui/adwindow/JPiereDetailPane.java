@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.adempiere.base.IServiceHolder;
 import org.adempiere.webui.ClientInfo;
@@ -25,6 +26,7 @@ import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.action.Actions;
 import org.adempiere.webui.action.IAction;
 import org.adempiere.webui.adwindow.ADTabpanel;				//JPIERE-0014
+import org.adempiere.webui.adwindow.DetailPane;
 import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
 import org.adempiere.webui.adwindow.ProcessButtonPopup;		//JPIERE-0014
 import org.adempiere.webui.adwindow.ToolbarCustomButton;	//JPIERE-0014
@@ -33,7 +35,6 @@ import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Tab;
 import org.adempiere.webui.component.Tabbox;
-import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBar;
 import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.component.Window;
@@ -41,6 +42,9 @@ import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.CustomizeGridViewDialog;
+import org.adempiere.webui.window.WRecordInfo;
+import org.compiere.model.DataStatusEvent;
+import org.compiere.model.GridTab;
 import org.compiere.model.MToolBarButton;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -51,6 +55,7 @@ import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Execution;
 import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.IdSpace;
 import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.event.Event;
@@ -59,8 +64,11 @@ import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.event.KeyEvent;
 import org.zkoss.zk.ui.sys.ExecutionCtrl;
 import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.A;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Hbox;
+import org.zkoss.zul.Hlayout;
+import org.zkoss.zul.Popup;
 import org.zkoss.zul.Separator;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.Tabpanels;
@@ -76,7 +84,7 @@ import org.zkoss.zul.Toolbar;
 public class JPiereDetailPane extends Panel implements EventListener<Event>, IdSpace {
 
 	/**
-	 *
+	 * generated serial id
 	 */
 	private static final long serialVersionUID = -7914602940626352282L;
 
@@ -94,9 +102,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 	private static final String BTN_CUSTOMIZE_ID = "BtnCustomize";
 
+	private static final String BTN_TOGGLE_ID = "BtnToggle";
+
 	private static final String TABBOX_ONSELECT_ATTRIBUTE = "detailpane.tabbox.onselect";
 
-	public static final String ON_POST_SELECT_TAB_EVENT = "onPostSelectTab";
+	private static final String ON_POST_SELECT_TAB_EVENT = "onPostSelectTab";
 
 	private static final String STATUS_TEXT_ATTRIBUTE = "status.text";
 
@@ -109,9 +119,9 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	private static final String PROCESS_IMAGE = "images/Process16.png";
 	private static final String SAVE_IMAGE = "images/Save16.png";
 	private static final String QUICK_FORM_IMAGE = "images/QuickForm16.png";
+	private static final String TOGGLE_IMAGE = "images/Multi16.png";
 
 
-	private ToolBarButton btnNew;
 	private long prevKeyEventTime = 0;
 	private KeyEvent prevKeyEvent;
 
@@ -140,10 +150,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 	public static final String ON_QUICK_FORM_EVENT = "onQuickForm";
 
-    private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
-    private List<ToolbarCustomButton> toolbarCustomButtons = new ArrayList<ToolbarCustomButton>();
+	public static final String ON_RECORD_NAVIGATE_EVENT = "onRecordNavigate";
 
-
+	/**
+	 * default constructor
+	 */
 	public JPiereDetailPane() {
 		tabbox = new Tabbox();
 		tabbox.setParent(this);
@@ -300,25 +311,24 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		}
 		Tabpanel tp = new Tabpanel();
 		tabpanels.appendChild(tp);
-		tp.setSclass("adwindow-detailpane-tabpanel");
-		ToolBar toolbar = new ToolBar();
-		tp.appendChild(toolbar);
-		btnNew = new ToolBarButton();
+		ToolBar toolbar = tp.getToolbar();
+
+		HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
+		ToolBarButton button = new ToolBarButton();
 		if (ThemeManager.isUseFontIconForImage())
-			btnNew.setIconSclass("z-icon-New");
+			button.setIconSclass("z-icon-New");
 		else
-			btnNew.setImage(ThemeManager.getThemeResource(NEW_IMAGE));
-		btnNew.setId(BTN_NEW_ID);
-		btnNew.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
+			button.setImage(ThemeManager.getThemeResource(NEW_IMAGE));
+		button.setId(BTN_NEW_ID);
+		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
+				if (event.getTarget().isVisible())
 				onNew();
 			}
 		});
-		btnNew.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "New")) + "    Shift+Alt+N");
-       buttons.put(BTN_NEW_ID.substring(3, BTN_NEW_ID.length()), btnNew);
-
-		ToolBarButton button = new ToolBarButton();
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "New")) + "    Shift+Alt+N");
+		buttons.put(BTN_NEW_ID.substring(3, BTN_NEW_ID.length()), button);
 
 		button = new ToolBarButton();
 		if (ThemeManager.isUseFontIconForImage())
@@ -329,10 +339,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
+				if (event.getTarget().isVisible())
 				onEdit(true);
 			}
 		});
-		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")) + "    Shift+Alt+E");
         buttons.put(BTN_EDIT_ID.substring(3, BTN_EDIT_ID.length()), button);
 
 		button = new ToolBarButton();
@@ -344,11 +355,13 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
-				Event openEvent = new Event(ON_DELETE_EVENT, JPiereDetailPane.this);
-				eventListener.onEvent(openEvent);
+				if (event.getTarget().isVisible()) {
+					Event openEvent = new Event(ON_DELETE_EVENT, JPiereDetailPane.this);
+					eventListener.onEvent(openEvent);
+				}
 			}
 		});
-		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Delete")));
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Delete")) + "    Shift+Alt+D");
         buttons.put(BTN_DELETE_ID.substring(3, BTN_DELETE_ID.length()), button);
 
 		button = new ToolBarButton();
@@ -360,11 +373,13 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
-				Event openEvent = new Event(ON_SAVE_EVENT, JPiereDetailPane.this);
-				eventListener.onEvent(openEvent);
+				if (event.getTarget().isVisible()) {
+					Event openEvent = new Event(ON_SAVE_EVENT, JPiereDetailPane.this);
+					eventListener.onEvent(openEvent);
+				}
 			}
 		});
-		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Save")));
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Save")) + "    Shift+Alt+S");
         buttons.put(BTN_SAVE_ID.substring(3, BTN_SAVE_ID.length()), button);
 
 
@@ -378,10 +393,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
 				@Override
 				public void onEvent(Event event) throws Exception {
-					onProcess(event.getTarget());
+					if (event.getTarget().isVisible())
+						onProcess(event.getTarget());
 				}
 			});
-			button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Process")));
+			button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Process")) + "    Shift+Alt+O");
 			buttons.put(BTN_PROCESS_ID.substring(3, BTN_PROCESS_ID.length()), button);
 		}
 
@@ -396,8 +412,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			@Override
 			public void onEvent(Event event) throws Exception
 			{
-				Event openEvent = new Event(ON_QUICK_FORM_EVENT, JPiereDetailPane.this);
-				eventListener.onEvent(openEvent);
+				if (event.getTarget().isVisible()) {
+					Event openEvent = new Event(ON_QUICK_FORM_EVENT, JPiereDetailPane.this);
+					eventListener.onEvent(openEvent);
+				}
 			}
 		});
 		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "QuickForm")));
@@ -410,9 +428,20 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		else
 			button.setImage(ThemeManager.getThemeResource(CUSTOMIZE_IMAGE));
 		button.setId(BTN_CUSTOMIZE_ID);
-		button.addEventListener(Events.ON_CLICK, e -> onCustomize(e));
+		button.addEventListener(Events.ON_CLICK, e -> { if(e.getTarget().isVisible()) onCustomize(e); });
 		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Customize")));
 		buttons.put(BTN_CUSTOMIZE_ID.substring(3, BTN_CUSTOMIZE_ID.length()), button);
+
+		// ADD toggle grid button
+		button = new ToolBarButton();
+		if (ThemeManager.isUseFontIconForImage())
+			button.setIconSclass("z-icon-Multi");
+		else
+			button.setImage(ThemeManager.getThemeResource(TOGGLE_IMAGE));
+		button.setId(BTN_TOGGLE_ID);
+		button.addEventListener(Events.ON_CLICK, e -> { if(e.getTarget().isVisible()) onToggle(e); });
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Toggle")) + "    Shift+Alt+T");
+		buttons.put(BTN_TOGGLE_ID.substring(3, BTN_TOGGLE_ID.length()), button);
 
 		MToolBarButton[] officialButtons = MToolBarButton.getToolbarButtons("D", null);
 		for (MToolBarButton toolbarButton : officialButtons) {
@@ -448,7 +477,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 						}
 
 						ToolbarCustomButton toolbarCustomBtn = new ToolbarCustomButton(toolbarButton, btn, actionId, tabPanel.getGridTab().getWindowNo());
-						toolbarCustomButtons.add(toolbarCustomBtn);
+						tp.toolbarCustomButtons.add(toolbarCustomBtn);
 
 						toolbar.appendChild(btn);
 					}
@@ -477,7 +506,15 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		messageContainers.put(tabLabel.AD_Tab_ID, messageContainer);
 		tabPanel.setAttribute("AD_Tab_ID", tabLabel.AD_Tab_ID);
 
-		tp.appendChild(tabPanel);
+		if (ClientInfo.isMobile() && ClientInfo.maxWidth(ClientInfo.SMALL_WIDTH)) {
+			tp.createOverflowButton();
+		}
+
+		RecordToolbar recordToolbar = new RecordToolbar(tabPanel.getGridTab());
+		recordToolbar.addEventListener(ON_RECORD_NAVIGATE_EVENT, eventListener);
+		tp.setRecordToolbar(recordToolbar);
+		tp.setADTabpanel(tabPanel);
+
 		if (tabPanel.getJPiereGridView() != null) {
 			tabPanel.addEventListener(ADTabpanel.ON_DYNAMIC_DISPLAY_EVENT, this);
 			tabPanel.getJPiereGridView().addEventListener(ON_EDIT_EVENT, new EventListener<Event>() {
@@ -491,6 +528,30 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		}
 	}
 
+	/**
+	 * toggle between grid and form view
+	 * @param e
+	 */
+	protected void onToggle(Event e) {
+		var adTabPanel = getSelectedADTabpanel();
+		if(!(adTabPanel instanceof JPiereADSortTab)) {
+			adTabPanel.switchRowPresentation();
+			getSelectedPanel().getToolbarButton(BTN_CUSTOMIZE_ID).setDisabled(!adTabPanel.isGridView());
+
+			Tabpanel tabPanel = (Tabpanel) tabbox.getSelectedTabpanel();
+			tabPanel.setToggleToFormView(!adTabPanel.isGridView());
+			tabPanel.afterToggle();
+
+			if (adTabPanel != null && adTabPanel instanceof HtmlBasedComponent) {
+				((HtmlBasedComponent)adTabPanel).focus();
+			}
+		}
+	}
+
+	/**
+	 * open customize grid dialog
+	 * @param e
+	 */
 	protected void onCustomize(Event e) {
 		if (getSelectedADTabpanel() instanceof ADTabpanel) {
 			ADTabpanel tabPanel = (ADTabpanel) getSelectedADTabpanel();
@@ -498,6 +559,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		}
 	}
 
+	/**
+	 * open process dropdown
+	 * @param button
+	 */
 	protected void onProcess(Component button) {
 		ProcessButtonPopup popup = new ProcessButtonPopup();
 		JPiereADTabpanel adtab = (JPiereADTabpanel) getSelectedADTabpanel();
@@ -562,6 +627,14 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 	/**
 	 *
+	 * @return {@link Tabpanel}
+	 */
+	public Tabpanel getSelectedPanel() {
+		return (Tabpanel) tabbox.getSelectedPanel();
+	}
+
+	/**
+	 *
 	 * @param status
 	 * @param error
 	 */
@@ -610,6 +683,13 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
     	}
 
     	messageContainer.appendChild(new Space());
+
+    	if (!tabPanel.isGridView()) {
+    		Tabpanel tp = (Tabpanel) tabbox.getSelectedTabpanel();
+    		if (tp.getRecordToolbar() != null) {
+    			tp.getRecordToolbar().dynamicDisplay();
+    		}
+    	}
 	}
 
 	private String buildLabelText(String statusText) {
@@ -742,8 +822,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		int index = getSelectedIndex();
 		if (index < 0 || index >= getTabcount()) return;
 
-		Tabpanel tabpanel = tabbox.getTabpanel(index);
-		Toolbar toolbar = (Toolbar) tabpanel.getFirstChild();
+		Tabpanel tabpanel = (Tabpanel) tabbox.getTabpanel(index);
+		Toolbar toolbar = tabpanel.getToolbar();
 
 		JPiereIADTabpanel adtab = getADTabpanel(index);
 		if (adtab == null)
@@ -764,7 +844,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			deleteRecord = adtab.getGridTab().isDeleteRecord();
         }
         boolean enableDelete = !changed && deleteRecord && !adtab.getGridTab().isSortTab();
-        boolean enableCustomize = !adtab.getGridTab().isSortTab();
+        boolean enableCustomize = !adtab.getGridTab().isSortTab() && adtab.isGridView();
 
         JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
         if (adwindow == null)
@@ -785,9 +865,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         			btn.setDisabled(!adtab.needSave(true, false));
 				} else if (BTN_CUSTOMIZE_ID.equals(btn.getId())) {
         			btn.setDisabled(!enableCustomize);
-        		}
-				else if (BTN_QUICK_FORM_ID.equals(btn.getId())) {
+				} else if (BTN_QUICK_FORM_ID.equals(btn.getId())) {
 					btn.setDisabled(!(adtab.isEnableQuickFormButton() && !adtab.getGridTab().isReadOnly()));
+				} else if (BTN_TOGGLE_ID.equals(btn.getId())) {
+					btn.setDisabled(adtab.getGridTab().isSortTab());
 				}
         		if (windowRestrictList.contains(btn.getId())) {
         			btn.setVisible(false);
@@ -804,8 +885,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		int index = getSelectedIndex();
 		if (index < 0 || index >= getTabcount()) return;
 
-		Tabpanel tabpanel = tabbox.getTabpanel(index);
-		Toolbar toolbar = (Toolbar) tabpanel.getFirstChild();
+		Tabpanel tabpanel = (Tabpanel) tabbox.getTabpanel(index);
+		Toolbar toolbar = tabpanel.getToolbar();
 
 		JPiereIADTabpanel adtab = getADTabpanel(index);
 		if (adtab == null) return;
@@ -907,8 +988,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		int index = getSelectedIndex();
 		if (index < 0 || index >= getTabcount()) return;
 
-		Tabpanel tabpanel = tabbox.getTabpanel(index);
-		Toolbar toolbar = (Toolbar) tabpanel.getFirstChild();
+		Tabpanel tabpanel = (Tabpanel) tabbox.getTabpanel(index);
+		Toolbar toolbar = tabpanel.getToolbar();
 		for(Component c : toolbar.getChildren()) {
         	if (c instanceof ToolBarButton) {
         		ToolBarButton btn = (ToolBarButton) c;
@@ -928,18 +1009,46 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		return null;
 	}
 
+	/**
+	 * add new record
+	 * @throws Exception
+	 */
 	public void onNew() throws Exception {
 		Event openEvent = new Event(ON_NEW_EVENT, JPiereDetailPane.this);
 		eventListener.onEvent(openEvent);
 	}
 
-
-    public static final int VK_N              = 0x4E;
+    private static final int VK_N = 0x4E;
+    private static final int VK_T = 0x54;
+    private static final int VK_E = 0x45;
+    private static final int VK_S = 0x53;
+    private static final int VK_D = 0x44;
+    private static final int VK_O = 0x4F;
 	private void onCtrlKeyEvent(KeyEvent keyEvent) {
 		ToolBarButton btn = null;
 		if (keyEvent.isAltKey() && !keyEvent.isCtrlKey() && keyEvent.isShiftKey()) { // Shift+Alt key
 			if (keyEvent.getKeyCode() == VK_N) { // Shift+Alt+N
-				btn = btnNew;
+				btn = getSelectedPanel().getToolbarButton(BTN_NEW_ID);
+			} else if (keyEvent.getKeyCode() == VK_T) {
+				btn = getSelectedPanel().getToolbarButton(BTN_TOGGLE_ID);
+			} else if (keyEvent.getKeyCode() == KeyEvent.HOME) {
+				btn = getSelectedPanel().getRecordToolbar().btnFirst;
+			} else if (keyEvent.getKeyCode() == KeyEvent.END) {
+				btn = getSelectedPanel().getRecordToolbar().btnLast;
+			} else if (keyEvent.getKeyCode() == KeyEvent.LEFT) {
+				btn = getSelectedPanel().getRecordToolbar().btnPrevious;
+			} else if (keyEvent.getKeyCode() == KeyEvent.RIGHT) {
+				btn = getSelectedPanel().getRecordToolbar().btnNext;
+			} else if (keyEvent.getKeyCode() == KeyEvent.HOME) {
+				btn = getSelectedPanel().getRecordToolbar().btnFirst;
+			} else if (keyEvent.getKeyCode() == VK_E) {
+				btn = getSelectedPanel().getToolbarButton(BTN_EDIT_ID);
+			} else if (keyEvent.getKeyCode() == VK_S) {
+				btn = getSelectedPanel().getToolbarButton(BTN_SAVE_ID);
+			} else if (keyEvent.getKeyCode() == VK_D) {
+				btn = getSelectedPanel().getToolbarButton(BTN_DELETE_ID);
+			} else if (keyEvent.getKeyCode() == VK_O) {
+				btn = getSelectedPanel().getToolbarButton(BTN_PROCESS_ID);
 			}
 		}
 		if (btn != null) {
@@ -953,6 +1062,280 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 						"zWatch.fire('onFloatUp', w);";
 				Clients.response(new AuScript(script));
 			}
+		}
+	}
+
+	/**
+	 * tabpanel for adtabpanel
+	 * @author hengsin
+	 *
+	 */
+	public static class Tabpanel extends org.adempiere.webui.component.Tabpanel {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 8248794614430375822L;
+
+		private ToolBar toolbar;
+
+		private RecordToolbar recordToolBar;
+
+		private Div pagingControl;
+
+		private boolean toggleToFormView = false;
+
+		private IADTabpanel adTabPanel;
+
+		private List<ToolbarCustomButton> toolbarCustomButtons = new ArrayList<ToolbarCustomButton>();
+
+		private A overflowButton;
+
+		private Popup overflowPopup;
+
+		public Tabpanel() {
+			setSclass("adwindow-detailpane-tabpanel");
+			toolbar = new ToolBar();
+			appendChild(toolbar);
+		}
+
+		/**
+		 * update toolbar state after toggle between grid and form view
+		 */
+		public void afterToggle() {
+			if (getPagingControl() != null)
+				getPagingControl().setVisible(!toggleToFormView);
+			if (getRecordToolbar() != null) {
+				getRecordToolbar().setVisible(toggleToFormView);
+				if (getRecordToolbar().isVisible())
+					getRecordToolbar().dynamicDisplay();
+			}
+			boolean enableCustomize = !adTabPanel.getGridTab().isSortTab() && adTabPanel.isGridView();
+			List<ToolBarButton> btns = getToolbar().getChildren();
+			Optional<ToolBarButton> optional = btns.stream().filter(e -> BTN_CUSTOMIZE_ID.equals(e.getId())).findFirst();
+			if (optional.isPresent())
+				optional.get().setDisabled(!enableCustomize);
+		}
+
+		/**
+		 * set form view state
+		 * @param b
+		 */
+		public void setToggleToFormView(boolean b) {
+			toggleToFormView  = b;
+		}
+
+		/**
+		 *
+		 * @return true if tab have been toggle to form view
+		 */
+		public boolean isToggleToFormView() {
+			return toggleToFormView;
+		}
+
+		/**
+		 *
+		 * @param tabPanel
+		 */
+		public void setADTabpanel(IADTabpanel tabPanel) {
+			appendChild(tabPanel);
+			this.adTabPanel = tabPanel;
+			if (tabPanel instanceof ADTabpanel) {
+				tabPanel.addEventListener(ADTabpanel.ON_SWITCH_VIEW_EVENT, e -> {
+					if (recordToolBar != null && tabPanel.isGridView()) {
+						recordToolBar.setVisible(false);
+					}
+				});
+			}
+		}
+
+		/**
+		 * Get toolbar of the tabpanel
+		 * @return {@link ToolBar}
+		 */
+		public ToolBar getToolbar() {
+			return toolbar;
+		}
+
+		/**
+		 * set record navigation toolbar
+		 * @param rtb
+		 */
+		public void setRecordToolbar(RecordToolbar rtb) {
+			recordToolBar = rtb;
+			Component parent = overflowPopup != null ? overflowPopup : toolbar;
+			parent.appendChild(rtb);
+			rtb.setVisible(false);
+			if (overflowPopup == null)
+				rtb.setSclass("adwindow-detailpane-adtab-grid-south");
+		}
+
+		/**
+		 *
+		 * @return {@link RecordToolbar}
+		 */
+		public RecordToolbar getRecordToolbar() {
+			return recordToolBar;
+		}
+
+		/**
+		 * set paging control container
+		 * @param pagingControl
+		 */
+		public void setPagingControl(Div pagingControl) {
+			Component parent = overflowPopup != null ? overflowPopup : toolbar;
+			if ( pagingControl.getParent() != parent) {
+				parent.appendChild(pagingControl);
+				ZKUpdateUtil.setHflex(pagingControl, "0");
+				if (overflowPopup == null)
+					pagingControl.setSclass("adwindow-detailpane-adtab-grid-south");
+			}
+			this.pagingControl = pagingControl;
+		}
+
+		/**
+		 *
+		 * @return paging control container
+		 */
+		public Div getPagingControl() {
+			return pagingControl;
+		}
+
+		/**
+		 * Get toolbar button by id
+		 * @param id
+		 * @return {@link ToolBarButton}
+		 */
+		public ToolBarButton getToolbarButton(String id) {
+			List<ToolBarButton> list = toolbar.getChildren();
+			Optional<ToolBarButton> optional = list.stream().filter(e -> e.getId().equals(id)).findFirst();
+			return optional.isPresent() ? optional.get() : null;
+		}
+
+		private void createOverflowButton() {
+			overflowButton = new A();
+			overflowButton.setTooltiptext(Msg.getMsg(Env.getCtx(), "ShowMore"));
+			overflowButton.setIconSclass("z-icon-ShowMore");
+			overflowButton.setSclass("font-icon-toolbar-button toolbar-button mobile-overflow-link");
+			toolbar.appendChild(overflowButton);
+			newOverflowPopup();
+			toolbar.appendChild(overflowPopup);
+			overflowButton.addEventListener(Events.ON_CLICK, e -> {
+				Long ts = (Long) overflowPopup.removeAttribute("popup.close");
+				if (ts != null) {
+					if (System.currentTimeMillis() - ts.longValue() < 500) {
+						return;
+					}
+				}
+				overflowPopup.open(overflowButton, "after_end");
+			});
+		}
+
+		private void newOverflowPopup() {
+			overflowPopup = new Popup();
+			overflowPopup.setHflex("min");
+			overflowPopup.setVflex("min");
+		}
+	}
+
+	/**
+	 * record navigation toolbar
+	 * @author hengsin
+	 *
+	 */
+	private static class RecordToolbar extends Hlayout {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 5024630043211194429L;
+		private ToolBarButton btnFirst;
+		private ToolBarButton btnPrevious;
+		private ToolBarButton btnRecordInfo;
+		private ToolBarButton btnNext;
+		private ToolBarButton btnLast;
+		private GridTab gridTab;
+
+		private RecordToolbar(GridTab gridTab) {
+			this.gridTab = gridTab;
+			btnFirst = createButton("First", "First", "First");
+			btnFirst.setTooltiptext(btnFirst.getTooltiptext()+"    Shift+Alt+Home");
+			appendChild(btnFirst);
+			btnFirst.addEventListener(Events.ON_CLICK, e -> {
+				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "first");
+				Events.sendEvent(this, ne);
+			});
+	        btnPrevious = createButton("Previous", "Previous", "Previous");
+	        btnPrevious.setTooltiptext(btnPrevious.getTooltiptext()+"    Shift+Alt+Left");
+	        appendChild(btnPrevious);
+	        btnPrevious.addEventListener(Events.ON_CLICK, e -> {
+				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "previous");
+				Events.sendEvent(this, ne);
+			});
+	        btnRecordInfo = new ToolBarButton();
+	        btnRecordInfo.setLabel("");
+	        btnRecordInfo.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Who")));
+	        btnRecordInfo.addEventListener(Events.ON_CLICK,  e -> {
+	        	if (gridTab.isNew() || gridTab.getRowCount() == 0)
+	        		return;
+	        	DataStatusEvent dse = new DataStatusEvent(gridTab, gridTab.getRowCount(), gridTab.needSave(true, true), true, false);
+	        	gridTab.updateDataStatusEventProperties(dse);
+	        	dse.setCurrentRow(gridTab.getCurrentRow());
+	        	String title = Msg.getMsg(Env.getCtx(), "Who") + btnRecordInfo.getLabel();
+	        	new WRecordInfo(title, dse, gridTab);
+	        });
+	        btnRecordInfo.setSclass("breadcrumb-record-info link");
+	        btnRecordInfo.setId("recordInfo");
+	        btnRecordInfo.setStyle("float: none; display: inline-flex; width: auto;");
+	        appendChild(btnRecordInfo);
+	        btnNext = createButton("Next", "Next", "Next");
+	        btnNext.setTooltiptext(btnNext.getTooltiptext()+"    Shift+Alt+Right");
+	        btnNext.addEventListener(Events.ON_CLICK, e -> {
+				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "next");
+				Events.sendEvent(this, ne);
+			});
+	        appendChild(btnNext);
+	        btnLast = createButton("Last", "Last", "Last");
+	        btnLast.setTooltiptext(btnLast.getTooltiptext()+"    Shift+Alt+End");
+	        btnLast.addEventListener(Events.ON_CLICK, e -> {
+				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "last");
+				Events.sendEvent(this, ne);
+			});
+	        appendChild(btnLast);
+	        this.setValign("middle");
+		}
+
+		private ToolBarButton createButton(String name, String image, String tooltip)
+	    {
+	    	ToolBarButton btn = new ToolBarButton("");
+	        btn.setName("Btn"+name);
+	        btn.setId(name);
+	    	String suffix = "16.png";
+	    	if (ThemeManager.isUseFontIconForImage())
+	    		btn.setIconSclass("z-icon-"+image+"Record");
+	    	else
+	    		btn.setImage(ThemeManager.getThemeResource("images/"+image + suffix));
+	        btn.setTooltiptext(Msg.getMsg(Env.getCtx(),tooltip));
+	        btn.setSclass("breadcrumb-toolbar-button");
+
+	        this.appendChild(btn);
+	        //make toolbar button last to receive focus
+	        btn.setTabindex(0);
+	        btn.setDisabled(true);
+	        btn.setStyle("float: none");
+
+	        return btn;
+	    }
+
+		private void dynamicDisplay() {
+			int rowCount = gridTab.getRowCount();
+			int currentRow = gridTab.getCurrentRow()+1;
+			btnRecordInfo.setLabel(currentRow+"/"+rowCount);
+			btnFirst.setDisabled(currentRow<=1);
+			btnPrevious.setDisabled(currentRow<=1);
+			btnNext.setDisabled(currentRow==rowCount);
+			btnLast.setDisabled(currentRow==rowCount);
+			this.invalidate();
 		}
 	}
 

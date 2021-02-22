@@ -144,9 +144,17 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 						public void onCallback(Boolean result) {
 							if (result) {
 								if (getSelectedDetailADTabpanel().getGridTab().isSingleRow()) {
-									onEditDetail(row, true);
-									if (!adWindowPanel.getActiveGridTab().isNew())
-										adWindowPanel.onNew();
+									if (headerTab.isDetailVisible() && headerTab.getDetailPane().getSelectedPanel().isToggleToFormView()) {
+										if (!getSelectedDetailADTabpanel().getGridTab().isNew()) {
+											getSelectedDetailADTabpanel().getGridTab().dataNew(false);
+											getSelectedDetailADTabpanel().dynamicDisplay(0);
+											focusToTabpanel(getSelectedDetailADTabpanel());
+										}
+									} else {
+										onEditDetail(row, true);
+										if (!adWindowPanel.getActiveGridTab().isNew())
+											adWindowPanel.onNew();
+									}
 								} else {
 									if (!getSelectedDetailADTabpanel().getGridTab().isNew()) {
 										getSelectedDetailADTabpanel().getGridTab().dataNew(false);
@@ -195,6 +203,27 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 							{
 								onEditDetail(row, formView);
 								adWindowPanel.onQuickForm();
+							}
+						}
+					});
+				}
+				else if (DetailPane.ON_RECORD_NAVIGATE_EVENT.equals(event.getName())) {
+					final String action = (String) event.getData();
+					adWindowPanel.saveAndNavigate(new Callback <Boolean>() {
+						@Override
+						public void onCallback(Boolean result)
+						{
+							if (result)
+							{
+								if ("first".equalsIgnoreCase(action)) {
+									getSelectedDetailADTabpanel().getGridTab().navigate(0);
+								} else if ("previous".equalsIgnoreCase(action)) {
+									getSelectedDetailADTabpanel().getGridTab().navigateRelative(-1);
+								} else if ("next".equalsIgnoreCase(action)) {
+									getSelectedDetailADTabpanel().getGridTab().navigateRelative(1);
+								} else if ("last".equalsIgnoreCase(action)) {
+									getSelectedDetailADTabpanel().getGridTab().navigate(getSelectedDetailADTabpanel().getGridTab().getRowCount()-1);
+								}
 							}
 						}
 					});
@@ -262,6 +291,13 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 
     	return detailPane;
     }
+
+    private void focusToTabpanel(JPiereIADTabpanel adTabPanel ) {
+		if (adTabPanel != null && adTabPanel instanceof HtmlBasedComponent) {
+			final HtmlBasedComponent comp = (HtmlBasedComponent) adTabPanel;
+			Executions.schedule(layout.getDesktop(), e -> {comp.focus();}, new Event("onFocusDefer"));
+		}
+	}
 
     protected void onEditDetail(int row, boolean formView) {
 
@@ -631,6 +667,18 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 								selectDetailPanel.setVisible(true);
 							}
 							if (!selectDetailPanel.isGridView()) {
+								boolean switchToGrid = true;
+								Component parent = selectDetailPanel.getParent();
+								while (parent != null) {
+									if (parent instanceof JPiereDetailPane.Tabpanel) {
+										JPiereDetailPane.Tabpanel dtp = (JPiereDetailPane.Tabpanel) parent;
+										switchToGrid = !dtp.isToggleToFormView();
+										dtp.afterToggle();
+										break;
+									}
+									parent = parent.getParent();
+								}
+								if (switchToGrid)
 								selectDetailPanel.switchRowPresentation();
 							}
 							if (selectDetailPanel instanceof JPiereADTabpanel)
@@ -969,8 +1017,25 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 			if (row != null)
 				gtr.setCurrentRow(row);
 		}
-		if (wasForm && tabPanel.getTabLevel() == 0 && headerTab.getTabLevel() != 0) // maintain form on header when zooming to a detail tab
+		if (wasForm) {
+			// maintain form on header when zooming to a detail tab
+			if (tabPanel.getTabLevel() == 0 && headerTab.getTabLevel() != 0) {
+				tabPanel.switchRowPresentation();
+			} else {
+				Component parent = tabPanel.getParent();
+				while (parent != null) {
+					if (parent instanceof JPiereDetailPane.Tabpanel) {
+						JPiereDetailPane.Tabpanel dtp = (JPiereDetailPane.Tabpanel) parent;
+						if (dtp.isToggleToFormView()) {
 			tabPanel.switchRowPresentation();
+							dtp.afterToggle();
+						}
+						break;
+					}
+					parent = parent.getParent();
+				}
+			}
+		}
 	}
 
 	private void invalidateTabPanel(JPiereIADTabpanel tabPanel) {
