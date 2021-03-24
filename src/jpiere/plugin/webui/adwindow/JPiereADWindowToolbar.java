@@ -170,6 +170,9 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 
     private List<ToolbarCustomButton> toolbarCustomButtons = new ArrayList<ToolbarCustomButton>();
 
+    private List<String> restrictionList;
+    private List<String> advancedList;
+
 	// Elaine 2008/12/04
 	/** Show Personal Lock								*/
 	public boolean isPersonalLock = MRole.getDefault().isPersonalLock();
@@ -306,7 +309,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         	overflows = new ArrayList<ToolBarButton>();
         MToolBarButton[] officialButtons = MToolBarButton.getToolbarButtons("W", null);
         for (MToolBarButton button : officialButtons) {
-        	if (! button.isActive()) {
+        	if (!button.isActive() || !hasAccess(BTNPREFIX+button.getComponentName())) {
         		buttons.remove(button.getComponentName());
         	} else {
         		if (button.isCustomization()) {
@@ -493,6 +496,8 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
         {
             if(event.getTarget() instanceof ToolBarButton)
             {
+            	if (!event.getTarget().isVisible())
+            		return;
             	if (!event.getTarget().getId().contentEquals(BTNPREFIX+"ShowMore"))
             		doOnClick(event);
             	else
@@ -863,67 +868,31 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	}
 
 	private boolean ToolBarMenuRestictionLoaded = false;
-	public void updateToolbarAccess(int xAD_Window_ID) {
+	
+	private boolean hasAccess(String buttonName) {
+		JPiereADWindow adwindow = JPiereADWindow.get(windowNo);
+		if (restrictionList == null)
+			restrictionList = adwindow.getWindowToolbarRestrictList();
+		
+		if (restrictionList.contains(buttonName))
+			return false;
+		
+		if (!MRole.getDefault().isAccessAdvanced()) {
+			if (advancedList == null)
+				advancedList = adwindow.getWindowAdvancedButtonList();
+			
+			if (advancedList.contains(buttonName))
+				return false;
+		}// All advanced btn
+		
+		return true;
+	}
+	
+	public void updateToolbarAccess() {
 		if (ToolBarMenuRestictionLoaded)
 			return;
 
 		JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
-		List<String> restrictionList = adwindow.getWindowToolbarRestrictList();
-
-		for (String restrictName : restrictionList)
-		{
-			for (Component p = this.getFirstChild(); p != null; p = p.getNextSibling()) {
-				if (p instanceof ToolBarButton) {
-					if ( restrictName.equals(((ToolBarButton)p).getName()) ) {
-						this.removeChild(p);
-						break;
-					}
-				} else if (p instanceof Menupopup) {
-					for (Component p1 = p.getFirstChild(); p1 != null; p1 = p1.getNextSibling()) {
-						if ( p1 instanceof Menuitem && restrictName.equals((((Menuitem)p1).getValue())) ) {
-							p.removeChild(p1);
-							break;
-						}
-					}
-				}
-				else if (p instanceof Combobox) {
-					if (restrictName.equals(((Combobox) p).getId())) {
-						this.removeChild(p);
-						break;
-					}
-				}
-			}
-
-		}	// All restrictions
-
-		if (!MRole.getDefault().isAccessAdvanced())
-		{
-			List<String> advancedList = adwindow.getWindowAdvancedButtonList();
-			for (String advancedName : advancedList)
-			{
-				for (Component p = this.getFirstChild(); p != null; p = p.getNextSibling()) {
-					if (p instanceof ToolBarButton) {
-						if ( advancedName.equals(((ToolBarButton)p).getName()) ) {
-							this.removeChild(p);
-							break;
-						}
-					} else if (p instanceof Menupopup) {
-						for (Component p1 = p.getFirstChild(); p1 != null; p1 = p1.getNextSibling()) {
-							if ( p1 instanceof Menuitem && advancedName.equals((((Menuitem)p1).getValue())) ) {
-								p.removeChild(p1);
-								break;
-							}
-					    }
-					} else if (p instanceof Combobox) {
-						if (advancedName.equals(((Combobox) p).getId())) {
-							this.removeChild(p);
-							break;
-				    	}
-					}
-				}
-
-			}	// All advanced btn
-		}
 
 		dynamicDisplay();
 		// If no workflow set for the table => disable btnWorkflow
@@ -980,15 +949,25 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 							p.setVisible(false);
 							break;
 						}
-					} else if (p instanceof Menupopup) {
-						for (Component p1 = p.getFirstChild(); p1 != null; p1 = p1.getNextSibling()) {
-							if ( p1 instanceof Menuitem && restrictName.equals((((Menuitem)p1).getValue())) ) {
-								p.removeChild(p1);
+					} else if (p instanceof Combobox) {
+						if (restrictName.equals(((Combobox) p).getId())) {
+							p.setVisible(false);
 								break;
 							}
 						}
-					}  else if (p instanceof Combobox) {
-						if (restrictName.equals(((Combobox) p).getId())) {
+				}
+
+			}
+			
+			if (overflows != null) {
+				//Set visible all overflow buttons with the same condition as above
+				overflows.stream()
+				.filter(button -> !customButtons.contains(button) && !button.isVisible())
+				.forEach(button -> button.setVisible(true));
+				
+				for (String restrictName : restrictionList) {
+					for (ToolBarButton p : overflows) {
+						if (restrictName.equals(p.getName())) {
 							p.setVisible(false);
 							break;
 						}
@@ -1212,8 +1191,9 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
 	}
 
     public void setPressed(String buttonName, boolean pressed) {
-    	getButton(buttonName).setPressed(pressed);
-    		}
+    	if (getButton(buttonName) != null)
+    		getButton(buttonName).setPressed(pressed);
+    }
 
 	/**
 	 * @return

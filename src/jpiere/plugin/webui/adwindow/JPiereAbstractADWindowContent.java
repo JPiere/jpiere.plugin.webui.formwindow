@@ -409,7 +409,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableFind(true);
         adTabbox.evaluate(null);
 
-        toolbar.updateToolbarAccess(adWindowId);
+        toolbar.updateToolbarAccess();
         updateToolbar();
         if (query == null && toolbar.initDefaultQuery()) {
         	doOnQueryChange();

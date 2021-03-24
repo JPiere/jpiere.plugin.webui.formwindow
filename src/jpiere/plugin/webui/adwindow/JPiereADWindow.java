@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.ADWindowToolbar;
 import org.adempiere.webui.desktop.IDesktop;
 import org.adempiere.webui.exception.ApplicationException;
@@ -106,8 +105,10 @@ public class JPiereADWindow extends AbstractUIPart
 
          this.ctx = ctx;
          this.adWindowId = adWindowId;
-         this.adWindowUUID = MWindow.get(ctx, adWindowId).getAD_Window_UU();
+         MWindow window = MWindow.get(ctx, adWindowId);
+         this.adWindowUUID = window.getAD_Window_UU();
          windowNo = SessionManager.getAppDesktop().registerWindow(this);
+         Env.setPredefinedVariables(ctx, windowNo, window.getPredefinedContextVariables());
          this.query = query;
          try {
              init();
@@ -240,7 +241,7 @@ public class JPiereADWindow extends AbstractUIPart
 	 */
 	public static JPiereADWindow get(int windowNo) {
 		Object window = SessionManager.getAppDesktop().findWindow(windowNo);
-		if (window != null && window instanceof ADWindow)
+		if (window != null && window instanceof JPiereADWindow)
 			return (JPiereADWindow) SessionManager.getAppDesktop().findWindow(windowNo);
 
 		return null;
