@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
+//import java.util.Properties; JPIERE commnet out
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.ClientInfo;
@@ -1017,6 +1017,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private boolean isShowCurrentRowIndicatorColumn() {
 		return gridPanel != null && gridPanel.isShowCurrentRowIndicatorColumn();
 	}
