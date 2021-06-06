@@ -64,12 +64,14 @@ import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
 import org.adempiere.webui.adwindow.StatusBar;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
+//import org.adempiere.webui.adwindow.validator.WindowValidatorManager; //JPIERE Comment out
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialogTemplate;
 import org.adempiere.webui.apps.HelpWindow;
 import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.apps.form.WCreateFromFactory;
 import org.adempiere.webui.apps.form.WCreateFromWindow;
+//import org.adempiere.webui.apps.form.WQuickForm;  //JPIERE Comment out
 import org.adempiere.webui.component.Mask;
 import org.adempiere.webui.component.ProcessInfoDialog;
 import org.adempiere.webui.component.Window;
@@ -86,6 +88,10 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+//import org.adempiere.webui.panel.action.CSVImportAction;	 //JPIERE Comment out
+//import org.adempiere.webui.panel.action.ExportAction;	 //JPIERE Comment out
+//import org.adempiere.webui.panel.action.FileImportAction;	 //JPIERE Comment out
+//import org.adempiere.webui.panel.action.ReportAction;	 //JPIERE Comment out
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
@@ -150,7 +156,7 @@ import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager; //JP
 import jpiere.plugin.webui.panel.action.JPiereExportAction; //JPIERE
 import jpiere.plugin.webui.panel.action.JPiereFileImportAction;//JPIERE
 import jpiere.plugin.webui.panel.action.JPiereReportAction; //JPIERE
-import jpiere.plugin.webui.window.form.JPiereWQuickForm;
+import jpiere.plugin.webui.window.form.JPiereWQuickForm; //JPIERE
 
 /**
  *
@@ -206,8 +212,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     protected JPiereADWindowToolbar     toolbar;
 
     protected String             title;
-
-    private boolean 			 boolChanges = false;
 
 	private int m_onlyCurrentDays = 0;
 
@@ -1225,13 +1229,13 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      */
     public void onExit(Callback<Boolean> callback)
     {
-    	if (!boolChanges)
+    	if (isPendingChanges())
     	{
-    		callback.onCallback(Boolean.TRUE);
+    		FDialog.ask(curWindowNo, null, "CloseUnSave?", callback);
     	}
     	else
     	{
-    		FDialog.ask(curWindowNo, null, "CloseUnSave?", callback);
+    		callback.onCallback(Boolean.TRUE);
     	}
 
     }
@@ -1600,27 +1604,23 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     		if (adTabbox.getSelectedGridTab() != gridTab) detailTab = true;
     	}
 
-    	if (!detailTab)
-    	{
-	        String dbInfo = e.getMessage();
-	        if (logger.isLoggable(Level.INFO)) logger.info(dbInfo);
-	        if (adTabbox.getSelectedGridTab() != null && adTabbox.getSelectedGridTab().isQueryActive())
-	            dbInfo = "[ " + dbInfo + " ]";
-	        breadCrumb.setStatusDB(dbInfo, e, adTabbox.getSelectedGridTab());
-
-	        String adInfo = e.getAD_Message();
-	        if (   adInfo == null
-		        	|| GridTab.DEFAULT_STATUS_MESSAGE.equals(adInfo)
-		        	|| GridTable.DATA_REFRESH_MESSAGE.equals(adInfo)
-		        	|| GridTable.DATA_INSERTED_MESSAGE.equals(adInfo)
-	        	    || GridTable.DATA_IGNORED_MESSAGE.equals(adInfo)
-		        	|| GridTable.DATA_UPDATE_COPIED_MESSAGE.equals(adInfo)
-	        		|| GridTable.DATA_SAVED_MESSAGE.equals(adInfo)
-		           ) {
+        String adInfo = e.getAD_Message();
+        if (   adInfo == null
+	        	|| GridTab.DEFAULT_STATUS_MESSAGE.equals(adInfo)
+	        	|| GridTable.DATA_REFRESH_MESSAGE.equals(adInfo)
+	        	|| GridTable.DATA_INSERTED_MESSAGE.equals(adInfo)
+        	    || GridTable.DATA_IGNORED_MESSAGE.equals(adInfo)
+	        	|| GridTable.DATA_UPDATE_COPIED_MESSAGE.equals(adInfo)
+        		|| GridTable.DATA_SAVED_MESSAGE.equals(adInfo)
+	           ) {
 
 	        String prefix = null;
-		    if (dbInfo.contains("*") || dbInfo.contains("?")) // ? used when not-autosave
+	        if (adTabbox.needSave(true, false) ||
+        		adTabbox.getSelectedGridTab().isNew() ||
+        		(adTabbox.getSelectedDetailADTabpanel() != null && adTabbox.getSelectedDetailADTabpanel().getGridTab().isNew())) {
+	        	// same condition as enableSave below
 		       	prefix = "*";
+	        }
 
 	        String titleLogic = null;
 	        int windowID = getADTab().getSelectedGridTab().getAD_Window_ID();
@@ -1663,6 +1663,14 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	        	SessionManager.getAppDesktop().setTabTitle(header, curWindowNo);
 	        }
+
+    	if (!detailTab)
+    	{
+	        String dbInfo = e.getMessage();
+	        if (logger.isLoggable(Level.INFO)) logger.info(dbInfo);
+	        if (adTabbox.getSelectedGridTab() != null && adTabbox.getSelectedGridTab().isQueryActive())
+	            dbInfo = "[ " + dbInfo + " ]";
+	        breadCrumb.setStatusDB(dbInfo, e, adTabbox.getSelectedGridTab());
     	}
     	else if (adTabbox.getSelectedDetailADTabpanel() == null)
     	{
@@ -1814,9 +1822,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         boolean deleteRecord = !readOnly;
         if (!detailTab)
         {
-	        //  update Change
-	        boolChanges = changed;
-
 	        if (insertRecord)
 	        {
 	            insertRecord = tabPanel.getGridTab().isInsertRecord();
@@ -3807,7 +3812,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
 	public boolean isPendingChanges() {
-		return boolChanges;
+		return adTabbox.getDirtyADTabpanel() != null;
 	}
 
 	public void setADWindow(JPiereADWindow adwindow) {

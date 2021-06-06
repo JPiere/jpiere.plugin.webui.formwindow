@@ -88,7 +88,7 @@ import org.zkoss.zul.Div;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Paging;
 import org.zkoss.zul.Row;
-import org.zkoss.zul.Tabpanel;
+//import org.zkoss.zul.Tabpanel;	//JPIERE comment out
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.event.ZulEvents;
 import org.zkoss.zul.impl.CustomGridDataLoader;
@@ -332,6 +332,10 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		setupColumns();
 		render();
 
+		if (listbox.getFrozen() != null){
+			listbox.getFrozen().setWidgetOverride("syncScroll", "function (){idempiere.syncScrollFrozen(this);}");
+		}
+
 		updateListIndex();
 
 		this.init = true;
@@ -567,6 +571,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		Columns columns = new Columns();
 
 		//frozen not working well on tablet devices yet
+		//unlikely to be fixed since the working 'smooth scrolling frozen' is a zk ee only feature
 		if (!ClientInfo.isMobile())
 		{
 			Frozen frozen = new Frozen();
@@ -576,6 +581,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		}
 
 		org.zkoss.zul.Column selection = new Column();
+		selection.setHeight("2em");
 		ZKUpdateUtil.setWidth(selection, "22px");
 		try{
 			selection.setSort("none");
@@ -587,13 +593,21 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		selectAll.addEventListener(Events.ON_CHECK, this);
 		columns.appendChild(selection);
 
-		org.zkoss.zul.Column indicator = new Column();
-		ZKUpdateUtil.setWidth(indicator, "22px");
-		try {
-			indicator.setSort("none");
-		} catch (Exception e) {}
-		indicator.setStyle("border-left: none");
-		columns.appendChild(indicator);
+		if (ClientInfo.isMobile())
+			showCurrentRowIndicatorColumn = MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_MOBILE_SHOW_CURRENT_ROW_INDICATOR, false);
+
+		if (showCurrentRowIndicatorColumn)
+		{
+			org.zkoss.zul.Column indicator = new Column();
+			indicator.setHeight("2em");
+			ZKUpdateUtil.setWidth(indicator, "22px");
+			try {
+				indicator.setSort("none");
+			} catch (Exception e) {}
+			indicator.setStyle("border-left: none");
+			columns.appendChild(indicator);
+		}
+
 		listbox.appendChild(columns);
 		columns.setSizable(true);
 		columns.setMenupopup("none");
@@ -628,11 +642,12 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		for (int i = 0; i < numColumns; i++)
 		{
 			// IDEMPIERE-2148: when has tab customize, ignore check properties isDisplayedGrid
-			if (gridField[i].isDisplayedGrid() && !gridField[i].isToolbarOnlyButton())
+			if ((isHasCustomizeData || gridField[i].isDisplayedGrid()) && !gridField[i].isToolbarOnlyButton())
 			{
 				colnames.put(index, gridField[i].getHeader());
 				index++;
 				org.zkoss.zul.Column column = new Column();
+				column.setHeight("2em");
 				int colindex =tableModel.findColumn(gridField[i].getColumnName());
 				column.setSortAscending(new SortComparator(colindex, true, Env.getLanguage(Env.getCtx())));
 				column.setSortDescending(new SortComparator(colindex, false, Env.getLanguage(Env.getCtx())));
@@ -677,7 +692,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 							estimatedWidth = headerWidth;
 
 						//hflex=min for first column not working well
-						if (i > 0)
+						if (i > 0 && !ClientInfo.isMobile())
 						{
 							if (DisplayType.isLookup(gridField[i].getDisplayType()))
 							{
@@ -698,10 +713,19 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 						//set estimated width if not using hflex=min
 						if (!"min".equals(column.getHflex())) {
+							if (ClientInfo.isMobile() && ClientInfo.get() != null &&
+								ClientInfo.get().desktopWidth <= ClientInfo.SMALL_WIDTH) {
+								int maxWidth = ClientInfo.get().desktopWidth / 5;
+								if (maxWidth < MIN_COLUMN_MOBILE_WIDTH)
+									maxWidth = MIN_COLUMN_MOBILE_WIDTH;
+								if (estimatedWidth > maxWidth)
+									estimatedWidth = maxWidth;
+							} else {
 							if (estimatedWidth > MAX_COLUMN_WIDTH)
 								estimatedWidth = MAX_COLUMN_WIDTH;
 							else if ( estimatedWidth < MIN_COLUMN_WIDTH)
 								estimatedWidth = MIN_COLUMN_WIDTH;
+							}
 							ZKUpdateUtil.setWidth(column, Integer.toString(estimatedWidth) + "px");
 						}
 					}
@@ -1373,13 +1397,8 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		if (isDetailPane()) {
 			Component parent = this.getParent();
 			while (parent != null) {
-				if (parent instanceof Tabpanel) {
-					Component firstChild = parent.getFirstChild();
-					if ( gridFooter.getParent() != firstChild ) {
-						firstChild.appendChild(gridFooter);
-						ZKUpdateUtil.setHflex(gridFooter, "0");
-						gridFooter.setSclass("adwindow-detailpane-adtab-grid-south");
-					}
+				if (parent instanceof DetailPane.Tabpanel) {
+					((DetailPane.Tabpanel) parent).setPagingControl(gridFooter);
 					break;
 				}
 				parent = parent.getParent();

@@ -47,7 +47,6 @@ import org.adempiere.webui.action.IAction;
 import org.adempiere.webui.adwindow.ToolbarCustomButton;//JPIERE-0014
 import org.adempiere.webui.component.Combobox;
 import org.adempiere.webui.component.FToolbar;
-import org.adempiere.webui.component.Menupopup;
 import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.event.ToolbarListener;
@@ -83,7 +82,6 @@ import org.zkoss.zul.A;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Comboitem;
 import org.zkoss.zul.Grid;
-import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Popup;
 import org.zkoss.zul.Row;
 import org.zkoss.zul.Rows;

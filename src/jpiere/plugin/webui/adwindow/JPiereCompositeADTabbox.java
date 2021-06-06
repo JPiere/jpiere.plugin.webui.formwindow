@@ -165,7 +165,13 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 													+ "').$();var e=new zk.Event(v,'onEditCurrentRow',null,{toServer:true});zAu.send(e);},200);},200)";
 											Clients.response(new AuScript(script));
 										} else {
-											getSelectedDetailADTabpanel().getJPiereGridView().onEditCurrentRow();
+											boolean isFormView = ((JPiereADTabpanel)headerTab).getJPiereDetailPane().getSelectedPanel().isToggleToFormView();
+											if (isFormView) {
+												getSelectedDetailADTabpanel().dynamicDisplay(0);
+												focusToTabpanel(getSelectedDetailADTabpanel());
+											} else {
+												getSelectedDetailADTabpanel().getJPiereGridView().onEditCurrentRow();
+											}
 										}
 									}
 								}

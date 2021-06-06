@@ -441,6 +441,7 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 		if (m_IdentifierTranslated)
 			sql.append(" AND t.").append(m_KeyColumnName).append("=tt.").append(m_KeyColumnName)
 			.append(" AND tt.AD_Language=?");
+		sql.append(" AND t.AD_Client_ID IN (0,?)");
 		//	Order
 		sql.append(" ORDER BY ");
 		if (m_ColumnYesNoName != null)
@@ -461,11 +462,14 @@ public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 		ResultSet rs = null;
 		try
 		{
+			int idx = 1;
 			pstmt = DB.prepareStatement(sql.toString(), null);
-			pstmt.setInt(1, ID);
+			pstmt.setInt(idx++, ID);
 
 			if (m_IdentifierTranslated)
-				pstmt.setString(2, Env.getAD_Language(Env.getCtx()));
+				pstmt.setString(idx++, Env.getAD_Language(Env.getCtx()));
+
+			pstmt.setInt(idx++, Env.getAD_Client_ID(Env.getCtx()));
 
 			rs = pstmt.executeQuery();
 			while (rs.next())

@@ -142,7 +142,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	private static final String IMAGES_DOWNARROW_PNG = "images/expand-header.png";
 
-	private static final String IMAGES_CONTEXT_HELP_PNG = "images/Help16.png";
+	//private static final String IMAGES_CONTEXT_HELP_PNG = "images/Help16.png";
 
 	private static final String IMAGES_THREELINE_MENU_PNG = "images/threelines.png";
 

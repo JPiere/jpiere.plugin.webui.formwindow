@@ -476,8 +476,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 							btn.setLabel(label);
 						}
 
-						ToolbarCustomButton toolbarCustomBtn = new ToolbarCustomButton(toolbarButton, btn, actionId, tabPanel.getGridTab().getWindowNo());
-						tp.toolbarCustomButtons.add(toolbarCustomBtn);
+						ToolbarCustomButton toolbarCustomBtn = new ToolbarCustomButton(toolbarButton, btn, actionId, tabPanel.getGridTab().getWindowNo(), tabPanel.getGridTab().getTabNo());
+						tp.toolbarCustomButtons.put(btn, toolbarCustomBtn);
 
 						toolbar.appendChild(btn);
 					}
@@ -537,6 +537,10 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		if(!(adTabPanel instanceof JPiereADSortTab)) {
 			adTabPanel.switchRowPresentation();
 			getSelectedPanel().getToolbarButton(BTN_CUSTOMIZE_ID).setDisabled(!adTabPanel.isGridView());
+
+			ToolBarButton btnCustomize = getSelectedPanel().getToolbarButton(BTN_CUSTOMIZE_ID);
+			if (btnCustomize != null)
+				btnCustomize.setDisabled(!adTabPanel.isGridView());
 
 			Tabpanel tabPanel = (Tabpanel) tabbox.getSelectedTabpanel();
 			tabPanel.setToggleToFormView(!adTabPanel.isGridView());
@@ -838,12 +842,12 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         {
             insertRecord = adtab.getGridTab().isInsertRecord();
         }
-        boolean enableNew = !changed && insertRecord && !adtab.getGridTab().isSortTab();
+        boolean enableNew = insertRecord && !adtab.getGridTab().isSortTab();
         		if (deleteRecord)
         {
 			deleteRecord = adtab.getGridTab().isDeleteRecord();
         }
-        boolean enableDelete = !changed && deleteRecord && !adtab.getGridTab().isSortTab();
+        boolean enableDelete = !changed && deleteRecord && !adtab.getGridTab().isSortTab() && !adtab.getGridTab().isProcessed();
         boolean enableCustomize = !adtab.getGridTab().isSortTab() && adtab.isGridView();
 
         JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
@@ -874,6 +878,9 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         			btn.setVisible(false);
         		} else if (tabRestrictList.contains(btn.getId())) {
         			btn.setVisible(false);
+        		} else if (tabpanel.toolbarCustomButtons.containsKey(btn)) {
+        			ToolbarCustomButton customButton = tabpanel.toolbarCustomButtons.get(btn);
+        			customButton.dynamicDisplay();
         		} else {
         			btn.setVisible(true);
         		}
@@ -1087,7 +1094,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 		private IADTabpanel adTabPanel;
 
-		private List<ToolbarCustomButton> toolbarCustomButtons = new ArrayList<ToolbarCustomButton>();
+		private HashMap<ToolBarButton, ToolbarCustomButton> toolbarCustomButtons = new HashMap<ToolBarButton, ToolbarCustomButton>();
 
 		private A overflowButton;
 
@@ -1111,8 +1118,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 					getRecordToolbar().dynamicDisplay();
 			}
 			boolean enableCustomize = !adTabPanel.getGridTab().isSortTab() && adTabPanel.isGridView();
-			List<ToolBarButton> btns = getToolbar().getChildren();
-			Optional<ToolBarButton> optional = btns.stream().filter(e -> BTN_CUSTOMIZE_ID.equals(e.getId())).findFirst();
+
+			Optional<ToolBarButton> optional = getToolbarButtons().stream().filter(e -> BTN_CUSTOMIZE_ID.equals(e.getId())).findFirst();
 			if (optional.isPresent())
 				optional.get().setDisabled(!enableCustomize);
 		}
@@ -1207,9 +1214,24 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		 * @return {@link ToolBarButton}
 		 */
 		public ToolBarButton getToolbarButton(String id) {
-			List<ToolBarButton> list = toolbar.getChildren();
-			Optional<ToolBarButton> optional = list.stream().filter(e -> e.getId().equals(id)).findFirst();
+			Optional<ToolBarButton> optional = getToolbarButtons().stream().filter(e -> e.getId().equals(id)).findFirst();
 			return optional.isPresent() ? optional.get() : null;
+		}
+
+		/**
+		 * 
+		 * @return buttons from the detail toolbar
+		 */
+		private List<ToolBarButton> getToolbarButtons() {
+
+			List<ToolBarButton> list = new ArrayList<>();
+
+			for (Component c : toolbar.getChildren()) {
+				if (c instanceof ToolBarButton)
+					list.add((ToolBarButton) c);
+			}
+
+			return list;
 		}
 
 		private void createOverflowButton() {

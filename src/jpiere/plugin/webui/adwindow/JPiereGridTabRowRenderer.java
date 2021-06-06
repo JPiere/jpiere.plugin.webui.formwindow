@@ -65,10 +65,8 @@ import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.MStyle;
 import org.compiere.model.MSysConfig;
-import org.compiere.model.X_AD_StyleLine;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
-import org.compiere.util.Evaluator;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.zkoss.zk.au.out.AuScript;
@@ -149,7 +147,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			return Boolean.FALSE;
 		}
 	};
-	
+
 	/**
 	 *
 	 * @param gridTab
@@ -655,8 +653,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		if (isActive != null && !isActive.booleanValue()) {
 			LayoutUtils.addSclass("grid-inactive-row", row);
 		}
-		
-		//IDEMPIERE-4165 After adding a new row to the list (New or copy) repaint the grid when rendering the last row  
+
+		//IDEMPIERE-4165 After adding a new row to the list (New or copy) repaint the grid when rendering the last row
 		if (gridTab.isNew() && rowIndex == grid.getRows().getChildren().size()-1) {
 			grid.invalidate();
 		}
