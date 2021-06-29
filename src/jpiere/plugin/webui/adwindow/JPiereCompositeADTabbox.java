@@ -557,7 +557,8 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     			hasChanges = true;
     		}
     		if (hasChanges) {
-    			headerTab.getJPiereDetailPane().getParent().invalidate();
+    			if(headerTab.getJPiereDetailPane().getParent() != null)
+    				headerTab.getJPiereDetailPane().getParent().invalidate();
     		}
     	}
 	}
