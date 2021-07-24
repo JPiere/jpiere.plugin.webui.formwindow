@@ -787,7 +787,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
 	private void initFirstTabpanel() {
-		adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());
+		adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, adTabbox.getSelectedGridTab().getMaxQueryRecords());
 		adTabbox.getSelectedTabpanel().activate(true);
 		Events.echoEvent(new Event(JPiereADTabpanel.ON_POST_INIT_EVENT, adTabbox.getSelectedTabpanel()));
 	}
@@ -1531,7 +1531,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		    newTabpanel.refresh();
 		}
 
-		if (adTabbox.getSelectedTabpanel() instanceof ADSortTab)
+		if (adTabbox.getSelectedTabpanel() instanceof JPiereADSortTab)
 		{
 			((JPiereADSortTab)adTabbox.getSelectedTabpanel()).registerAPanel(this);
 		}
@@ -2504,7 +2504,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		});
     }
 
-    private void onSave(final boolean onSaveEvent, final boolean onNavigationEvent, final Callback<Boolean> callback) {
+    public void onSave(final boolean onSaveEvent, final boolean onNavigationEvent, final Callback<Boolean> callback) {
     	final Callback<Boolean> postCallback = new Callback<Boolean>() {
 			@Override
 			public void onCallback(Boolean result) {

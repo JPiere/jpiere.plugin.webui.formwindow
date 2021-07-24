@@ -327,7 +327,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 				onNew();
 			}
 		});
-		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "New")) + "    Shift+Alt+N");
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "SaveCreate")) + "    Shift+Alt+N");
 		buttons.put(BTN_NEW_ID.substring(3, BTN_NEW_ID.length()), button);
 
 		button = new ToolBarButton();
@@ -608,7 +608,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 		org.zkoss.zul.Tabpanel tabPanel = tabbox.getTabpanel(index);
 		for(Component c : tabPanel.getChildren()) {
-			if (c instanceof IADTabpanel)
+			if (c instanceof JPiereIADTabpanel)
 				return (JPiereIADTabpanel)c;
 		}
 		return null;
