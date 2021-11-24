@@ -13,12 +13,12 @@
  *****************************************************************************/
 package jpiere.plugin.webui.window.form;
 
-import jpiere.plugin.webui.adwindow.JPiereADWindow;
-
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.CustomForm;
 import org.compiere.model.MQuery;
 import org.compiere.util.Env;
+
+import jpiere.plugin.webui.adwindow.JPiereADWindow;
 
 
 /**
@@ -35,6 +35,7 @@ public class JPiereFormWindow extends AbstractJPiereFormWindow {
     {
     	form = new CustomForm();
     	form.setHeight("100%");
+    	form.setWidth("100%");
     }
 
     @Override

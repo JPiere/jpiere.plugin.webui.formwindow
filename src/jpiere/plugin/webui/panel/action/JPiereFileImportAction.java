@@ -226,6 +226,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 		panel.showBusyMask(winImportFile);
 		LayoutUtils.openOverlappedWindow(panel.getComponent(), winImportFile, "middle_center");
 		winImportFile.addEventListener(DialogEvents.ON_WINDOW_CLOSE, this);
+		winImportFile.focus();
 	}
 
 	@Override

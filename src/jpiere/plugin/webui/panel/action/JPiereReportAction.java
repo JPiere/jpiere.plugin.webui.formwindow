@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.adempiere.webui.LayoutUtils;
-import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
 import org.adempiere.webui.apps.WProcessCtl;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
@@ -39,6 +38,7 @@ import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
 import org.adempiere.webui.component.Window;
+import org.adempiere.webui.component.ZkCssHelper;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.GridTab;
@@ -59,10 +59,14 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.Div;
 import org.zkoss.zul.Filedownload;
+import org.zkoss.zul.Popup;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.Tabpanel;
-import org.zkoss.zul.Vbox;
+import org.zkoss.zul.impl.LabelImageElement;
+
+import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
 
 /**
  * @author Elaine
@@ -122,6 +126,7 @@ public class JPiereReportAction implements EventListener<Event>
 			cboExportType.appendItem("txt" + " - " + Msg.getMsg(Env.getCtx(), "FileTXT"), "txt");
 			cboExportType.appendItem("ssv" + " - " + Msg.getMsg(Env.getCtx(), "FileSSV"), "ssv");
 			cboExportType.appendItem("csv" + " - " + Msg.getMsg(Env.getCtx(), "FileCSV"), "csv");
+			cboExportType.appendItem("xlsx" + " - " + Msg.getMsg(Env.getCtx(), "FileXLSX"), "xlsx");
 			ListItem li = cboExportType.appendItem("xls" + " - " + Msg.getMsg(Env.getCtx(), "FileXLS"), "xls");
 			cboExportType.setSelectedItem(li);
 			cboExportType.setVisible(false);
@@ -144,22 +149,24 @@ public class JPiereReportAction implements EventListener<Event>
 				chkAllColumns.setVisible(AD_PrintFormat_ID == -1);
 			}
 
-			Vbox vb = new Vbox();
+			Div vb = new Div();
+			ZkCssHelper.appendStyle(vb, "display: flex; flex-direction: column;");
 			ZKUpdateUtil.setWidth(vb, "100%");
+			ZKUpdateUtil.setHeight(vb, "200px");
 			winReport.appendChild(vb);
 			winReport.setSclass("toolbar-popup-window");
 			vb.setSclass("toolbar-popup-window-cnt");
-			vb.setAlign("stretch");
 
 			Grid grid = GridFactory.newGridLayout();
+			ZkCssHelper.appendStyle(grid, "flex-grow: 1;");
 			vb.appendChild(grid);
 
 	        Columns columns = new Columns();
 	        Column column = new Column();
-	        ZKUpdateUtil.setHflex(column, "min");
+	        column.setWidth("25%");
 	        columns.appendChild(column);
 	        column = new Column();
-	        ZKUpdateUtil.setHflex(column, "1");
+	        column.setWidth("75%");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
 
@@ -170,7 +177,7 @@ public class JPiereReportAction implements EventListener<Event>
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.translate(Env.getCtx(), "AD_PrintFormat_ID")));
 			row.appendChild(cboPrintFormat);
-			ZKUpdateUtil.setHflex(cboPrintFormat, "1");
+			cboPrintFormat.setWidth("100%");
 			cboPrintFormat.addEventListener(Events.ON_SELECT, this);
 
 			row = new Row();
@@ -203,9 +210,15 @@ public class JPiereReportAction implements EventListener<Event>
 			vb.appendChild(confirmPanel);
 			LayoutUtils.addSclass("dialog-footer", confirmPanel);
 			confirmPanel.addActionListener(this);
+			ZkCssHelper.appendStyle(confirmPanel, "flex-grow: 0;");
 		}
 
-		LayoutUtils.openPopupWindow(panel.getToolbar().getButton("Report"), winReport, "after_start");
+		LabelImageElement toolbarItem = panel.getToolbar().getToolbarItem("Report");
+		Popup popup = LayoutUtils.findPopup(toolbarItem);
+		if (popup != null)
+			popup.appendChild(winReport);
+		LayoutUtils.openPopupWindow(toolbarItem, winReport, "after_start");
+		winReport.setFocus(true);
 	}
 
 	@Override
@@ -318,7 +331,7 @@ public class JPiereReportAction implements EventListener<Event>
 				whereClause.append(" AND ");
 			//	Show only unprocessed or the one updated within x days
 			whereClause.append("(").append(gridTab.getTableName()).append(".Processed='N' OR ").append(gridTab.getTableName()).append(".Updated>");
-			whereClause.append("SysDate-1");
+			whereClause.append("getDate()-1");
 			whereClause.append(")");
 		}
 
@@ -379,7 +392,7 @@ public class JPiereReportAction implements EventListener<Event>
 	{
 		winReport.onClose();
 		ReportCtl.preview(re);
-		Tabpanel tabPanel = (Tabpanel) panel.getComponent().getParent().getParent();
+		Tabpanel tabPanel = (Tabpanel) panel.getComponent().getParent();
 		tabPanel.getLinkedTab().setSelected(true);
 	}
 
@@ -423,7 +436,7 @@ public class JPiereReportAction implements EventListener<Event>
 			}
 			else if (ext.equals("ssv"))
 			{
-				StringWriter sw = new StringWriter();							
+				StringWriter sw = new StringWriter();
 				re.createCSV(sw, ';', re.getPrintFormat().getLanguage());
 				data = sw.getBuffer().toString().getBytes();
 			}
@@ -443,6 +456,11 @@ public class JPiereReportAction implements EventListener<Event>
 			{
 				inputFile = File.createTempFile("Export", ".xls");
 				re.createXLS(inputFile, re.getPrintFormat().getLanguage());
+			}
+			else if (ext.equals("xlsx"))
+			{
+				inputFile = File.createTempFile("Export", ".xlsx");
+				re.createXLSX(inputFile, re.getPrintFormat().getLanguage());
 			}
 			else
 			{
