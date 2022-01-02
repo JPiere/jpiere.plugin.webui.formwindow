@@ -493,6 +493,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 
 //		Grid grid = (Grid) row.getParent().getParent();
+		@SuppressWarnings("unused")
+		org.zkoss.zul.Columns columns = grid.getColumns();
 
 		int rowIndex = index;
 		if (paging != null && paging.getPageSize() > 0) {
@@ -517,19 +519,20 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		cell.appendChild(selection);
 		row.appendChild(cell);
 
-		cell = new Cell();
-		cell.setWidth("18px");
-		cell.addEventListener(Events.ON_CLICK, this);
-		cell.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
-		if (ThemeManager.isUseFontIconForImage()){
-			Label indicatorLabel = new Label();
-			cell.appendChild(indicatorLabel);
-			final Cell finalCell = cell;
-			indicatorLabel.addEventListener(Events.ON_CLICK, evt->Events.postEvent(Events.ON_CLICK, finalCell, indicatorLabel.getSclass()));
+		if (isShowCurrentRowIndicatorColumn()) {
+			cell = new Cell();
+			cell.setWidth("18px");
+			cell.addEventListener(Events.ON_CLICK, this);
+			cell.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
+			if (ThemeManager.isUseFontIconForImage()){
+				Label indicatorLabel = new Label();
+				cell.appendChild(indicatorLabel);
+				final Cell finalCell = cell;
+				indicatorLabel.addEventListener(Events.ON_CLICK, evt->Events.postEvent(Events.ON_CLICK, finalCell, indicatorLabel.getSclass()));
+			}
+			cell.setValign("middle");
+			row.appendChild(cell);
 		}
-		cell.setValign("middle");
-
-		row.appendChild(cell);
 
 		Boolean isActive = null;
 		Vbox vbox = null;
@@ -659,6 +662,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 			grid.invalidate();
 		}
 
+		if (MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_VIEW_USE_DEFER_RENDERING, false, Env.getAD_Client_ID(Env.getCtx())))
+			row.setRenderdefer(1);
 	}
 
 	/**
@@ -1017,7 +1022,6 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private boolean isShowCurrentRowIndicatorColumn() {
 		return gridPanel != null && gridPanel.isShowCurrentRowIndicatorColumn();
 	}

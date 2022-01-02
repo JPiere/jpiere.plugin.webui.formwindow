@@ -1389,7 +1389,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     	}
     	else if (event.getName().equals(ON_FOCUS_DEFER_EVENT)) {
     		HtmlBasedComponent comp = (HtmlBasedComponent) event.getData();
-    		comp.focus();
+    		if (comp instanceof JPiereADTabpanel)
+    			((JPiereADTabpanel)comp).focusToFirstEditor(false);
+    		else
+    			comp.focus();
+    		//
     	}
     }
 
@@ -1514,7 +1518,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				{
 					ADTabpanel adtabpanel = (ADTabpanel) newTabpanel;
 					Events.echoEvent(ADTabpanel.ON_POST_INIT_EVENT, adtabpanel, null);
-				}			
+				}
 			}
 			else
 			{
