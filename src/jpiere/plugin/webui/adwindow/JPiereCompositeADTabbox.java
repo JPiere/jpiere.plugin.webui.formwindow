@@ -38,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.adempiere.util.Callback;
+import org.adempiere.webui.adwindow.ADSortTab;
 import org.adempiere.webui.adwindow.ADTabpanel;					//JPIERE-0014
 import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE-0014
 import org.adempiere.webui.adwindow.BreadCrumbLink;				//JPIERE-0014
@@ -326,7 +327,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 			headerTab.switchRowPresentation();
 		}
 
-		if (!headerTab.getGridTab().isSortTab())
+		if (!headerTab.getGridTab().isSortTab() && headerTab instanceof JPiereADTabpanel)
 			headerTab.getGridTab().setCurrentRow(row, true);
 
 		if (headerTab.isGridView()) {
@@ -931,10 +932,10 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 	public void dataIgnore() {
 		JPiereIADTabpanel detailPanel = getSelectedDetailADTabpanel();
 		if (detailPanel != null) {
-			if (detailPanel instanceof JPiereADSortTab) {
+			if (detailPanel instanceof ADSortTab) {
 				detailPanel.refresh();
-				if (((JPiereADSortTab) detailPanel).isChanged()) {
-					((JPiereADSortTab) detailPanel).setIsChanged(false);
+				if (((ADSortTab) detailPanel).isChanged()) {
+					((ADSortTab) detailPanel).setIsChanged(false);
 				}
 			} else {
 				detailPanel.getGridTab().dataIgnore();
@@ -1014,15 +1015,19 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 		}
 		tabPanel.setDetailPaneMode(true);
 		headerTab.getJPiereDetailPane().setVflex("true");
-		if (tabPanel instanceof JPiereADSortTab) {
+		if (tabPanel instanceof ADSortTab) {
 			headerTab.getJPiereDetailPane().updateToolbar(false, true);
 		} else {
 			tabPanel.dynamicDisplay(0);
-			RowRenderer<Object[]> renderer = tabPanel.getJPiereGridView().getListbox().getRowRenderer();
-			JPiereGridTabRowRenderer gtr = (JPiereGridTabRowRenderer)renderer;
-			Row row = gtr.getCurrentRow();
-			if (row != null)
-				gtr.setCurrentRow(row);
+			if (tabPanel.getJPiereGridView() != null && tabPanel.getJPiereGridView().getListbox() != null) {
+				RowRenderer<Object[]> renderer = tabPanel.getJPiereGridView().getListbox().getRowRenderer();
+				if (renderer != null) {
+					JPiereGridTabRowRenderer gtr = (JPiereGridTabRowRenderer)renderer;
+					Row row = gtr.getCurrentRow();
+					if (row != null)
+						gtr.setCurrentRow(row);
+				}
+			}
 		}
 		if (wasForm) {
 			// maintain form on header when zooming to a detail tab
