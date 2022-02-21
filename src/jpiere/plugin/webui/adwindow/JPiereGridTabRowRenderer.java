@@ -220,15 +220,33 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		textBox.setVisible(false);
 		return textBox;
 	}
+	
+	/**
+	 * Check existence of readonly editor and return display text
+	 * @param value
+	 * @param gridField
+	 * @param rowIndex
+	 * @return display text
+	 */
+	protected String getDisplayTextWithEditorCheck(Object value, GridField gridField, int rowIndex) {
+		WEditor readOnlyEditor = readOnlyEditors.get(gridField);
+		if (readOnlyEditor == null) {
+			readOnlyEditor = WebEditorFactory.getEditor(gridField, true, readOnlyEditorConfiguration);
+			if (readOnlyEditor != null) {
+				readOnlyEditors.put(gridField, readOnlyEditor);
+			}
+		}
+		return getDisplayText(value, gridField, rowIndex);
+	}
 
 	/**
 	 * call {@link #getDisplayText(Object, GridField, int, boolean)} with isForceGetValue = false
 	 * @param value
 	 * @param gridField
 	 * @param rowIndex
-	 * @return
+	 * @return display text
 	 */
-	private String getDisplayText(Object value, GridField gridField, int rowIndex){
+	public String getDisplayText(Object value, GridField gridField, int rowIndex){
 		return getDisplayText(value, gridField, rowIndex, false);
 	}
 
@@ -238,7 +256,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	 * @param gridField
 	 * @param rowIndex
 	 * @param isForceGetValue
-	 * @return
+	 * @return display text
 	 */
 	private String getDisplayText(Object value, GridField gridField, int rowIndex, boolean isForceGetValue)
 	{
@@ -439,7 +457,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	/**
 	 * @param row
 	 * @param data
-	 * @see RowRenderer#render(Row, Object)
+	 * @param index
 	 */
 	@Override
 	public void render(Row row, Object[] data, int index) throws Exception {
@@ -460,6 +478,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				gridTabFields = gridTab.getFields();
 				isGridViewCustomized = gridTabFields.length != gridPanelFields.length;
 			}
+			//gridPanel.autoHideEmptyColumns(); JPIERE-0014
 		}
 
 		if (grid == null)
@@ -521,8 +540,9 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 		if (isShowCurrentRowIndicatorColumn()) {
 			cell = new Cell();
-			cell.setWidth("18px");
+			cell.setWidth("18px"); //JPIERE-0014
 			cell.addEventListener(Events.ON_CLICK, this);
+			//cell.setStyle("border: none;"); JPIERE-0014
 			cell.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "EditRecord")));
 			if (ThemeManager.isUseFontIconForImage()){
 				Label indicatorLabel = new Label();
