@@ -74,9 +74,8 @@ public abstract class JPiereAbstractADTabbox extends AbstractUIPart implements J
 
     /**
      *  Add Tab
-     *  @param tabName name
      *  @param gTab grid tab model
-     *  @param tabElement GridController or VSortTab
+     *  @param tabPanel
      */
     public void addTab(GridTab gTab, JPiereIADTabpanel tabPanel)
     {
