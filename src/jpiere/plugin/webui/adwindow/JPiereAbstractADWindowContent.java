@@ -38,6 +38,7 @@ import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +73,7 @@ import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.apps.form.WCreateFromFactory;
 import org.adempiere.webui.apps.form.WCreateFromWindow;
 //import org.adempiere.webui.apps.form.WQuickForm;  //JPIERE Comment out
+import org.adempiere.webui.component.DesktopTabpanel;
 import org.adempiere.webui.component.Mask;
 import org.adempiere.webui.component.ProcessInfoDialog;
 import org.adempiere.webui.component.Window;
@@ -316,6 +318,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
     protected abstract void switchEditStatus(boolean editStatus);
 
+    /**
+     * set focus to active panel
+     */
     private void focusToActivePanel() {
     	JPiereIADTabpanel adTabPanel = adTabbox.getSelectedTabpanel();
 		focusToTabpanel(adTabPanel);
@@ -328,7 +333,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
     /**
-     * @param adWindowId
      * @param query
      * @return boolean
      */
@@ -336,7 +340,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     {
 		// This temporary validation code is added to check the reported bug
 		// [ adempiere-ZK Web Client-2832968 ] User context lost?
-		// https://sourceforge.net/tracker/?func=detail&atid=955896&aid=2832968&group_id=176962
+		// https://sourceforge.net/p/adempiere/zk-web-client/303/
 		// it's harmless, if there is no bug then this must never fail
 		Session currSess = Executions.getCurrent().getDesktop().getSession();
 		int checkad_user_id = -1;
@@ -407,8 +411,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	gridTab.getTableModel().setChanged(false);
 
         adTabbox.setSelectedIndex(0);
-        // all fields context for window is clear at AbstractADTab.prepareContext, set again IsSOTrx for window
-        Env.setContext(ctx, curWindowNo, "IsSOTrx", gridWindow.isSOTrx());
+        // set again IsSOTrx for window if context for window is clear at AbstractADTab.prepareContext, 
+        if (Env.getContext(ctx, curWindowNo, "IsSOTrx", true) == null)
+        	Env.setContext(ctx, curWindowNo, "IsSOTrx", gridWindow.isSOTrx());
         toolbar.enableTabNavigation(adTabbox.getTabCount() > 1);
         toolbar.enableFind(true);
         adTabbox.evaluate(null);
@@ -742,29 +747,44 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			gTab.setUpdateWindowContext(false);
 		}
 
+		//JPIERE-0014
+//		String type = gTab.getTabType();
+//		if (!Util.isEmpty(type))
+//		{
+//			IADTabpanel adTabPanal = Extensions.getADTabPanel(type);
+//			if (adTabPanal != null)
+//			{
+//				initTabPanel(query, tabIndex, gTab, adTabPanal);
+//			}
+//			else
+//			{
+//				logger.log(Level.SEVERE, "No implementaton for tab type " + type + " Found", new Exception("No implementaton for tab type " + type + " Found"));
+//			}
+//		}
+//		else if (gTab.isSortTab())
+		
 		if (gTab.isSortTab())
 		{
-			JPiereADSortTab sortTab = new JPiereADSortTab(curWindowNo, gTab);
-			adTabbox.addTab(gTab, sortTab);
-			sortTab.registerAPanel(this);
-			if (tabIndex == 0) {
-				sortTab.createUI();
-				if (!m_queryInitiating)
-				{
-					initFirstTabpanel();
-				}
-			}
-			gTab.addDataStatusListener(this);
+			//JPIERE-0014 - No need SortTab.
 		}
 		else
 		{
 			JPiereADTabpanel fTabPanel = new JPiereADTabpanel();
-			fTabPanel.addEventListener(JPiereADTabpanel.ON_DYNAMIC_DISPLAY_EVENT, this);
-	    	gTab.addDataStatusListener(this);
-	    	fTabPanel.init(this, curWindowNo, gTab, gridWindow);
-	    	adTabbox.addTab(gTab, fTabPanel);
-		    if (tabIndex == 0) {
-		    	fTabPanel.createUI();
+			initTabPanel(query, tabIndex, gTab, fTabPanel);
+		}
+
+		return gTab;
+	} // initTab
+
+	private void initTabPanel(MQuery query, int tabIndex, final GridTab gTab, JPiereADTabpanel adTabPanal)
+	{
+		adTabPanal.addEventListener(ADTabpanel.ON_DYNAMIC_DISPLAY_EVENT, this);
+		gTab.addDataStatusListener(this);
+		adTabPanal.init(this, gTab);
+		adTabbox.addTab(gTab, adTabPanal);
+		if (tabIndex == 0)
+		{
+			adTabPanal.createUI();
 		    	if (!m_queryInitiating)
 				{
 		    		try {
@@ -781,9 +801,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		    {
 		    	initQueryOnNew(query);
 		    }
-		}
-
-		return gTab;
 	}
 
 	private void initFirstTabpanel() {
@@ -1218,9 +1235,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     public void onToggle()
     {
     	adTabbox.getSelectedTabpanel().switchRowPresentation();
-    	//Deepak-Enabling customize button IDEMPIERE-364
-        if(!(adTabbox.getSelectedTabpanel() instanceof JPiereADSortTab))
-        	toolbar.enableCustomize(((JPiereADTabpanel)adTabbox.getSelectedTabpanel()).isGridView());
+    	//toolbar.enableCustomize(adTabbox.getSelectedTabpanel().isEnableCustomizeButton()); JPIERE-0014
     	focusToActivePanel();
     }
 
@@ -1535,9 +1550,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		    newTabpanel.refresh();
 		}
 
-		if (adTabbox.getSelectedTabpanel() instanceof JPiereADSortTab)
+		if (adTabbox.getSelectedTabpanel() instanceof ADSortTab)
 		{
-			((JPiereADSortTab)adTabbox.getSelectedTabpanel()).registerAPanel(this);
+			//((ADSortTab)adTabbox.getSelectedTabpanel()).registerAPanel(this); JPIERE-0014 No need Sort Tab
 		}
 		else
 		{
@@ -1573,21 +1588,18 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		toolbar.enableQuickForm(adTabbox.getSelectedTabpanel().isEnableQuickFormButton() && !adTabbox.getSelectedGridTab().isReadOnly());
 
         boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
-        //Deepak-Enabling customize button IDEMPIERE-364
-        if(adTabbox.getSelectedTabpanel() instanceof ADSortTab){//consistent with dataStatusChanged
-        	toolbar.enableProcessButton (false);
-        	toolbar.enableCustomize(false);
-        }else{
-        	JPiereADTabpanel adtab = (JPiereADTabpanel) adTabbox.getSelectedTabpanel();
-            toolbar.enableProcessButton(!isNewRow && adtab != null && adtab.getToolbarButtons().size() > 0);
-            toolbar.enableCustomize(adtab.isGridView());
-        }
+
+        JPiereADTabpanel adtab = (JPiereADTabpanel) adTabbox.getSelectedTabpanel();
+        toolbar.enableProcessButton(adtab != null && adtab.isEnableProcessButton());
+        toolbar.enableCustomize(adtab.isEnableCustomizeButton());
 
 		toolbar.setPressed("Find",adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
 
 		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), getCurrentFindWindow() != null ? getCurrentFindWindow().getAD_UserQuery_ID() : 0);
 
+		// update from customized implementation
+		//adtab.updateToolbar(toolbar); JPIERE-0014
 	}
 
 	/**
@@ -2000,15 +2012,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
         toolbar.enableTabNavigation(breadCrumb.hasParentLink(), adTabbox.getSelectedDetailADTabpanel() != null);
 
-        //Deepak-Enabling customize button IDEMPIERE-364
-        if(adTabbox.getSelectedTabpanel() instanceof ADSortTab){//consistent with updateToolbar
-        	toolbar.enableProcessButton (false);
-        	toolbar.enableCustomize(false);
-        }else{
-        	JPiereADTabpanel adtab = (JPiereADTabpanel) adTabbox.getSelectedTabpanel();
-            toolbar.enableProcessButton(!isNewRow && adtab != null && adtab.getToolbarButtons().size() > 0);
-            toolbar.enableCustomize(adtab.isGridView());
-        }
+		JPiereADTabpanel adtab = (JPiereADTabpanel) adTabbox.getSelectedTabpanel();
+		toolbar.enableProcessButton(adtab != null && adtab.isEnableProcessButton());
+        toolbar.enableCustomize(adtab.isEnableCustomizeButton());
+
     }
 
     /**
@@ -3451,6 +3458,51 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		Clients.response(new AuScript(script.toString()));
 	}
 
+	/**
+	 * 
+	 * @return true if window is block by mask or highlighted window
+	 */
+	public boolean isBlock() {
+		//check blocking by local mask
+		if (mask != null && mask.getParent() != null) {
+			return true;
+		}
+		
+		//check blocking by highlighted window
+		if (getComponent() != null && getComponent().getPage() != null) {
+			Collection<Component> roots = getComponent().getPage().getRoots();
+			for(Component comp : roots) {
+				if (comp instanceof org.zkoss.zul.Window) {
+					org.zkoss.zul.Window wnd = (org.zkoss.zul.Window) comp;
+					if (wnd.isVisible() && wnd.inHighlighted())
+						return true;
+				}
+			}
+		}
+		
+		//check blocking by mask from ISupportMask (window, tabpanel)
+		if (getComponent() != null) {
+			Component p = getComponent().getParent();
+			while (p != null) {
+				if (p instanceof Mask) {
+					if (p.isVisible()) {
+						return true;
+					}
+				} else if (p instanceof DesktopTabpanel) {
+					for(Component c : p.getChildren()) {
+						if (c instanceof Mask) {
+							if (c.isVisible())
+								return true;
+						}
+					}
+				}
+				p = p.getParent();
+			}
+		}
+		return false;
+	}
+	
+
 	public void executeButtonProcess(final IProcessButton wButton,
 			final boolean startWOasking, final int table_ID, final int record_ID,
 			boolean isProcessMandatory) {
@@ -3579,7 +3631,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 					showBusyMask(dialog);
 					LayoutUtils.openOverlappedWindow(getComponent(), dialog, "middle_center");
 				}
-				dialog.focus();
+				Executions.schedule(getComponent().getDesktop(), e -> dialog.focus(), new Event("onPostShowProcessModalDialog"));
 			}
 			if (adTabbox.getSelectedGridTab().isQuickForm()) {
 				adTabbox.getSelectedGridTab().dataRefreshAll(false, false);
@@ -3746,7 +3798,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 
 		if (m_logs != null && m_logs.length > 0) {
-			ProcessInfoDialog.showProcessInfo(pi, curWindowNo, getComponent(), false);
+			ProcessInfoDialog dialog = ProcessInfoDialog.showProcessInfo(pi, curWindowNo, getComponent(), false);
+			dialog.addEventListener(DialogEvents.ON_WINDOW_CLOSE, e -> focusToActivePanel());
 		}
 
 	}
@@ -3911,7 +3964,15 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		return statusBarQF;
 	}
 
-		/**
+	/**
+	 * @param statusBar
+	 */
+	public void setStatusBarQF(StatusBar statusBar)
+	{
+		statusBarQF = statusBar;
+	}	
+
+	/**
 	 * Implementation to work key listener for the current open Quick Form.
 	 */
 	JPiereQuickGridView currQGV = null;
@@ -3969,6 +4030,15 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 		return true;
 	} // registerQuickFormTab
+
+	/**
+	 * 
+	 * @return {@link GridWindow}
+	 */
+	public GridWindow getGridWindow() {
+		return gridWindow;
+	}
+
 
 	/**
 	 *
