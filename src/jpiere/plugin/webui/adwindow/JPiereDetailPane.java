@@ -1,3 +1,27 @@
+/***********************************************************************
+ * This file is part of iDempiere ERP Open Source                      *
+ * http://www.idempiere.org                                            *
+ *                                                                     *
+ * Copyright (C) Contributors                                          *
+ *                                                                     *
+ * This program is free software; you can redistribute it and/or       *
+ * modify it under the terms of the GNU General Public License         *
+ * as published by the Free Software Foundation; either version 2      *
+ * of the License, or (at your option) any later version.              *
+ *                                                                     *
+ * This program is distributed in the hope that it will be useful,     *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of      *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the        *
+ * GNU General Public License for more details.                        *
+ *                                                                     *
+ * You should have received a copy of the GNU General Public License   *
+ * along with this program; if not, write to the Free Software         *
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,          *
+ * MA 02110-1301, USA.                                                 *
+ *                                                                     *
+ * Contributors:                                                       *
+ * - hengsin                         								   *
+ **********************************************************************/
 /******************************************************************************
  * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
@@ -25,6 +49,7 @@ import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.action.Actions;
 import org.adempiere.webui.action.IAction;
+import org.adempiere.webui.adwindow.ADSortTab;
 import org.adempiere.webui.adwindow.ADTabpanel;				//JPIERE-0014
 import org.adempiere.webui.adwindow.DetailPane;
 import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
@@ -455,13 +480,15 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 						String labelKey = actionId + ".label";
 						String tooltipKey = actionId + ".tooltip";
-						String label = Msg.getMsg(Env.getCtx(), labelKey);
-						String tooltiptext = Msg.getMsg(Env.getCtx(), tooltipKey);
+						String label = Msg.getMsg(Env.getCtx(), labelKey, true);
+						String tooltiptext = Msg.getMsg(Env.getCtx(), labelKey, false);
+						if (Util.isEmpty(tooltiptext, true))
+							tooltiptext = Msg.getMsg(Env.getCtx(), tooltipKey, true);
 						if ( labelKey.equals(label) ) {
 							label = toolbarButton.getName();
 						}
-						if ( tooltipKey.equals(tooltiptext) ) {
-							tooltipKey = null;
+						if ( tooltipKey.equals(tooltiptext) || labelKey.equals(tooltiptext)) {
+							tooltiptext = label;
 						}
 						ToolBarButton btn = new ToolBarButton();
 						btn.setName("Btn"+toolbarButton.getComponentName());
@@ -534,9 +561,9 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	 */
 	protected void onToggle(Event e) {
 		var adTabPanel = getSelectedADTabpanel();
-		if(!(adTabPanel instanceof JPiereADSortTab)) {
+		if(!(adTabPanel instanceof ADSortTab)) {
 			adTabPanel.switchRowPresentation();
-			getSelectedPanel().getToolbarButton(BTN_CUSTOMIZE_ID).setDisabled(!adTabPanel.isGridView());
+			getSelectedPanel().getToolbarButton(BTN_CUSTOMIZE_ID).setDisabled(!adTabPanel.isGridView());//JPIERE-0014
 
 			ToolBarButton btnCustomize = getSelectedPanel().getToolbarButton(BTN_CUSTOMIZE_ID);
 			if (btnCustomize != null)
@@ -570,7 +597,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	protected void onProcess(Component button) {
 		ProcessButtonPopup popup = new ProcessButtonPopup();
 		JPiereADTabpanel adtab = (JPiereADTabpanel) getSelectedADTabpanel();
-		popup.render(adtab.getToolbarButtons());
+		if (adtab.getToolbarButtons() != null && adtab.getToolbarButtons().size() > 0)
+			popup.render(adtab.getToolbarButtons());
 		if (popup.getChildren().size() > 0) {
 			popup.setPage(button.getPage());
 			popup.open(button, "after_start");
@@ -886,6 +914,9 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         		}
         	}
         }
+        
+        // update from customized implementation
+		adtab.updateDetailToolbar(toolbar);
 	}
 
 	private void updateProcessToolbar() {
@@ -905,7 +936,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
         			if (adtab.getGridTab().isSortTab()) {
         				btn.setDisabled(true);
         			} else {
-        				btn.setDisabled(((JPiereADTabpanel)adtab).getToolbarButtons().isEmpty());
+        				boolean isToolbarDisabled =((JPiereADTabpanel)adtab).getToolbarButtons() == null || (((JPiereADTabpanel)adtab).getToolbarButtons().isEmpty());
+        				btn.setDisabled(isToolbarDisabled);
         			}
         			break;
         		}
