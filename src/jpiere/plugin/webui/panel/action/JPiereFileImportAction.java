@@ -1,4 +1,17 @@
 /******************************************************************************
+ * Product: iDempiere ERP & CRM Smart Business Solution                       *
+ * Copyright (C) 2012 Trek Global                							  *
+ * Copyright (C) 2012 Carlos Ruiz                							  *
+ * This program is free software; you can redistribute it and/or modify it    *
+ * under the terms version 2 of the GNU General Public License as published   *
+ * by the Free Software Foundation. This program is distributed in the hope   *
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.           *
+ * See the GNU General Public License for more details.                       *
+ * You should have received a copy of the GNU General Public License along    *
+ * with this program; if not, write to the Free Software Foundation, Inc.,    *
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.                     *
+/******************************************************************************
  * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
  *                                                                            *
@@ -147,7 +160,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 		{
 			winImportFile = new Window();
 			winImportFile.setTitle(Msg.getMsg(Env.getCtx(), "FileImport") + ": " + panel.getActiveGridTab().getName());
-			ZKUpdateUtil.setWidth(winImportFile, "450px");
+			ZKUpdateUtil.setWindowWidthX(winImportFile, 450);
 			winImportFile.setClosable(true);
 			winImportFile.setBorder("normal");
 			winImportFile.setStyle("position:absolute");
@@ -220,6 +233,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			LayoutUtils.addSclass("dialog-footer", confirmPanel);
 			vb.appendChild(confirmPanel);
 			confirmPanel.addActionListener(this);
+			winImportFile.addEventListener(Events.ON_CANCEL, e -> onCancel());
 		}
 
 		panel.getComponent().getParent().appendChild(winImportFile);
@@ -236,7 +250,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			UploadEvent ue = (UploadEvent) event;
 			processUploadMedia(ue.getMedia());
 		} else if (event.getTarget().getId().equals(ConfirmPanel.A_CANCEL)) {
-			winImportFile.onClose();
+			onCancel();
 		} else if (event.getTarget() == fCharset) {
 			if (m_file_istream != null) {
 				m_file_istream.close();
@@ -255,6 +269,10 @@ public class JPiereFileImportAction implements EventListener<Event>
 		} else if (event.getName().equals(DialogEvents.ON_WINDOW_CLOSE)) {
 			panel.hideBusyMask();
 		}
+	}
+
+	private void onCancel() {
+		winImportFile.onClose();
 	}
 
 	private void processUploadMedia(Media media) {
