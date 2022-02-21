@@ -74,6 +74,7 @@ import org.zkoss.zk.au.out.AuFocus;
 import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.AbstractComponent;
 import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.IdSpace;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
@@ -102,6 +103,14 @@ import org.zkoss.zul.impl.CustomGridDataLoader;
  */
 public class JPiereGridView extends Vlayout implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener
 {
+	public static final String ZERO_PX_WIDTH = "0px";
+
+	private static final String GRID_VIEW_GRID_FIELD_INDEX = "gridView.gridField.index";
+
+	public static final String COLUMN_WIDTH_ORIGINAL = "column.width.original";
+
+	private static final String COLUMN_HFLEX_ORIGINAL = "column.hflex.original";
+
 	private static final int MIN_COLUMN_MOBILE_WIDTH = 100;
 
 	/**
@@ -174,6 +183,8 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	boolean isHasCustomizeData = false;
 
 	private boolean showCurrentRowIndicatorColumn = true;
+	
+	private String m_isAutoHideEmptyColumn;
 
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
 
@@ -338,6 +349,8 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 
 		updateListIndex();
 
+		//autoHideEmptyColumns(); JPIERE-0014
+		
 		this.init = true;
 
 		showRecordsCount();
@@ -392,6 +405,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 					columnWidthMap.put(gridField[i].getAD_Field_ID(), widths[i]);
 				}
 			}
+			m_isAutoHideEmptyColumn = tabCustomization.getIsAutoHideEmptyColumn();
 		} else {
 			ArrayList<GridField> gridFieldList = new ArrayList<GridField>();
 
@@ -647,6 +661,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 				colnames.put(index, gridField[i].getHeader());
 				index++;
 				org.zkoss.zul.Column column = new Column();
+				//column.setAttribute(GRID_VIEW_GRID_FIELD_INDEX, i); //JPIERE-0014
 				column.setHeight("2em");
 				int colindex =tableModel.findColumn(gridField[i].getColumnName());
 				column.setSortAscending(new SortComparator(colindex, true, Env.getLanguage(Env.getCtx())));
@@ -807,6 +822,101 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		}
 
 	}
+
+	/**
+	 * auto hide empty columns
+	 */
+	protected void autoHideEmptyColumns() {
+		if (!isAutoHideEmptyColumns()) {
+			return;
+		}
+		
+		String attr = listbox.getUuid()+".autoHideEmptyColumns";
+		if (Executions.getCurrent().getAttribute(attr) != null) {
+			return;
+		} else {
+			Executions.getCurrent().setAttribute(attr, Boolean.TRUE);
+		}
+		
+		org.zkoss.zul.Columns columns = listbox.getColumns();
+		List<Column> columnList = columns.getChildren();
+		int rowCount = listModel.getSize();
+		GridField[] gridTabFields = gridTab.getFields();
+		Map<Integer, Integer> indexMap = new HashMap<Integer, Integer>();
+		if (rowCount > 0) {
+			for(Column column : columnList) {
+				Object value = column.getAttribute(GRID_VIEW_GRID_FIELD_INDEX);
+				if (value == null || !(value instanceof Integer))
+					continue;
+				int index = (Integer)value;
+				for(int i = 0; i < gridTabFields.length; i++) {
+					if (gridField[index].getAD_Field_ID() == gridTabFields[i].getAD_Field_ID()) {
+						indexMap.put(index, i);
+						break;
+					}
+				}
+			}
+		}
+		
+		for(Column column : columnList) {
+			Object value = column.getAttribute(GRID_VIEW_GRID_FIELD_INDEX);
+			if (value == null || !(value instanceof Integer))
+				continue;
+			int index = (Integer)value;
+			boolean hideColumn = false;
+			if (rowCount > 0) {
+				int valueIndex = indexMap.get(index);
+				hideColumn = true;
+				for (int i = 0; i < rowCount; i++) {
+					Object[] values = (Object[]) listModel.getElementAt(i);					
+					int rowIndex = i;
+					if (paging != null && paging.getPageSize() > 0) {
+						rowIndex = (paging.getActivePage() * paging.getPageSize()) + rowIndex;
+					}
+					String display = renderer.getDisplayTextWithEditorCheck(values[valueIndex], gridField[index], rowIndex);
+					if (!Util.isEmpty(display, true)) {
+						hideColumn = false;
+						break;
+					} else if (gridTab.getCurrentRow() == rowIndex && gridTab.isNew()) {
+						if (gridField[index].isEditable(false) && (gridField[index].isMandatory(false) || !Util.isEmpty(gridField[index].getVO().MandatoryLogic) 
+							|| !Util.isEmpty(gridField[index].getVO().DisplayLogic)
+							|| !Util.isEmpty(gridField[index].getVO().ReadOnlyLogic))) {
+							hideColumn = false;
+							break;
+						}
+					}
+				}
+			}
+			
+			if (hideColumn && column.isVisible() && !ZERO_PX_WIDTH.equals(column.getWidth())) {
+				String width = column.getWidth();
+				String hflex = column.getHflex();
+				if (!Util.isEmpty(hflex, true)) {
+					column.setAttribute(COLUMN_HFLEX_ORIGINAL, hflex);
+					column.setHflex(null);
+				}
+				column.setWidth(ZERO_PX_WIDTH);
+				if (column.getAttribute(COLUMN_WIDTH_ORIGINAL) == null)
+					column.setAttribute(COLUMN_WIDTH_ORIGINAL, width != null ? width : "");
+			} else if (!hideColumn && column.isVisible() && ZERO_PX_WIDTH.equals(column.getWidth()) && column.getAttribute(COLUMN_WIDTH_ORIGINAL) != null) {
+				if (column.getAttribute(COLUMN_HFLEX_ORIGINAL) != null ) {
+					String hflex = (String)column.getAttribute(COLUMN_HFLEX_ORIGINAL);
+					column.setWidth(null);
+					column.setHflex(hflex);
+				} else {
+					column.setWidth((String) column.getAttribute(COLUMN_WIDTH_ORIGINAL));
+				}
+			}
+		}
+	}
+
+	private boolean isAutoHideEmptyColumns() {
+		if (!Util.isEmpty(m_isAutoHideEmptyColumn, true)) 
+			return "Y".equalsIgnoreCase(m_isAutoHideEmptyColumn);
+		else
+			return MSysConfig.getBooleanValue(MSysConfig.ZK_GRID_AUTO_HIDE_EMPTY_COLUMNS, false, Env.getAD_Client_ID(Env.getCtx()));
+	}
+
 
 	private void updateEmptyMessage() {
 		if (gridTab.getRowCount() == 0)
