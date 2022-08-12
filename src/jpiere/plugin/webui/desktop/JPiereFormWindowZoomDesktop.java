@@ -874,7 +874,8 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 	}
 
 	public void updateUI() {
-		windowContainer.setTabTitle(0, Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Home")) + " (" + noCount + ")", null);
+		
+		//windowContainer.setTabTitle(0, Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Home")) + " (" + noCount + ")", null);
 	}
 
 	//use _docClick undocumented api. need verification after major zk release update
