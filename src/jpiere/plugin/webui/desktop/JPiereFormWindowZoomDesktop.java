@@ -25,7 +25,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,13 +34,11 @@ import org.adempiere.base.event.EventManager;
 import org.adempiere.base.event.IEventManager;
 import org.adempiere.base.event.IEventTopics;
 import org.adempiere.model.MBroadcastMessage;
-import org.adempiere.util.ServerContext;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialog;
-import org.adempiere.webui.apps.DesktopRunnable;
 import org.adempiere.webui.apps.ProcessDialog;
 import org.adempiere.webui.apps.WReport;
 import org.adempiere.webui.component.DesktopTabpanel;
@@ -61,15 +58,11 @@ import org.adempiere.webui.panel.BroadcastMessageWindow;
 import org.adempiere.webui.panel.HeaderPanel;
 import org.adempiere.webui.panel.HelpController;
 import org.adempiere.webui.panel.TimeoutPanel;
-import org.adempiere.webui.session.SessionContextListener;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
-import org.adempiere.webui.util.IServerPushCallback;
-import org.adempiere.webui.util.ServerPushTemplate;
 import org.adempiere.webui.util.UserPreference;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
-import org.compiere.Adempiere;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.I_AD_Preference;
@@ -77,9 +70,12 @@ import org.compiere.model.MMenu;
 import org.compiere.model.MPreference;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
+import org.compiere.model.MTreeFavorite;
 import org.compiere.model.MWindow;
 import org.compiere.model.Query;
+import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -142,7 +138,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	private static final String IMAGES_DOWNARROW_PNG = "images/expand-header.png";
 
-	//private static final String IMAGES_CONTEXT_HELP_PNG = "images/Help16.png";
+	private static final String IMAGES_CONTEXT_HELP_PNG = "images/Help16.png";
 
 	private static final String IMAGES_THREELINE_MENU_PNG = "images/threelines.png";
 
@@ -151,13 +147,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	private Borderlayout layout;
 
-	private int noOfNotice;
-
-	private int noOfRequest;
-
-	private int noOfWorkflow;
-
-	private int noOfUnprocessed;
+	private int noCount;
 
 	private Tabpanel homeTab;
 
@@ -189,6 +179,13 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	private ToolBarButton westBtn;
 
+    // For quick info optimization
+    private GridTab    gridTab;
+
+    // Right side Quick info is visible
+    private boolean    isQuickInfoOpen    = true;
+
+	private boolean isDisplayEastContents = MSysConfig.getBooleanValue("JP_DISPLAY_EAST_CONTENTS", false, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0120
 
     public JPiereFormWindowZoomDesktop()
     {
@@ -301,6 +298,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 			@Override
 			public void onEvent(Event event) throws Exception {
 				OpenEvent oe = (OpenEvent) event;
+                isQuickInfoOpen = oe.isOpen();
 				updateHelpCollapsedPreference(!oe.isOpen());
 				HtmlBasedComponent comp = windowContainer.getComponent();
 				if (comp != null) {
@@ -373,14 +371,20 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         	eastPopup = new Popup();
         	ToolBarButton btn = new ToolBarButton();
         	btn.setIconSclass("z-icon-remove");
-        	btn.addEventListener(Events.ON_CLICK, evt -> eastPopup.close());
+        	btn.addEventListener(Events.ON_CLICK, evt -> {
+				eastPopup.close();
+				isQuickInfoOpen = false;
+			});
         	eastPopup.appendChild(btn);
-        	btn.setStyle("position: absolute; top: 4px; right: 4px; padding: 2px 6px;");
+        	btn.setStyle("position: absolute; top: 20px; right: 0px; padding: 2px 0px;");
         	eastPopup.setStyle("padding-top: 20px;");
         	eastPopup.appendChild(content);
         	eastPopup.setPage(getComponent().getPage());
         	eastPopup.setHeight("100%");
         	helpController.setupFieldTooltip();
+        	eastPopup.addEventListener(Events.ON_OPEN, (OpenEvent oe) -> {
+				isQuickInfoOpen = oe.isOpen();
+			});
 
         	westPopup = new Popup();
         	westPopup.setStyle("padding-top: 10px;");
@@ -419,30 +423,10 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
     		layout.getDesktop().enableServerPush(true);
     	}
 
-        Runnable runnable = new Runnable() {
-			public void run() {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {}
-
-				IServerPushCallback callback = new IServerPushCallback() {
-					public void updateUI() {
-						Properties ctx = (Properties)layout.getDesktop().getSession().getAttribute(SessionContextListener.SESSION_CTX);
-						try {
-							ServerContext.setCurrentInstance(ctx);
-							renderHomeTab();
-							automaticOpen(ctx);
-						} finally {
-							ServerContext.dispose();
-						}
-					}
-				};
-				ServerPushTemplate template = new ServerPushTemplate(layout.getDesktop());
-				template.executeAsync(callback);
-			}
-		};
-
-		Adempiere.getThreadPoolExecutor().submit(new DesktopRunnable(runnable,layout.getDesktop()));
+        Executions.schedule(layout.getDesktop(), event -> {
+			renderHomeTab();
+        	automaticOpen(Env.getCtx());
+        }, new Event("onRenderHomeTab"));        
 
 		ToolBar toolbar = windowContainer.getToobar();
 
@@ -458,29 +442,39 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
         	};
         	toolbar.appendChild(showHeader);
-        	showHeader.setImage(ThemeManager.getThemeResource(IMAGES_THREELINE_MENU_PNG));
+	        if (ThemeManager.isUseFontIconForImage())
+	        	showHeader.setIconSclass("z-icon-ThreeLineMenu");
+			else
+        		showHeader.setImage(ThemeManager.getThemeResource(IMAGES_THREELINE_MENU_PNG));
         	showHeader.addEventListener(Events.ON_CLICK, this);
         	showHeader.setSclass("window-container-toolbar-btn");
         	showHeader.setVisible(false);
 
         	max = new ToolBarButton();
         	toolbar.appendChild(max);
-        	max.setImage(ThemeManager.getThemeResource(IMAGES_UPARROW_PNG));
+	        if (ThemeManager.isUseFontIconForImage())
+	        	max.setIconSclass("z-icon-Collapsing");
+			else
+        		max.setImage(ThemeManager.getThemeResource(IMAGES_UPARROW_PNG));
         	max.addEventListener(Events.ON_CLICK, this);
         	max.setSclass("window-container-toolbar-btn");
 		}
 
         contextHelp = new ToolBarButton();
-        //IDEMPIERE-0120
-//        toolbar.appendChild(contextHelp);
-//        if (ThemeManager.isUseFontIconForImage())
-//        	contextHelp.setIconSclass("z-icon-Help");
-//        else
-//        	contextHelp.setImage(ThemeManager.getThemeResource(IMAGES_CONTEXT_HELP_PNG));
-//        contextHelp.addEventListener(Events.ON_CLICK, this);
-//        contextHelp.setSclass("window-container-toolbar-btn context-help-btn");
-//        contextHelp.setTooltiptext(Util.cleanAmp(Msg.getElement(Env.getCtx(), "AD_CtxHelp_ID")));
-//        contextHelp.setVisible(!e.isVisible());
+
+        if(isDisplayEastContents)//JPIERE-0120
+        {
+	        toolbar.appendChild(contextHelp);
+	        if (ThemeManager.isUseFontIconForImage())
+	        	contextHelp.setIconSclass("z-icon-Help");
+	        else
+	        	contextHelp.setImage(ThemeManager.getThemeResource(IMAGES_CONTEXT_HELP_PNG));
+	        contextHelp.addEventListener(Events.ON_CLICK, this);
+	        contextHelp.setSclass("window-container-toolbar-btn context-help-btn");
+	        contextHelp.setTooltiptext(Util.cleanAmp(Msg.getElement(Env.getCtx(), "AD_CtxHelp_ID")));
+	        contextHelp.setVisible(!e.isVisible());
+	        isQuickInfoOpen = e.isVisible();
+        }
 
         if (!mobile) {
 	        boolean headerCollapsed= pref.isPropertyBool(UserPreference.P_HEADER_COLLAPSED);
@@ -491,7 +485,10 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
         if (mobile) {
 	        westBtn = new ToolBarButton();
-	        westBtn.setImage(ThemeManager.getThemeResource(IMAGES_THREELINE_MENU_PNG));
+	        if (ThemeManager.isUseFontIconForImage())
+	        	westBtn.setIconSclass("z-icon-ThreeLineMenu");
+			else
+	        	westBtn.setImage(ThemeManager.getThemeResource(IMAGES_THREELINE_MENU_PNG));
 	        westBtn.addEventListener(Events.ON_CLICK, this);
 	        westBtn.setSclass("window-container-toolbar-btn");
 	        westBtn.setStyle("cursor: pointer; padding: 0px; margin: 0px;");
@@ -527,13 +524,14 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         	int userId = Env.getAD_User_ID(Env.getCtx());
         	MPreference preference = query.setOnlyActiveRecords(true)
         			.setApplyAccessFilter(true)
+        			.setClient_ID()
         			.setParameters("SideController.Width", userId)
         			.first();
 
         	if ( preference == null || preference.getAD_Preference_ID() <= 0 ) {
 
         		preference = new MPreference(Env.getCtx(), 0, null);
-        		preference.set_ValueOfColumn("AD_User_ID", userId); // required set_Value for System=0 user
+        		preference.setAD_User_ID(userId); // allow System
         		preference.setAttribute("SideController.Width");
         	}
         	preference.setValue(width);
@@ -570,13 +568,14 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         	int userId = Env.getAD_User_ID(Env.getCtx());
         	MPreference preference = query.setOnlyActiveRecords(true)
         			.setApplyAccessFilter(true)
+        			.setClient_ID()
         			.setParameters("HelpController.Width", userId)
         			.first();
 
         	if ( preference == null || preference.getAD_Preference_ID() <= 0 ) {
 
         		preference = new MPreference(Env.getCtx(), 0, null);
-        		preference.set_ValueOfColumn("AD_User_ID", userId); // required set_Value for System=0 user
+        		preference.setAD_User_ID(userId); // allow System
         		preference.setAttribute("HelpController.Width");
         	}
         	preference.setValue(width);
@@ -641,7 +640,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         		westPopup.removeAttribute(POPUP_OPEN_ATTR);
         	});
         	westPopup.appendChild(btn);
-        	btn.setStyle("position: absolute; top: 4px; right: 4px; padding: 2px 6px;");
+        	btn.setStyle("position: absolute; top: 10px; right: 0px; padding: 2px 0px;");
 		}
 		logo = pnlHead.getLogo();
 		if (mobile && logo != null)
@@ -657,6 +656,8 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 		{
 			pnlHead.invalidate();
 		}
+		
+		homeTab.invalidate();	
 	}
 
 	protected void setSidePopupWidth(Popup popup) {
@@ -701,18 +702,25 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         	}
         	else if (comp == contextHelp)
         	{
-//        		if (mobile && eastPopup != null)
-//        		{
-//        			eastPopup.open(layout.getCenter(), "overlap_end");
-//        		}
-//        		else
-//        		{
-//	        		layout.getEast().setVisible(true);
-//	        		layout.getEast().setOpen(true);
-//	        		LayoutUtils.removeSclass("slide", layout.getEast());
-//	        		contextHelp.setVisible(false);
-//	        		updateHelpCollapsedPreference(false);
-//        		}
+        	    if(isDisplayEastContents)//JPIERE-0120
+        		{
+	        		if (mobile && eastPopup != null)
+	        		{
+	        			eastPopup.open(layout.getCenter(), "overlap_end");
+        				isQuickInfoOpen = true;
+            			updateHelpQuickInfo(gridTab);
+	        		}
+	        		else
+	        		{
+		        		layout.getEast().setVisible(true);
+		        		layout.getEast().setOpen(true);
+		        		LayoutUtils.removeSclass("slide", layout.getEast());
+		        		contextHelp.setVisible(false);
+		        		updateHelpCollapsedPreference(false);
+	        			isQuickInfoOpen = true;
+	        			updateHelpQuickInfo(gridTab);
+	        		}
+				}
         	}
         	else if (comp == westBtn)
         	{
@@ -732,28 +740,11 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         }
         else if (eventName.equals(ON_ACTIVITIES_CHANGED_EVENT))
         {
-        	@SuppressWarnings("unchecked")
-			Map<String, Object> map = (Map<String, Object>) event.getData();
-        	Integer notice = (Integer) map.get("notice");
-        	Integer request = (Integer) map.get("request");
-        	Integer workflow = (Integer) map.get("workflow");
-        	Integer unprocessed = (Integer) map.get("unprocessed");
+        	Integer count = (Integer) event.getData();
         	boolean change = false;
-        	if (notice != null && notice.intValue() != noOfNotice)
+        	if (count != null && count.intValue() != noCount) 
         	{
-        		noOfNotice = notice.intValue(); change = true;
-        	}
-        	if (request != null && request.intValue() != noOfRequest)
-        	{
-        		noOfRequest = request.intValue(); change = true;
-        	}
-        	if (workflow != null && workflow.intValue() != noOfWorkflow)
-        	{
-        		noOfWorkflow = workflow.intValue(); change = true;
-        	}
-        	if (unprocessed != null && unprocessed.intValue() != noOfUnprocessed)
-        	{
-        		noOfUnprocessed = unprocessed.intValue(); change = true;
+        		noCount = count.intValue(); change = true;
         	}
         	if (change)
         		updateUI();
@@ -780,7 +771,10 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	protected void restoreHeader() {
 		layout.getNorth().setVisible(true);
-		max.setImage(ThemeManager.getThemeResource(IMAGES_UPARROW_PNG));
+		if (ThemeManager.isUseFontIconForImage())
+        	max.setIconSclass("z-icon-Collapsing");
+		else
+			max.setImage(ThemeManager.getThemeResource(IMAGES_UPARROW_PNG));
 		showHeader.setVisible(false);
 		pnlHead.detach();
 		headerContainer.appendChild(pnlHead);
@@ -790,7 +784,10 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	protected void collapseHeader() {
 		layout.getNorth().setVisible(false);
-		max.setImage(ThemeManager.getThemeResource(IMAGES_DOWNARROW_PNG));
+		if (ThemeManager.isUseFontIconForImage())
+        	max.setIconSclass("z-icon-Expanding");
+		else
+			max.setImage(ThemeManager.getThemeResource(IMAGES_DOWNARROW_PNG));
 		showHeader.setVisible(true);
 		pnlHead.detach();
 		if (headerPopup == null)
@@ -867,7 +864,9 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 			sideController.onLogOut();
 			sideController = null;
 		}
-		layout.detach();
+		if (layout != null) {
+			layout.detach();
+		}
 		layout = null;
 		pnlHead = null;
 		max = null;
@@ -875,14 +874,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 	}
 
 	public void updateUI() {
-		int total = noOfNotice + noOfRequest + noOfWorkflow + noOfUnprocessed;
-		windowContainer.setTabTitle(0, Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Home"))
-				+ " (" + total + ")",
-				Msg.translate(Env.getCtx(), "AD_Note_ID") + " : " + noOfNotice
-				+ ", " + Msg.translate(Env.getCtx(), "R_Request_ID") + " : " + noOfRequest
-				+ ", " + Util.cleanAmp(Msg.getMsg (Env.getCtx(), "WorkflowActivities")) + " : " + noOfWorkflow
-				+ (noOfUnprocessed>0 ? ", " + Msg.getMsg (Env.getCtx(), "UnprocessedDocs") + " : " + noOfUnprocessed : "")
-				);
+		windowContainer.setTabTitle(0, Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Home")) + " (" + noCount + ")", null);
 	}
 
 	//use _docClick undocumented api. need verification after major zk release update
@@ -919,14 +911,12 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	//Implementation for Broadcast message
 	/**
-	 * @param eventManager
 	 */
 	public void bindEventManager() {
 		EventManager.getInstance().register(IEventTopics.BROADCAST_MESSAGE, this);
 	}
 
 	/**
-	 * @param eventManager
 	 */
 	public void unbindEventManager() {
 		EventManager.getInstance().unregister(this);
@@ -991,6 +981,15 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 			};
 
+
+			//JPIERE-0480-Begin:  A little wait For prevent ToDo Reminder Message Error,
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				;
+			}
+			//JPIERE-0480-End
+
 			Executions.schedule(m_desktop, listner, new Event("OnBroadcast",
 					null, event.getProperty(IEventManager.EVENT_DATA)));
 
@@ -1002,38 +1001,53 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 		unbindEventManager();
 	}
 
-	//JPIERE-0120:
+
 	@Override
 	public void updateHelpContext(String ctxType, int recordId) {
-		// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
-//		if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
-//			return;
+	
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
+			if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
+				return;
 
-//		Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
-//		helpController.renderCtxHelp(ctxType, recordId);
-//
-//		GridTab gridTab = null;
-//		Component window = getActiveWindow();
-//		ADWindow adwindow = ADWindow.findADWindow(window);
-//		if (adwindow != null) {
-//			gridTab = adwindow.getADWindowContent().getActiveGridTab();
-//		}
-//		updateHelpQuickInfo(gridTab);
+			Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
+			helpController.renderCtxHelp(ctxType, recordId);
+
+			GridTab gridTab = null;
+			Component window = getActiveWindow();
+			ADWindow adwindow = ADWindow.findADWindow(window);
+			if (adwindow != null) {
+				gridTab = adwindow.getADWindowContent().getActiveGridTab();
+			}
+			updateHelpQuickInfo(gridTab);
+        }
 	}
 
 	@Override
 	public void updateHelpTooltip(GridField gridField) {
-//		helpController.renderToolTip(gridField);//JPIERE-0120:
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	helpController.renderToolTip(gridField);
+        }
 	}
 
 	@Override
 	public void updateHelpTooltip(String hdr, String  desc, String help, String otherContent) {
-//		helpController.renderToolTip(hdr, desc, help, otherContent);//JPIERE-0120:
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	helpController.renderToolTip(hdr, desc, help, otherContent);
+        }
 	}
 
 	@Override
 	public void updateHelpQuickInfo(GridTab gridTab) {
-//		helpController.renderQuickInfo(gridTab);//JPIERE-0120:
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	this.gridTab = gridTab;
+        	if (isQuickInfoOpen)
+        		helpController.renderQuickInfo(gridTab);
+        }
 	}
 
 	@Override
@@ -1111,13 +1125,13 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 		if (isActionURL())  // IDEMPIERE-2334 vs IDEMPIERE-3000 - do not open windows when coming from an action URL
 			return;
 
-		StringBuilder sql = new StringBuilder("SELECT m.Action, COALESCE(m.AD_Window_ID, m.AD_Process_ID, m.AD_Form_ID, m.AD_Workflow_ID, m.AD_Task_ID, AD_InfoWindow_ID) ")
-		.append(" FROM AD_TreeBar tb")
-		.append(" INNER JOIN AD_Menu m ON (tb.Node_ID = m.AD_Menu_ID)")
-		.append(" WHERE tb.AD_Tree_ID = ").append(getMenuID())
-		.append(" AND tb.AD_User_ID = ").append(Env.getAD_User_ID(ctx))
-		.append(" AND tb.IsActive = 'Y' AND tb.LoginOpenSeqNo > 0")
-		.append(" ORDER BY tb.LoginOpenSeqNo");
+		StringBuilder sql = new StringBuilder("SELECT m.Action, COALESCE(m.AD_Window_ID, m.AD_Process_ID, m.AD_Form_ID, m.AD_Workflow_ID, m.AD_Task_ID, m.AD_InfoWindow_ID), m.AD_Menu_ID ")
+		.append(" FROM AD_Tree_Favorite_Node tfn ")
+		.append(" INNER JOIN AD_Menu m ON (tfn.AD_Menu_ID = m.AD_Menu_ID) ")
+		.append(" WHERE tfn.AD_Tree_Favorite_ID = ")
+		.append(MTreeFavorite.getFavoriteTreeID(Env.getAD_User_ID(Env.getCtx())))
+		.append(" AND tfn.IsActive = 'Y' AND tfn.LoginOpenSeqNo >= 0 ")
+		.append(" ORDER BY tfn.LoginOpenSeqNo ");
 
 		List<List<Object>> rows = DB.getSQLArrayObjectsEx(null, sql.toString());
 		if (rows != null && rows.size() > 0) {
@@ -1125,6 +1139,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 				String action = (String) row.get(0);
 				int recordID = ((BigDecimal) row.get(1)).intValue();
+				int menuID = ((BigDecimal) row.get(2)).intValue();
 
 				if (action.equals(MMenu.ACTION_Form)) {
 					Boolean access = MRole.getDefault().getFormAccess(recordID);
@@ -1139,7 +1154,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 				else if (action.equals(MMenu.ACTION_Process) || action.equals(MMenu.ACTION_Report)) {
 					Boolean access = MRole.getDefault().getProcessAccess(recordID);
 					if (access != null && access)
-						SessionManager.getAppDesktop().openProcessDialog(recordID, DB.getSQLValueStringEx(null, "SELECT IsSOTrx FROM AD_Menu WHERE AD_Menu_ID = ?", recordID).equals("Y"));
+						SessionManager.getAppDesktop().openProcessDialog(recordID, DB.getSQLValueStringEx(null, "SELECT IsSOTrx FROM AD_Menu WHERE AD_Menu_ID = ?", menuID).equals("Y"));
 				}
 				else if (action.equals(MMenu.ACTION_Task)) {
 					Boolean access = MRole.getDefault().getTaskAccess(recordID);
