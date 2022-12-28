@@ -555,6 +555,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 
 		Boolean isActive = null;
+		int colIndex = -1;
 		Vbox vbox = null;
 		int auxheadSize = gridPanel.getAuxheadSize();//JPIERE-0014:Form Window
 
@@ -595,9 +596,11 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				}
 			}
 
-			if (!gridPanelFields[i].isDisplayedGrid() || gridPanelFields[i].isToolbarOnlyButton()) {
+			// IDEMPIERE-2148: when has tab customize, ignore check properties isDisplayedGrid
+			if ((!isGridViewCustomized && gridPanelFields[i].isDisplayedGrid()) || gridPanelFields[i].isToolbarOnlyButton()) {
 				continue;
 			}
+			colIndex ++;
 
 			Cell div = new Cell();
 			String divStyle = CELL_DIV_STYLE + CELL_BORDER_STYLE_DEFAULT ;
@@ -690,7 +693,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	 * @param row
 	 */
 	public void setCurrentRow(Row row) {
-		if (currentRow != null && currentRow.getParent() != null && currentRow != row) {
+		if (currentRow != null && currentRow.getParent() != null && currentRow != row && isShowCurrentRowIndicatorColumn()) {
 			Cell cell = (Cell) currentRow.getChildren().get(1);
 			if (cell != null) {
 				cell.setStyle("background-color: transparent");
@@ -701,7 +704,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 		currentRow = row;
 		Cell cell = (Cell) currentRow.getChildren().get(1);
-		if (cell != null) {
+		if (cell != null && isShowCurrentRowIndicatorColumn()) {
 			if (ThemeManager.isUseFontIconForImage())
 			{
 				Label indicatorLabel = (Label) cell.getFirstChild();

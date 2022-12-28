@@ -884,13 +884,16 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
         							}
 
         							popupMenu.addContextElement(label);
-        							if (editor.getComponent() instanceof XulElement)
-        							{
-        								popupMenu.addContextElement((XulElement) editor.getComponent());
-        							}
+	        					}	        					
+	        				} 
+	        				popupMenu.addSuggestion(field);
+	        				if(!ClientInfo.isMobile())
+	        				{
+        						if (editor.getComponent() instanceof XulElement)
+        						{
+        							popupMenu.addContextElement((XulElement) editor.getComponent());
         						}
         					}
-	        				popupMenu.addSuggestion(field);
         				}
         			}
         		}

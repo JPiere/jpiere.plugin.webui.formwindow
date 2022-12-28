@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.adempiere.util.Callback;
+//import org.adempiere.webui.adwindow.AbstractADWindowContent; JPIERE
 import org.adempiere.webui.adwindow.QuickGridView;
 import org.adempiere.webui.component.Borderlayout;
 import org.adempiere.webui.component.Button;
@@ -32,6 +33,7 @@ import org.adempiere.webui.component.Window;
 import org.adempiere.webui.component.ZkCssHelper;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
+//import org.adempiere.webui.window.CustomizeGridViewDialog; JPIERE
 import org.adempiere.webui.window.FDialog;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.DataStatusListener;
@@ -40,7 +42,7 @@ import org.compiere.model.GridTab;
 import org.compiere.model.MRole;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
-import org.compiere.util.Trx;
+//import org.compiere.util.Trx; JPIERE
 import org.zkforge.keylistener.Keylistener;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
@@ -86,6 +88,8 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 	JPiereQuickGridView					prevQGV				= null;
 
 	private int						windowNo;
+	
+	private boolean stayInParent;
 
 	public JPiereWQuickForm(JPiereAbstractADWindowContent winContent, boolean m_onlyCurrentRows, int m_onlyCurrentDays)
 	{
@@ -409,6 +413,10 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 			adWinContent.setCurrQGV(null);
 		}
 		adWinContent.getADTab().getSelectedTabpanel().query(onlyCurrentRows, onlyCurrentDays, MRole.getDefault().getMaxQueryRecords()); // autoSize
+
+		if (stayInParent) {
+			adWinContent.onParentRecord();
+		}
 	} // dispose
 
 	private void createNewRow( )
@@ -441,4 +449,13 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		int col = e.getChangedColumn();
 		quickGridView.dynamicDisplay(col);
 	} // dataStatusChanged
+
+	/**
+	 * Return to parent when closing the quick form
+	 * @param stayInParent
+	 */
+	public void setStayInParent(boolean stayInParent) {
+		this.stayInParent = stayInParent;
+	}
+
 }

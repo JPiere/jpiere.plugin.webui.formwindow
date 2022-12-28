@@ -657,6 +657,7 @@ public class JPiereADWindowToolbar extends FToolbar implements EventListener<Eve
     public void enableNew(boolean enabled)
     {
         this.btnNew.setDisabled(!enabled);
+        this.btnSaveAndCreate.setDisabled(!(isNewEnabled() || isSaveEnable()));
     }
 
     public void enableCopy(boolean enabled)
