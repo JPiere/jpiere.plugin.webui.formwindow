@@ -22,7 +22,7 @@ import java.util.Properties;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
 import org.adempiere.webui.apps.AEnv;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.MOrder;
@@ -105,7 +105,7 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 											}
 
 									};
-									FDialog.ask( event.getWindow().getJPiereADWindowContent().getWindowNo(), event.getWindow().getComponent(),Msg.getElement(Env.getCtx(), "JP_ContractProcPeriod_ID"), "JP_OverlapPeriod", msg, isZoom);
+									Dialog.ask( event.getWindow().getJPiereADWindowContent().getWindowNo(), Msg.getElement(Env.getCtx(), "JP_ContractProcPeriod_ID"), "JP_OverlapPeriod", msg, isZoom);
 									break;
 								}
 							}//for
@@ -144,7 +144,7 @@ public class JPiereContractOrderWindowValidator implements JPiereWindowValidator
 											}
 
 									};
-									FDialog.ask( event.getWindow().getJPiereADWindowContent().getWindowNo(), event.getWindow().getComponent(),Msg.getElement(Env.getCtx(), "JP_ContractProcPeriod_ID"), "JP_OverlapPeriod", msg, isZoom);
+									Dialog.ask( event.getWindow().getJPiereADWindowContent().getWindowNo(), Msg.getElement(Env.getCtx(), "JP_ContractProcPeriod_ID"), "JP_OverlapPeriod", msg, isZoom);
 									break;
 								}
 							}//for

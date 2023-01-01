@@ -95,7 +95,8 @@ import org.zkoss.zul.impl.XulElement;
  *
  * @author Teo Sarca, teo.sarca@gmail.com
  * 		<li>BF [ 2996608 ] GridPanel is not displaying time
- * 			https://sourceforge.net/tracker/?func=detail&aid=2996608&group_id=176962&atid=955896
+ * 			https://sourceforge.net/p/adempiere/zk-web-client/420/
+ *
  *
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
@@ -555,6 +556,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		}
 
 		Boolean isActive = null;
+		@SuppressWarnings("unused")
 		int colIndex = -1;
 		Vbox vbox = null;
 		int auxheadSize = gridPanel.getAuxheadSize();//JPIERE-0014:Form Window

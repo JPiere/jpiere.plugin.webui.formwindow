@@ -207,9 +207,9 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 		 * generated serial id
 		 */
 		private static final long serialVersionUID = 6104341168705201721L;
-		private JPiereAbstractADWindowContent content;
+		private JPiereADWindowContent content;
 
-		protected JPiereADWindowVlayout(JPiereAbstractADWindowContent content) {
+		protected JPiereADWindowVlayout(JPiereADWindowContent content) {
 			super();
 			this.content = content;
 		}
@@ -220,6 +220,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 			try {
 				SessionManager.getSessionApplication().getKeylistener().removeEventListener(Events.ON_CTRL_KEY, content);
 			} catch (Exception e){}
+			content.layout.removeEventListener(WindowContainer.ON_WINDOW_CONTAINER_SELECTION_CHANGED_EVENT, content);
 		}
 	}
 

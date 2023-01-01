@@ -27,7 +27,7 @@
 
 package jpiere.plugin.webui.panel.action;
 
-import static org.compiere.model.SystemIDs.REFERENCE_IMPORT_MODE;
+import static org.compiere.model.SystemIDs.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -38,10 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
-import jpiere.plugin.webui.adwindow.JPiereIADTabbox;
-import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;
 
 import org.adempiere.base.IGridTabImporter;
 import org.adempiere.base.equinox.EquinoxExtensionLocator;
@@ -64,7 +60,7 @@ import org.adempiere.webui.editor.WTableDirEditor;
 import org.adempiere.webui.event.DialogEvents;
 import org.adempiere.webui.util.ReaderInputStream;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.compiere.model.GridTab;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
@@ -84,6 +80,10 @@ import org.zkoss.zul.Filedownload;
 import org.zkoss.zul.Space;
 import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Vlayout;
+
+import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
+import jpiere.plugin.webui.adwindow.JPiereIADTabbox;
+import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;
 
 /**
  *
@@ -300,7 +300,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			ListItem li = cboType.getSelectedItem();
 			if(li == null || li.getValue() == null)
 			{
-				FDialog.error(0, winImportFile, "FileInvalidExtension");
+				Dialog.error(0, "FileInvalidExtension");
 				return;
 			}
 
@@ -308,7 +308,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			IGridTabImporter importer = importerMap.get(ext);
 			if (importer == null)
 			{
-				FDialog.error(0, winImportFile, "FileInvalidExtension");
+				Dialog.error(0, "FileInvalidExtension");
 				return;
 			}
 

@@ -66,7 +66,6 @@ import org.adempiere.webui.component.Window;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.CustomizeGridViewDialog;
 import org.adempiere.webui.window.WRecordInfo;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.GridTab;
@@ -113,19 +112,19 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	 */
 	private static final long serialVersionUID = -7914602940626352282L;
 
-	private static final String BTN_PROCESS_ID = "BtnProcess";
+	public static final String BTN_PROCESS_ID = "BtnProcess";
 
-	private static final String BTN_DELETE_ID = "BtnDelete";
+	public static final String BTN_DELETE_ID = "BtnDelete";
 
-	private static final String BTN_EDIT_ID = "BtnEdit";
+	public static final String BTN_EDIT_ID = "BtnEdit";
 
-	private static final String BTN_NEW_ID = "BtnNew";
+	public static final String BTN_NEW_ID = "BtnNew";
 
-	private static final String BTN_SAVE_ID = "BtnSave";
+	public static final String BTN_SAVE_ID = "BtnSave";
 
-	private static final String BTN_QUICK_FORM_ID = "BtnQuickForm";
+	public static final String BTN_QUICK_FORM_ID = "BtnQuickForm";
 
-	private static final String BTN_CUSTOMIZE_ID = "BtnCustomize";
+	public static final String BTN_CUSTOMIZE_ID = "BtnCustomize";
 
 	private static final String BTN_TOGGLE_ID = "BtnToggle";
 
@@ -443,7 +442,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 				}
 			}
 		});
-		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "QuickForm")));
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "QuickForm")) + "    Shift+Alt+Q");
 		buttons.put(BTN_QUICK_FORM_ID.substring(3, BTN_QUICK_FORM_ID.length()), button);
 
 		// ADD Customize grid button
@@ -593,11 +592,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	 * open customize grid dialog
 	 * @param e
 	 */
-	protected void onCustomize(Event e) {
-		if (getSelectedADTabpanel() instanceof ADTabpanel) {
-			ADTabpanel tabPanel = (ADTabpanel) getSelectedADTabpanel();
-			CustomizeGridViewDialog.onCustomize(tabPanel);
-		}
+	protected void onCustomize(Event e) {//JPIERE
+//		if (getSelectedADTabpanel() instanceof ADTabpanel) {
+//			ADTabpanel tabPanel = (ADTabpanel) getSelectedADTabpanel();
+//			CustomizeGridViewDialog.onCustomize(tabPanel);
+//		}
 	}
 
 	/**
@@ -1110,8 +1109,8 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			if (!btn.isDisabled() && btn.isVisible()) {
 				Events.sendEvent(btn, new Event(Events.ON_CLICK, btn));
 				//client side script to close combobox popup
-				String script = "var w=zk.Widget.$('#" + btn.getUuid()+"'); " +
-						"zWatch.fire('onFloatUp', w);";
+				String script = "(function(){let w=zk.Widget.$('#" + btn.getUuid()+"'); " +
+						"zWatch.fire('onFloatUp', w);})()";
 				Clients.response(new AuScript(script));
 			}
 		}
