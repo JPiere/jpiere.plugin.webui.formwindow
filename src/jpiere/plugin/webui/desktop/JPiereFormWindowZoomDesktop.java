@@ -235,8 +235,7 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
     }
 
-    @SuppressWarnings("serial")
-	protected Component doCreatePart(Component parent)
+    protected Component doCreatePart(Component parent)
     {
     	PageDefinition pagedef = Executions.getCurrent().getPageDefinition(ThemeManager.getThemeResource("zul/desktop/desktop.zul"));
     	Component page = Executions.createComponents(pagedef, parent, null);

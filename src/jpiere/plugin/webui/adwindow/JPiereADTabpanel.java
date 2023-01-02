@@ -200,8 +200,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
     private GridTab           gridTab;
 
-    @SuppressWarnings("unused")
-	private GridWindow        gridWindow;
+    private GridWindow        gridWindow;
 
     private JPiereAbstractADWindowContent      windowPanel;		//JPIERE
 
