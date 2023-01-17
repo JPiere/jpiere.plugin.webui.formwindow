@@ -1907,7 +1907,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         		isImporting = gridTable.isImporting();
         	}
         	if (!isImporting) {
-        		Dialog.warn(curWindowNo, e.getAD_Message(), e.getInfo());
+        		Dialog.warn(curWindowNo, e.getAD_Message(), e.getInfo(), null);
         		e.setConfirmed(true);   //  show just once - if MTable.setCurrentRow is involved the status event is re-issued
         	}
         }
