@@ -14,7 +14,6 @@
  * Posterita Ltd., 3, Draper Avenue, Quatre Bornes, Mauritius                 *
  * or via info@posterita.org or http://www.posterita.org/                     *
  *****************************************************************************/
-
 /******************************************************************************
  * Product: JPiere                                                            *
  * Copyright (C) Hideaki Hagiwara (h.hagiwara@oss-erp.co.jp)                  *
@@ -53,7 +52,7 @@ import org.compiere.util.Env;
 import org.zkoss.zk.ui.Component;
 
 /**
- *
+ * UI part for AD_Window
  * @author  <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @date    Feb 25, 2007
  * @version $Revision: 0.10 $
@@ -63,23 +62,30 @@ import org.zkoss.zk.ui.Component;
  */
 public class JPiereADWindow extends AbstractUIPart
 {
+	/** Component attribute to hold reference to ancestor ADWindow instance **/
     public static final String AD_WINDOW_ATTRIBUTE_KEY = "jpiere.plugin.webui.JPiereADWindow";
+    /** Content part for AD_Window (toolbar, tabbox, statusbar, etc) **/
 	private JPiereADWindowContent windowContent;
+	/** Environment Context **/
     private Properties ctx;
+    /** AD_Window_ID **/
     private int adWindowId;
-    private String _title;
+    private String windowTitle;
     private int windowNo;
 
+    /** initial query when AD Window is first open **/
 	private MQuery query;
-
+	/** main component of ADWindowContent **/
 	private Component windowPanelComponent;
+	/** image for window (desktop tab) title **/
 	private MImage image;
-
+    /** AD_Tab_ID:BtnComponentName. List of toolbar buttons to exclude, loaded from AD_ToolBarButtonRestrict **/
 	private Map<Integer, List<String>> tabToolbarRestricMap = new HashMap<Integer, List<String>>();
-
+	/** List of BtnComponentName to exclude, loaded from AD_ToolBarButtonRestrict **/
 	private List<String> windowToolbarRestrictList = null;
-
+	/** List of advanced (IsAdvancedButton=Y) window toolbar buttons. Accessible by advanced role only. **/
 	private List<String> windowToolbarAdvancedList = null;
+	/** AD_Window_UU value **/
 	private String adWindowUUID;
 
 	/**
@@ -118,12 +124,14 @@ public class JPiereADWindow extends AbstractUIPart
          }
     }
 
-
+    /**
+     * Init ADWindowContent
+     */
     private void init()
     {
         windowContent = new JPiereADWindowContent(ctx, windowNo, adWindowId);
         windowContent.setADWindow(this);
-        _title = windowContent.getTitle();
+        windowTitle = windowContent.getTitle();
         image = windowContent.getImage();
     }
 
@@ -133,18 +141,22 @@ public class JPiereADWindow extends AbstractUIPart
      */
     public String getTitle()
     {
-        return _title;
+        return windowTitle;
     }
 
     /**
-     *
-     * @return image for the country
+     * @return image for window title
      */
     public MImage getMImage()
     {
     	return image;
     }
 
+    /**
+     * Create component for content part (ADWindowContent).
+     * @see ADWindowContent#createPart(Object)
+     */
+    @Override
     protected Component doCreatePart(Component parent)
     {
     	windowPanelComponent = windowContent.createPart(parent);
@@ -173,6 +185,10 @@ public class JPiereADWindow extends AbstractUIPart
 		return windowContent;
 	}
 
+	/**
+	 * @param AD_Tab_ID
+	 * @return list of toolbar button to exclude/restrict for current login role
+	 */
 	public List<String> getTabToolbarRestrictList(int AD_Tab_ID) {
 		List<String> tabRestrictList = tabToolbarRestricMap.get(AD_Tab_ID);
         if (tabRestrictList == null) {
@@ -193,6 +209,9 @@ public class JPiereADWindow extends AbstractUIPart
         return tabRestrictList;
 	}
 
+	/**
+	 * @return list of window toolbar button to exclude/restrict for current login role
+	 */
 	public List<String> getWindowToolbarRestrictList() {
 		if (windowToolbarRestrictList == null) {
 			//load window restriction
@@ -211,6 +230,9 @@ public class JPiereADWindow extends AbstractUIPart
 		return windowToolbarRestrictList;
 	}
 
+	/**
+	 * @return list of advance (IsAdvancedButton=Y) toolbar buttons for window
+	 */
 	public List<String> getWindowAdvancedButtonList() {
 		if (windowToolbarAdvancedList == null) {
 			//load window advance buttons
@@ -226,18 +248,23 @@ public class JPiereADWindow extends AbstractUIPart
 		return windowToolbarAdvancedList;
 	}
 
+	/**
+	 * @return AD_Window_ID
+	 */
 	public int getAD_Window_ID() {
 		return adWindowId;
 	}
 
+	/**
+	 * @return AD_Window_UU
+	 */
 	public String getAD_Window_UU() {
 		return adWindowUUID;
 	}
 
 	/**
-	 *
 	 * @param windowNo
-	 * @return adwindow instance for windowNo ( if any )
+	 * @return {@link ADWindow} instance for windowNo ( if any )
 	 */
 	public static JPiereADWindow get(int windowNo) {
 		Object window = SessionManager.getAppDesktop().findWindow(windowNo);
@@ -248,8 +275,9 @@ public class JPiereADWindow extends AbstractUIPart
 	}
 
 	/**
+	 * Find ADWindow instance that's the ancestor of comp
 	 * @param comp
-	 * @return adwindow instance if found, null otherwise
+	 * @return {@link ADWindow} instance if found, null otherwise
 	 */
 	public static JPiereADWindow findADWindow(Component comp) {
 		Component parent = comp;

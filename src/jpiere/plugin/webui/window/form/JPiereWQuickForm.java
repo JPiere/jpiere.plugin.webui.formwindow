@@ -111,6 +111,8 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		// To maintain parent-child Quick Form
 		prevQGV = adWinContent.getCurrQGV();
 		adWinContent.setCurrQGV(quickGridView);
+		
+		addCallback(AFTER_PAGE_DETACHED, t -> adWinContent.focusToLastFocusEditor());
 	}
 
 	protected void initForm( )
