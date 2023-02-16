@@ -40,6 +40,7 @@ import org.adempiere.util.Callback;
 import org.adempiere.webui.adwindow.ADSortTab;
 import org.adempiere.webui.adwindow.ADTabpanel;					//JPIERE-0014
 import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE-0014
+import org.adempiere.webui.adwindow.BreadCrumb;
 import org.adempiere.webui.adwindow.BreadCrumbLink;				//JPIERE-0014
 import org.adempiere.webui.adwindow.DetailPane;					//JPIERE-0014
 import org.adempiere.webui.adwindow.IADTabpanel;				//JPIERE-0014
@@ -1224,7 +1225,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 					}
 					if (adtab.getGridTab().getCurrentRow() != currentRow)
 						adtab.getGridTab().setCurrentRow(currentRow, true);
-					Executions.schedule(getComponent().getDesktop(), e->((ADTabpanel)headerTab).focusToFirstEditor(), new Event("onFocusToHeaderTab"));
+					Executions.schedule(getComponent().getDesktop(), e->((JPiereADTabpanel)headerTab).focusToFirstEditor(), new Event("onFocusToHeaderTab"));
 					break;
 				}
 			}
