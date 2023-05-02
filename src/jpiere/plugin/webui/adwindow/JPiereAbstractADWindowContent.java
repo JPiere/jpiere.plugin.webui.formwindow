@@ -172,9 +172,6 @@ import jpiere.plugin.webui.window.form.JPiereWQuickForm; //JPIERE
  *
  * Abstract model class for the content of AD Window (toolbar+breadcrumb+tabs+statusbar).
  * 
- * This class is based on org.compiere.apps.APanel written by Jorg Janke.
- * @author Jorg Janke
- *
  * @author <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @author <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
  * @date Feb 25, 2007
@@ -202,11 +199,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	 */
 	private static final String DETAIL_TABPANEL_SAVED_ATTR = "detail.adtabpanel.saved";
 
-	/** onFocus event that's defer behind other event using echo **/
+	/** onFocus event that's defer behind other event using echo */
     private static final String ON_FOCUS_DEFER_EVENT = "onFocusDefer";
 
     /**
-     * Event to set selected tab of detail pane. Defer behind other event using echo.
+     * Event to set selected tab of detail pane. Defer behind other event using echo.<br/>
      * Event data: data[0] is tab index and data[1] is current row
      */
 	private static final String ON_DEFER_SET_DETAILPANE_SELECTION_EVENT = "onDeferSetDetailpaneSelection";
@@ -218,19 +215,19 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         logger = CLogger.getCLogger(JPiereAbstractADWindowContent.class);
     }
 
-    /** Env ctx **/
+    /** Env ctx */
     private Properties           ctx;
 
-    /** VO for AD Window **/
+    /** VO for AD Window */
     private GridWindow           gridWindow;
 
-    /** status bar for message and record info **/
+    /** status bar for message and record info */
     protected StatusBar     statusBar;
 
-    /** UI part for AD_Tabs **/
+    /** UI part for AD_Tabs */
     protected JPiereIADTabbox          	 adTabbox;
 
-    /** register window (desktop tab) no **/ 
+    /** register window (desktop tab) no */ 
     private int                  curWindowNo;
 
     /**
@@ -248,25 +245,25 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      */
 	private int m_onlyCurrentDays = 0;
 
-	/** true if find window cancel by user **/
+	/** true if find window cancel by user */
 	private boolean m_findCancelled;
 
-	/** true if user press new button at find window **/
+	/** true if user press new button at find window */
 	private boolean m_findCreateNew;
 
-	/** true when initial query for first tab is running **/
+	/** true when initial query for first tab is running */
 	private boolean m_queryInitiating;
 
-	/** path to selected tab **/
+	/** path to selected tab */
 	protected JPiereBreadCrumb breadCrumb;
 
-	/** AD_Window.AD_Window_ID **/
+	/** AD_Window.AD_Window_ID */
 	private int adWindowId;
 
-	/** image for window title **/
+	/** image for window title */
 	private MImage image;
 
-	/** delete confirmation logic for selected tab **/
+	/** delete confirmation logic for selected tab */
 	private String deleteConfirmationLogic;
 
 	/**
@@ -279,7 +276,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	 */
 	protected ArrayList <Integer>			quickFormOpenTabs	= new ArrayList <Integer>();
 
-	/** track last focus field editor component **/
+	/** track last focus field editor component */
 	protected Component lastFocusEditor = null;
 
 	/**
@@ -575,7 +572,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 												parentMap.put(index, new Object[]{pTab.getLinkColumnName(), pid});
 												childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
 											}else {
-											parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+												//store current link column, parent id and move one level up
+												parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
 											}
 											//JPIERE-0464: JPiere Zoom to Detail -- end
 											oldpid = pid;
@@ -906,10 +904,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     /**
      * Show initial find window for first tab (if necessary)
      *
-     * @param query
-     *            initial query
-     * @param mTab
-     *            tab
+     * @param query initial query
+     * @param mTab tab
+     * @param callback callback for query to apply, must not be null
      * @return query or null
      */
     private void initialQuery(final MQuery query, GridTab mTab, final Callback<MQuery> callback)
@@ -1047,7 +1044,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     }
 
 	/**
-	 * Delegate to {@link BreadCrumbLink} ON_Click event
+	 * Navigate to parent record.
+	 * Delegate to {@link BreadCrumbLink} ON_Click event.
      * @see ToolbarListener#onParentRecord()
      */
     @Override
@@ -1166,7 +1164,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	protected JPiereADWindow adwindow;
 	
-	//true if confirmation for exit dialog is visible
+	/** true if confirmation for exit dialog is visible */
 	protected boolean showingOnExitDialog;
 
 	/**
@@ -1314,7 +1312,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     }
 
     /**
-     * handle post it event
+     * Open Post It note dialog.
      */
     public void onPostIt()
     {
@@ -1603,7 +1601,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	 * Change active tab to newTabIndex.
 	 * Delegate to {@link #setActiveTab0(int, int, Callback)}
 	 * @param newTabIndex
-	 * @param callback
+	 * @param callback optional callback
 	 */
 	private void setActiveTab(final int newTabIndex, final Callback<Boolean> callback) {
 
@@ -1642,7 +1640,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	/**
 	 * save (if needed) and execute callback
-	 * @param callback
+	 * @param callback callback for result of execution, must not be null
 	 */
 	public void saveAndNavigate(final Callback<Boolean> callback) {
 		if (adTabbox != null)
@@ -1678,7 +1676,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	 * Change selected tab from oldTabIndex to newTabIndex
 	 * @param oldTabIndex
 	 * @param newTabIndex
-	 * @param callback
+	 * @param callback optional callback for result of execution
 	 */
 	private void setActiveTab0(int oldTabIndex, int newTabIndex,
 			final Callback<Boolean> callback) {
@@ -2046,7 +2044,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	}
             e.setConfirmed(true);   //  show just once - if MTable.setCurrentRow is involved the status event is re-issued
         }
-        //  Confirm Warning
+        //  Process Warning
         else if (e.isWarning() && !e.isConfirmed())
         {
         	boolean isImporting = false;
@@ -2232,7 +2230,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	adTabbox.evaluate(e);
         }
 
-        //JPIERE-0181 & 0466 -- start
+        //JPIERE-0181 & 0464 -- start
         if(!detailTab
         	&& MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
         	&& isMaxRecords(true, e))
@@ -2241,7 +2239,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	toolbar.enableNew(false);
         	toolbar.enableCopy(false);
         }
-        //JPIERE-0181 & 0466  -- end
+        //JPIERE-0181 & 0464  -- end
 
         //clean cache find windows (if needed)
 		int record_ID = adTabbox.getSelectedGridTab().getRecord_ID();
@@ -2280,7 +2278,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	/**
 	 * Auto save current changes (if auto save is enable).
 	 * Delegate to {@link #asyncAutoSave()}
-	 * @param e
+	 * @param e DataStatusEvent
 	 */
 	private synchronized void autoSaveChanges(DataStatusEvent e) {		
 		if (!e.isInitEdit() && toolbar.isSaveEnable() && MSysConfig.getBooleanValue(MSysConfig.ZK_AUTO_SAVE_CHANGES, false, Env.getAD_Client_ID(Env.getCtx()))) {
@@ -2350,7 +2348,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      * Refresh all row.
      * Delegate to {@link #doOnRefresh(boolean)}
      * @param fireEvent
-     * @param saveCurrentRow
+     * @param saveCurrentRow if true, save before refresh
      */
     public void onRefresh(final boolean fireEvent, final boolean saveCurrentRow)
     {
@@ -2577,6 +2575,22 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
             breadCrumb.enableLastNavigation(adTabbox.getSelectedGridTab().getCurrentRow() + 1 < adTabbox.getSelectedGridTab().getRowCount());
             toolbar.enableTabNavigation(false);
             toolbar.enableIgnore(true);
+
+            if (adTabbox.getSelectedGridTab().isSingleRow()) 
+            {
+            	if (adTabbox.getSelectedTabpanel().isGridView())
+            	{
+            		adTabbox.getSelectedTabpanel().switchRowPresentation();
+            	}
+            }
+
+            if (adTabbox.getSelectedTabpanel().isGridView())
+            {
+            	adTabbox.getSelectedTabpanel().getGridView().onEditCurrentRow();
+            }
+
+            focusToActivePanel();
+
             if (postCallback != null)
             	postCallback.onCallback(true);
 
@@ -2935,7 +2949,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      * @param navigationEvent
      * @param newRecord
      * @param wasChanged
-     * @param callback
+     * @param callback optional callback for result of save
      */
 	private void onSave0(boolean onSaveEvent, boolean navigationEvent,
 			boolean newRecord, boolean wasChanged, Callback<Boolean> callback) {
@@ -3072,7 +3086,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
 	/**
-	 * Delegate to {@link #onSave(boolean, boolean, Callback)}
+	 * Save and create new record.
+	 * Delegate to {@link #onSave(boolean, boolean, Callback)}.
 	 * @see ToolbarListener#onSaveCreate()
 	 */
 	@Override
@@ -3211,7 +3226,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
     }
 
-    // Elaine 2008/12/01
+    /**
+     * Call from onDeleteCallback to delete selected records.
+     * @param postCallback
+     */
     private void onDeleteSelected(final Callback<Boolean> postCallback)
 	{
     	if (adTabbox.getSelectedGridTab().isReadOnly() || !adTabbox.getSelectedTabpanel().isGridView())
@@ -3322,7 +3340,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				postCallback.onCallback(false);
 		}
 	}
-	//
 
     /**
      * Delegate to {@link #onPrintCallback(Callback)}
@@ -3360,9 +3377,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	private void onPrintCallback(final Callback<Boolean> postCallback) {
 		//Get process defined for this tab
 		final int AD_Process_ID = adTabbox.getSelectedGridTab().getAD_Process_ID();
-		//log.info("ID=" + AD_Process_ID);
 
-		//	No report defined
+		//	No document print process defined
 		if (AD_Process_ID == 0)
 		{
 			onReport();
@@ -3379,7 +3395,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 					final ProcessModalDialog dialog = new ProcessModalDialog(JPiereAbstractADWindowContent.this, getWindowNo(), AD_Process_ID,table_ID, record_ID, true);
 					if (dialog.isValid()) {
-						//dialog.setWidth("500px");
 						dialog.setBorder("normal");
 						getComponent().getParent().appendChild(dialog);
 						showBusyMask(dialog);
@@ -3471,7 +3486,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 	}
 
-	// Elaine 2008/07/17
 	/**
      * @see ToolbarListener#onActiveWorkflows()
      */
@@ -3492,7 +3506,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			}
 		}
 	}
-	//
+	
 	/**
 	 * Close popup for toolbar button
 	 * @param btnName toobar button name
@@ -3537,10 +3551,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		closeToolbarPopup("ProductInfo");
 		InfoPanel.showPanel(I_M_Product.Table_Name);
 	}
-	//
 
-
-	// Elaine 2008/07/28
 	/**
 	 * Delegate to {@link WArchive}
      * @see ToolbarListener#onArchive()
@@ -3557,7 +3568,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 	}
 
-	//
 	/**
 	 * Delegate to {@link ExportAction}
 	 */
@@ -3656,7 +3666,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		getCurrentFindWindow().dispose();
 	}
 
-	/**************************************************************************
+	/**
 	 *	Execute action for button.
 	 *  With the exception of zoom to record_id, delegate to {@link #actionButton0(String, IProcessButton)}.
 	 *  @param wButton {@link IProcessButton}
@@ -3716,8 +3726,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 	}
 
-
-	/**************************************************************************
+	/**
 	 * Execution action of button.
 	 * Delegate to {@link #executeButtonProcess(IProcessButton, boolean, int, int, boolean)} for process
 	 * @param col column name
@@ -4147,7 +4156,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 			if (dialog.isValid())
 			{
-				//dialog.setWidth("500px");
 				dialog.setBorder("normal");
 				getComponent().getParent().appendChild(dialog);
 				if (ClientInfo.isMobile())
@@ -4258,14 +4266,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		template.run();
 	}
 
-	/**************************************************************************
+	/**
 	 *  Process Callout(s).
-	 *  <p>
-	 *  The Callout is in the string of
-	 *  "class.method;class.method;"
-	 * If there is no class name, i.e. only a method name, the class is regarded
-	 * as CalloutSystem.
-	 * The class needs to comply with the Interface Callout.
 	 *
 	 * @param field field
 	 * @return error message or ""
@@ -4412,7 +4414,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
 	/**
-	 * @return active grid tab
+	 * @return {@link GridTab} of selected tab
 	 */
 	public GridTab getActiveGridTab() {
 		return adTabbox.getSelectedGridTab();
@@ -4510,6 +4512,15 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		if (findWindow != null && isCurrentFindWindowValid()) {
 			toolbar.setSelectedUserQuery(findWindow.getAD_UserQuery_ID());
 		} else {
+			if (findWindow != null) {
+				//reset to no/auto id
+				FindWindow old = findWindow;
+				old.setId("");
+				if (old.getDesktop() != null) {
+					AEnv.detachInputElement(old);
+					Executions.schedule(old.getDesktop(), e -> old.detach(), new Event("onDetachOldFindWindow"));
+				}
+			}
 			findWindow = new FindWindow (adTabbox.getSelectedGridTab().getWindowNo(), adTabbox.getSelectedGridTab().getTabNo(), adTabbox.getSelectedGridTab().getName(),
 					adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getTableName(),
 					adTabbox.getSelectedGridTab().getWhereExtended(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID());
@@ -4527,7 +4538,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	}
 
 	/**
-	 * 
+	 * Get cache find window for current selected tab
 	 * @return {@link FindWindow}
 	 */
 	public FindWindow getCurrentFindWindow() {
@@ -4608,7 +4619,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	/**
 	 * Implementation to work key listener for the current open Quick Form.
 	 */
-	JPiereQuickGridView currQGV = null;
+	protected JPiereQuickGridView currQGV = null;
 
 	/**
 	 * @return {@link QuickGridView}

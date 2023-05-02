@@ -151,11 +151,6 @@ import org.zkoss.zul.impl.XulElement;
 /**
  * UI for an AD_Tab content (AD_Tab + AD_Fields).
  *
- * This class is based on org.compiere.grid.GridController written by Jorg Janke.
- * Changes have been brought for UI compatibility.
- *
- * @author Jorg Janke
- *
  * @author <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @date Feb 25, 2007
  * @version $Revision: 0.10 $
@@ -477,8 +472,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
         this.getChildren().clear();
 
-        setId(AdempiereIdGenerator.escapeId(gridTab.getName()));
-
+        setId(AdempiereIdGenerator.escapeId(gridTab.getName())+gridTab.getAD_Tab_ID());//JPIERE-0603
         int AD_Tree_ID = 0;
 		if (gridTab.isTreeTab())
 			AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
@@ -678,7 +672,8 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
         	// field group
         	String fieldGroup = field.getFieldGroup();
-        	if (!Util.isEmpty(fieldGroup) && !fieldGroup.equals(currentFieldGroup)) // group changed
+        	if (!Util.isEmpty(fieldGroup) && !fieldGroup.equals(currentFieldGroup)
+        		&& !X_AD_FieldGroup.FIELDGROUPTYPE_DoNothing.equals(field.getFieldGroupType())) // group changed
         	{
         		currentFieldGroup = fieldGroup;
 
@@ -2245,7 +2240,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	/**
 	 *
-	 * @return true if have one or more detail tabs
+	 * @return true if selected tab has one or more detail/child tab
 	 */
 	public boolean hasDetailTabs() {
 		if (formContainer.getSouth() == null || !formContainer.getSouth().isVisible()) {

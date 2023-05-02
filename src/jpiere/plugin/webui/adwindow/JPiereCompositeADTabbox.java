@@ -75,8 +75,8 @@ import org.zkoss.zul.Vlayout;
 
 /**
  * Header and detail UI for AD_Tabs.
- * This class manage a list of tabs with the current selected tab as the attached and visible {@link ADTabpanel} instance.
- * Child tabs of selected tab is shown in {@link DetailPane} inside {@link ADTabpanel}.
+ * This class manage a list of tabs with the current selected tab as the visible {@link ADTabpanel} instance.
+ * Child tabs of selected tab is shown in {@link DetailPane} using {@link Tabbox}.
  *
  * @author  <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @author <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
@@ -626,6 +626,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     /**
      * Return the selected Tab Panel
      */
+    @Override
     public JPiereIADTabpanel getSelectedTabpanel()
     {
         return tabPanelList.isEmpty() ? null : tabPanelList.get(selectedIndex);
@@ -698,7 +699,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 				if (detailPane == null) {
 					detailPane = createDetailPane();
 				}
-				detailPane.setAttribute("detailpane.tablist", list);
+				detailPane.setAttribute(DETAILPANE_TABLIST_ATTR, list);
 
 				ZKUpdateUtil.setVflex(detailPane, "true");
 				if (headerTab.getJPiereDetailPane() == null) {
@@ -775,7 +776,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 								setDetailPaneStatusMessage(msg, false);
 							}
 
-							if (selectDetailPanel.getGridTab().isTreeTab()) {
+							if (selectDetailPanel.getGridTab().isTreeTab() && selectDetailPanel.getTreePanel() != null) {
 								if (selectDetailPanel.getGridTab().getTreeDisplayedOn().equals(MTab.TREEDISPLAYEDON_MasterTab))
 									selectDetailPanel.getTreePanel().getParent().setVisible(false);
 								else

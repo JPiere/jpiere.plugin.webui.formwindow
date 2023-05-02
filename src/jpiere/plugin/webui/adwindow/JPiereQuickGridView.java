@@ -460,7 +460,7 @@ public class JPiereQuickGridView extends Vbox
 	}
 
 	/**
-	 * Update current row from model
+	 * Update current row index from model
 	 */
 	public void updateListIndex() {
 		if (gridTab == null || !gridTab.isOpen()) return;

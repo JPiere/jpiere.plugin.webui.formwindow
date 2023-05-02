@@ -315,8 +315,8 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		if (value == null)
 			return "";
 
+		GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 		if (rowIndex >= 0) {
-			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 			if (!isForceGetValue && !gridField.isDisplayed(gridRowCtx, true)) {
 				return "";
 			}
@@ -329,16 +329,17 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		else if (readOnlyEditors.get(gridField) != null)
 		{
 			WEditor editor = readOnlyEditors.get(gridField);
-			return editor.getDisplayTextForGridView(value);
+			return editor.getDisplayTextForGridView(gridRowCtx, value);
 		}
     	else
     		return value.toString();
 	}
 
 	/**
-	 * get component to display value of a field.
-	 * when display is boolean or button, return correspond component
-	 * other return a label with text get from {@link #getDisplayText(Object, GridField, int, boolean)}
+	 * Get component to display value of a field.<br/>
+	 * When display type is boolean or button, return corresponding component.<br/>
+	 * Otherwise, use Label or Component from {@link WEditor#getDisplayComponent()} to display text from {@link #getDisplayText(Object, GridField, int, boolean)} 
+	 * (As it is, only {@link Html} is supported for {@link WEditor#getDisplayComponent()}).
 	 * @param rowIndex
 	 * @param value
 	 * @param gridField
@@ -353,6 +354,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		} else if (gridField.isHeading()) {
 			component = createInvisibleComponent();
 		} else if (gridField.getDisplayType() == DisplayType.Button) {
+			// Each row renderer --- ctx per row wise
 			GridRowCtx gridRowCtx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 			WButtonEditor editor = new WButtonEditor(gridField, rowIndex);
 			editor.setValue(gridTab.getValue(rowIndex, gridField.getColumnName()));
@@ -372,7 +374,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				if (component instanceof Html){
 					((Html)component).setContent(text);
 				}else{
-					throw new UnsupportedOperationException("neet a componet has setvalue function");
+					throw new UnsupportedOperationException("Only implemented for Html component.");
 				}
 			}
 		}
@@ -478,7 +480,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 					else
 						child = parent;
 				}
-				Component component = div!=null ? (Component) div.getAttribute("display.component") : null;
+				Component component = div!=null ? (Component) div.getAttribute(DISPLAY_COMPONENT_ATTR) : null;
 				if (updateCellLabel) {
 					if (component instanceof Label) {
 						Label label = (Label)component;
@@ -636,13 +638,16 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 					//readonly for display text
 					WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true, readOnlyEditorConfiguration);
 					if (readOnlyEditor != null) {
-						readOnlyEditor.setReadWrite(false);
 						readOnlyEditors.put(gridPanelFields[i], readOnlyEditor);
 					}
-					editor.getComponent().setWidgetOverride("fieldHeader", HelpController.escapeJavascriptContent(gridPanelFields[i].getHeader()));
-	    			editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
-	    			editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
-	    			editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp());");
+								    			
+    				if (editor.getComponent() instanceof AbstractComponent) {
+						editor.getComponent().setWidgetOverride("fieldHeader", HelpController.escapeJavascriptContent(gridPanelFields[i].getHeader()));
+	    				editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
+	    				editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
+	    				editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp());");
+    					((AbstractComponent)editor.getComponent()).addCallback(ComponentCtrl.AFTER_PAGE_DETACHED, (t) -> {((AbstractComponent)t).setWidgetListener("onFocus", null);});
+    				}
 
 	    			//	Default Focus
 	    			if (defaultFocusField == null && gridPanelFields[i].isDefaultFocus())

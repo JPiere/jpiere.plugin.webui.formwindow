@@ -160,8 +160,8 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	private int pageSize = DEFAULT_PAGE_SIZE;
 
 	/**
-	 * list field display in grid mode, in case user customize grid
-	 * this list container only display list.
+	 * fields display in grid mode, in case user customize grid,
+	 * this list include only display fields.
 	 */
 	private GridField[] gridFields;
 	
@@ -224,6 +224,9 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	/**    Cache                        */
     private static CCache<Integer,MTab> s_cache    = new CCache<Integer,MTab>("AD_Tab", 40, 10);    //    10 minutes
 
+	/**
+	 * default constructor
+	 */
 	public JPiereGridView()
 	{
 		this(0);
@@ -369,7 +372,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 		if (paging != null && paging.getPageSize() != pageSize) {
 			paging.setPageSize(pageSize);
 			updateModel();
-			if (paging.getPageSize() > 1) {
+			if (paging.getPageCount() > 1) {
 				showPagingControl();
 			} else {
 				hidePagingControl();
