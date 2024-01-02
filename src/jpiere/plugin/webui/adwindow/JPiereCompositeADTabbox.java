@@ -457,7 +457,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 
 				JPiereIADTabpanel tabPanel = (JPiereIADTabpanel) event.getTarget();
 				//call onActivateDetail if it is detail tab panel
-				if (tabPanel != headerTab && headerTab.getJPiereDetailPane() != null) {
+				if (tabPanel != headerTab && headerTab.getJPiereDetailPane() != null && tabPanel.getTabLevel() > headerTab.getTabLevel()) {
 					if (b != null && b.booleanValue()) {
 						onActivateDetail(tabPanel);
 						if (headerTab instanceof JPiereADTabpanel) {

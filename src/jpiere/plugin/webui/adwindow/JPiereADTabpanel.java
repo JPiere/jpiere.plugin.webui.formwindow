@@ -138,7 +138,6 @@ import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.Separator;
 import org.zkoss.zul.South;
 import org.zkoss.zul.Space;
-import org.zkoss.zul.Style;
 import org.zkoss.zul.Tabpanels;
 import org.zkoss.zul.Tabs;
 import org.zkoss.zul.Toolbar;
@@ -1598,7 +1597,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     			if (preference == null || preference.getAD_Preference_ID() <= 0) {
     				preference = new MPreference(Env.getCtx(), 0, null);
     				preference.setAD_Window_ID(windowId);
-    				preference.setAD_User_ID(userId); // allow System
+    				preference.setAD_User_ID(userId);
     				preference.setAttribute(adTabId+"|DetailPane.IsOpen");
     			}
 				preference.setValue(value ? "Y" : "N");
@@ -2136,8 +2135,13 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 	private void attachDetailPane() {
 		if (formContainer.getSouth() != null) {
 			formContainer.getSouth().setVisible(true);
-			if (formContainer.getSouth().isOpen() && JPieredetailPane != null && JPieredetailPane.getParent() == null) { //JPIERE-XXXX
-				formContainer.appendSouth(JPieredetailPane);
+			if (formContainer.getSouth().isOpen()) {
+				if (JPieredetailPane != null) {
+					if (JPieredetailPane.getParent() != formContainer.getSouth())
+						formContainer.appendSouth(JPieredetailPane);
+					else
+						JPieredetailPane.setVisible(true);
+				}
 			}
 		}
 	}
@@ -2149,7 +2153,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		if (formContainer.getSouth() != null) {
 			formContainer.getSouth().setVisible(false);
 			if (JPieredetailPane != null && JPieredetailPane.getParent() != null) {
-				JPieredetailPane.detach();
+				JPieredetailPane.setVisible(false);
 			}
 		}
 	}

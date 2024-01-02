@@ -60,12 +60,17 @@ import org.adempiere.webui.WRequest;
 import org.adempiere.webui.WZoomAcross;
 import org.adempiere.webui.adwindow.ADSortTab;
 import org.adempiere.webui.adwindow.ADTabpanel;
+import org.adempiere.webui.adwindow.ADWindow;
+import org.adempiere.webui.adwindow.BreadCrumb;
 import org.adempiere.webui.adwindow.BreadCrumbLink;
 import org.adempiere.webui.adwindow.CompositeADTabbox;
 import org.adempiere.webui.adwindow.GridTabRowRenderer;
+import org.adempiere.webui.adwindow.IADTabbox;
 import org.adempiere.webui.adwindow.IADTabpanel;
 import org.adempiere.webui.adwindow.ProcessButtonPopup;
+import org.adempiere.webui.adwindow.QuickGridView;
 import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
 //import org.adempiere.webui.adwindow.validator.WindowValidatorManager; //JPIERE Comment out
 import org.adempiere.webui.apps.AEnv;
@@ -95,6 +100,10 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
+import org.adempiere.webui.panel.action.CSVImportAction;
+import org.adempiere.webui.panel.action.ExportAction;
+import org.adempiere.webui.panel.action.FileImportAction;
+import org.adempiere.webui.panel.action.ReportAction;
 //import org.adempiere.webui.panel.action.CSVImportAction;	 //JPIERE Comment out
 //import org.adempiere.webui.panel.action.ExportAction;	 //JPIERE Comment out
 //import org.adempiere.webui.panel.action.FileImportAction;	 //JPIERE Comment out
@@ -131,6 +140,7 @@ import org.compiere.model.MUserPreference;
 import org.compiere.model.MWindow;
 import org.compiere.model.PO;
 import org.compiere.model.StateChangeEvent;
+import org.compiere.model.SystemProperties;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.process.DocAction;
 import org.compiere.process.ProcessInfo;
@@ -2256,9 +2266,6 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         toolbar.enableRequests(!isNewRow);
 		toolbar.setPressed("Find", adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
-		/*if (adTabbox.getSelectedGridTab().isQueryActive() &&
-				tabFindWindowHashMap.get(adTabbox.getSelectedGridTab()) != null)
-			findWindow = tabFindWindowHashMap.get(adTabbox.getSelectedGridTab());*/
 		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), getCurrentFindWindow() != null ? getCurrentFindWindow().getAD_UserQuery_ID() : 0);
 
         toolbar.enablePrint(adTabbox.getSelectedGridTab().isPrinted() && !isNewRow);
@@ -3274,6 +3281,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 						{
 							statusBar.setStatusLine(Msg.getMsg(Env.getCtx(), "Deleted")+": "+count, false);
 						}
+				            MRecentItem.publishChangedEvent(Env.getAD_User_ID(ctx));
 					}
 					if (postCallback != null)
 						postCallback.onCallback(result);
@@ -3321,6 +3329,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 							{
 								statusBar.setStatusLine(Msg.getMsg(Env.getCtx(), "Deleted") + ": " + count, false);
 							}
+				            MRecentItem.publishChangedEvent(Env.getAD_User_ID(ctx));
 						}
 						if (postCallback != null)
 							postCallback.onCallback(result.getValue().equals(deleteConfirmationLogic));
@@ -3539,9 +3548,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			new WRequest(toolbar.getToolbarItem("Requests"), adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID(), C_BPartner_ID);
 		}
 	}
-	//
 
-	// Elaine 2008/07/22
 	/**
      * @see ToolbarListener#onProductInfo()
      */
@@ -3819,7 +3826,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				if(cf.isInitOK())
 				{
 					final WCreateFromWindow window = (WCreateFromWindow) cf.getWindow();
-					window.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, AdempiereIdGenerator.escapeId(window.getTitle()));
+					if (SystemProperties.isZkUnitTest())
+						window.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, AdempiereIdGenerator.escapeId(window.getTitle()));
 					window.addEventListener(DialogEvents.ON_WINDOW_CLOSE, new EventListener<Event>() {
 						@Override
 						public void onEvent(Event event) throws Exception {
@@ -4215,7 +4223,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 		infoWindow.setContentStyle("overflow: auto");
 		
-		infoWindow.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, AdempiereIdGenerator.escapeId(infoWindow.getTitle()));
+		if (SystemProperties.isZkUnitTest())
+			infoWindow.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, AdempiereIdGenerator.escapeId(infoWindow.getTitle()));
 		infoWindow.addEventListener(DialogEvents.ON_WINDOW_CLOSE, new EventListener<Event>() {
 			@Override
 			public void onEvent(Event event) throws Exception {
@@ -4719,7 +4728,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 
 	/**
 	 *
-	 * JPIERE-0464: Improvement of Max Records Controle at Window.
+	 * JPIERE-0466: Improvement of Max Records Controle at Window.
 	 * JPIERE-0181: Peformace improvement to Find Widnow
 	 *
 	 * @param isDisplayDialog
@@ -4731,16 +4740,18 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx())))
 			return false;
 
+		//Top Parent Tab only
+		if(adTabbox.getSelectedGridTab().getTabLevel() != 0)
+			return false;
+		
 		int maxRow = adTabbox.getSelectedGridTab().getMaxQueryRecords();
 		if(maxRow <= 0)
 			return false;
 
     	int rowCount =adTabbox.getSelectedGridTab().getTableModel().getRowCount();
     	boolean isMaxRecords = rowCount >= maxRow;
-    	if(isMaxRecords &&  isDisplayDialog && (dse == null || !isDisplayedDeialog))
+    	if(isMaxRecords &&  isDisplayDialog && (dse == null || !isCheckedMaxRecordsOpeningWindow))
     	{
-    		isDisplayedDeialog = true;
-
         	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx())))
         	{
         		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(),  "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow)
@@ -4750,8 +4761,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	}
     	}
 
+    	//Only one time Max Records check when Opening window.
+    	isCheckedMaxRecordsOpeningWindow = true;
+
 		return isMaxRecords;
 	}
 
-	private boolean isDisplayedDeialog = false;//JPIERE-0464 & 0181
+	private boolean isCheckedMaxRecordsOpeningWindow = false;//JPIERE-0466 & 0181
 }
