@@ -48,14 +48,14 @@ import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADTreePanel;
-import org.adempiere.webui.adwindow.ADWindowToolbar;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridView;
-import org.adempiere.webui.adwindow.IADTabpanel;
-import org.adempiere.webui.adwindow.IFieldEditorContainer;
-import org.adempiere.webui.adwindow.ToolbarProcessButton;
+import org.adempiere.webui.adwindow.ADTreePanel;				//JPIERE
+import org.adempiere.webui.adwindow.ADWindowToolbar;			//JPIERE
+import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE
+import org.adempiere.webui.adwindow.DetailPane;				//JPIERE
+import org.adempiere.webui.adwindow.GridView;					//JPIERE
+import org.adempiere.webui.adwindow.IADTabpanel;				//JPIERE
+import org.adempiere.webui.adwindow.IFieldEditorContainer;		//JPIERE
+import org.adempiere.webui.adwindow.ToolbarProcessButton;		//JPIERE
 import org.adempiere.webui.apps.CalloutDialog;
 import org.adempiere.webui.component.Borderlayout;
 import org.adempiere.webui.component.Column;
@@ -107,6 +107,7 @@ import org.compiere.model.MTree;
 import org.compiere.model.MTreeNode;
 import org.compiere.model.PO;
 import org.compiere.model.Query;
+import org.compiere.model.SystemProperties;
 import org.compiere.model.X_AD_FieldGroup;
 import org.compiere.model.X_AD_ToolBarButton;
 import org.compiere.util.CCache;
@@ -471,7 +472,9 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
         this.getChildren().clear();
 
-        setId(AdempiereIdGenerator.escapeId(gridTab.getName())+gridTab.getAD_Tab_ID());//JPIERE-0603
+		if (SystemProperties.isZkUnitTest())
+			setId(AdempiereIdGenerator.escapeId(gridTab.getName()));
+
         int AD_Tree_ID = 0;
 		if (gridTab.isTreeTab())
 			AD_Tree_ID = MTree.getDefaultAD_Tree_ID (

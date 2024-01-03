@@ -118,7 +118,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     /** tab selection change listener **/
 	private EventListener<Event> selectionListener;
 
-	/** {@link IADTabpanel} instance for selected tab **/
+	/** {@link JPiereIADTabpanel} instance for selected tab **/
 	private JPiereIADTabpanel headerTab;
 
 	/** Index of selected tab **/
@@ -578,7 +578,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 	}
 
 	/**
-	 * Call {@link ADTabpanel#activateDetailIfVisible()}
+	 * Call {@link JPiereADTabpanel#activateDetailIfVisible()}
 	 */
 	private void activateDetailIfVisible() {
     	if (headerTab instanceof JPiereADTabpanel) {
@@ -654,8 +654,8 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
         newTabpanel.setVisible(true);
 
         headerTab = newTabpanel;
-        layout.getChildren().clear();
-		layout.appendChild(headerTab);
+        if (headerTab.getParent() != layout)
+			layout.appendChild(headerTab);
 
 		//set state
 		headerTab.setDetailPaneMode(false);

@@ -43,11 +43,11 @@ import java.util.logging.Level;
 
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADTreePanel;
-import org.adempiere.webui.adwindow.ADWindowToolbar;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridView;
+import org.adempiere.webui.adwindow.ADTreePanel; 				//JPIERE
+import org.adempiere.webui.adwindow.ADWindowToolbar;			//JPIERE
+import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE
+import org.adempiere.webui.adwindow.DetailPane;				//JPIERE
+import org.adempiere.webui.adwindow.GridView;					//JPIERE
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.ListHead;

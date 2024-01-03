@@ -87,7 +87,7 @@ import org.zkoss.zul.RendererCtrl;
 import org.zkoss.zul.Row;
 import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.RowRendererExt;
-import org.zkoss.zul.Vbox;
+import org.zkoss.zul.Vbox;		//JPIERE
 import org.zkoss.zul.impl.XulElement;
 
 /**
@@ -120,9 +120,9 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	private static final String CELL_DIV_STYLE = "height: 100%; cursor: pointer; ";
 	private static final String CELL_DIV_STYLE_ALIGN_CENTER = CELL_DIV_STYLE + "text-align:center; ";
 	private static final String CELL_DIV_STYLE_ALIGN_RIGHT = CELL_DIV_STYLE + "text-align:right; ";
-	private static final String CELL_BORDER_STYLE_DEFAULT = "border: dotted 1px #dddddd;";
-	private static final String CELL_BORDER_STYLE_NONE = "border: none;";
-	private static final String ROW_STYLE = "border: solid 1px #dddddd; cursor:pointer";
+	private static final String CELL_BORDER_STYLE_DEFAULT = "border: dotted 1px #dddddd;";//JPIERE
+	private static final String CELL_BORDER_STYLE_NONE = "border: none;";//JPIERE
+	private static final String ROW_STYLE = "border: solid 1px #dddddd; cursor:pointer";//JPIERE
 
 	/** default max length for display text for field **/
 	private static final int MAX_TEXT_LENGTH_DEFAULT = 60;
@@ -1040,7 +1040,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	}
 
 	/**
-	 * Set {@link GridView} that own this renderer.
+	 * Set {@link JPiereGridView} that own this renderer.
 	 * @param gridPanel
 	 */
 	public void setGridPanel(JPiereGridView gridPanel) {
@@ -1086,7 +1086,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 
 	/**
 	 * Set AD window content part that own this renderer.
-	 * {@link #buttonListener} need this to call {@link AbstractADWindowContent#actionPerformed(ActionEvent)}.
+	 * {@link #buttonListener} need this to call {@link JPiereAbstractADWindowContent#actionPerformed(ActionEvent)}.
 	 * @param windowPanel
 	 */
 	public void setADWindowPanel(JPiereAbstractADWindowContent windowPanel) {
@@ -1129,7 +1129,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 	}
 
 	/**
-	 * @return {@link GridView#isShowCurrentRowIndicatorColumn}
+	 * @return {@link JPiereGridView#isShowCurrentRowIndicatorColumn}
 	 */
 	private boolean isShowCurrentRowIndicatorColumn() {
 		return gridPanel != null && gridPanel.isShowCurrentRowIndicatorColumn();

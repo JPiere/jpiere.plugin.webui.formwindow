@@ -91,10 +91,10 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	/** BtnName:ToolBarButton. Map of all toolbar buttons. **/
 	private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
 
-	/** Last DataStatusEvent from {@link AbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
+	/** Last DataStatusEvent from {@link JPiereAbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
 	private DataStatusEvent m_dse;
 
-	/** Last data status text from {@link AbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
+	/** Last data status text from {@link JPiereAbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
 	private String m_text;
 
 	/** register ToolbarListener **/
@@ -458,7 +458,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
     }
 
     /**
-     * Data status from {@link AbstractADWindowContent#dataStatusChanged(DataStatusEvent)}
+     * Data status from {@link JPiereAbstractADWindowContent#dataStatusChanged(DataStatusEvent)}
      * @param text record info text (for e.g 1/1)
      * @param dse
      * @param gridTab

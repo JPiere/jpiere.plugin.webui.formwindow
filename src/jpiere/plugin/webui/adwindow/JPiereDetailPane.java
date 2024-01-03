@@ -51,7 +51,6 @@ import org.adempiere.webui.action.Actions;
 import org.adempiere.webui.action.IAction;
 import org.adempiere.webui.adwindow.ADSortTab;
 import org.adempiere.webui.adwindow.ADTabpanel;				//JPIERE-0014
-import org.adempiere.webui.adwindow.DetailPane;
 import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE-0014
 import org.adempiere.webui.adwindow.ProcessButtonPopup;		//JPIERE-0014
 import org.adempiere.webui.adwindow.ToolbarCustomButton;	//JPIERE-0014
@@ -628,7 +627,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	protected void onCustomize(Event e) {//JPIERE
 //		if (getSelectedADTabpanel() instanceof ADTabpanel) {
 //			ADTabpanel tabPanel = (ADTabpanel) getSelectedADTabpanel();
-//			CustomizeGridViewDialog.onCustomize(tabPanel);
+//			CustomizeGridViewDialog.onCustomize(tabPanel, b -> {
+//				ADWindow adwindow = ADWindow.findADWindow(DetailPane.this);
+//				if (adwindow != null)
+//					adwindow.getADWindowContent().focusToLastFocusEditor();
+//			});
 //		}
 	}
 
@@ -699,7 +702,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	}
 
 	/**
-	 * @return selected {@link Tabpanel}
+	 * @return selected {@link JPiereTabpanel}
 	 */
 	public Tabpanel getSelectedPanel() {
 		return (Tabpanel) tabbox.getSelectedPanel();
@@ -1013,7 +1016,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 
 	/**
 	 * Edit current record of selected tab.
-	 * This event will make the selected tab becomes the new header tab, i.e become the selected tab of {@link CompositeADTabbox}.
+	 * This event will make the selected tab becomes the new header tab, i.e become the selected tab of {@link JPiereCompositeADTabbox}.
 	 * @param formView true to force form view.
 	 * @throws Exception
 	 */
@@ -1103,7 +1106,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	}
 
 	/**
-	 * Find first {@link Tabpanel} that own comp.
+	 * Find first {@link JPiereTabpanel} that own comp.
 	 * @param comp
 	 * @return {@link Component}
 	 */
@@ -1400,14 +1403,14 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 			btnFirst.setTooltiptext(btnFirst.getTooltiptext()+"    Shift+Alt+Home");
 			appendChild(btnFirst);
 			btnFirst.addEventListener(Events.ON_CLICK, e -> {
-				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "first");
+				Event ne = new Event(JPiereDetailPane.ON_RECORD_NAVIGATE_EVENT, this, "first");
 				Events.sendEvent(this, ne);
 			});
 	        btnPrevious = createButton("Previous", "Previous", "Previous");
 	        btnPrevious.setTooltiptext(btnPrevious.getTooltiptext()+"    Shift+Alt+Left");
 	        appendChild(btnPrevious);
 	        btnPrevious.addEventListener(Events.ON_CLICK, e -> {
-				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "previous");
+				Event ne = new Event(JPiereDetailPane.ON_RECORD_NAVIGATE_EVENT, this, "previous");
 				Events.sendEvent(this, ne);
 			});
 	        btnRecordInfo = new ToolBarButton();
@@ -1430,14 +1433,14 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	        btnNext = createButton("Next", "Next", "Next");
 	        btnNext.setTooltiptext(btnNext.getTooltiptext()+"    Shift+Alt+Right");
 	        btnNext.addEventListener(Events.ON_CLICK, e -> {
-				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "next");
+				Event ne = new Event(JPiereDetailPane.ON_RECORD_NAVIGATE_EVENT, this, "next");
 				Events.sendEvent(this, ne);
 			});
 	        appendChild(btnNext);
 	        btnLast = createButton("Last", "Last", "Last");
 	        btnLast.setTooltiptext(btnLast.getTooltiptext()+"    Shift+Alt+End");
 	        btnLast.addEventListener(Events.ON_CLICK, e -> {
-				Event ne = new Event(DetailPane.ON_RECORD_NAVIGATE_EVENT, this, "last");
+				Event ne = new Event(JPiereDetailPane.ON_RECORD_NAVIGATE_EVENT, this, "last");
 				Events.sendEvent(this, ne);
 			});
 	        appendChild(btnLast);

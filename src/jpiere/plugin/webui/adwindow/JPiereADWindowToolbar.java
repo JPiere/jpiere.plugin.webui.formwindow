@@ -46,8 +46,8 @@ import org.adempiere.webui.action.IAction;
 import org.adempiere.webui.adwindow.ToolbarCustomButton;//JPIERE-0014
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Combobox;
-import org.adempiere.webui.component.FToolbar;
 import org.adempiere.webui.component.Tabpanel;
+import org.adempiere.webui.component.ToolBar;
 import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.event.ToolbarListener;
 import org.adempiere.webui.part.WindowContainer;
@@ -101,7 +101,7 @@ import org.zkoss.zul.impl.LabelImageElement;
  *
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
-public class JPiereADWindowToolbar extends FToolbar implements EventListener<Event>
+public class JPiereADWindowToolbar extends ToolBar implements EventListener<Event>
 {
 	/**
 	 * generated serial id

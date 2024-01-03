@@ -222,7 +222,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	public static final int DEFAULT_AUXHEADS_SIZE = 0; //JPIERE-0014
 
 	/**    Cache                        */
-    private static CCache<Integer,MTab> s_cache    = new CCache<Integer,MTab>("AD_Tab", 40, 10);    //    10 minutes
+    private static CCache<Integer,MTab> s_cache    = new CCache<Integer,MTab>("AD_Tab", 40, 10);    //JPIERE    10 minutes
 
 	/**
 	 * default constructor

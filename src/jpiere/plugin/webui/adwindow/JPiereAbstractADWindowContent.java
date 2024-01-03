@@ -58,18 +58,18 @@ import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.WArchive;
 import org.adempiere.webui.WRequest;
 import org.adempiere.webui.WZoomAcross;
-import org.adempiere.webui.adwindow.ADSortTab;
-import org.adempiere.webui.adwindow.ADTabpanel;
-import org.adempiere.webui.adwindow.ADWindow;
-import org.adempiere.webui.adwindow.BreadCrumb;
-import org.adempiere.webui.adwindow.BreadCrumbLink;
-import org.adempiere.webui.adwindow.CompositeADTabbox;
-import org.adempiere.webui.adwindow.GridTabRowRenderer;
-import org.adempiere.webui.adwindow.IADTabbox;
-import org.adempiere.webui.adwindow.IADTabpanel;
-import org.adempiere.webui.adwindow.ProcessButtonPopup;
-import org.adempiere.webui.adwindow.QuickGridView;
-import org.adempiere.webui.adwindow.StatusBar;
+import org.adempiere.webui.adwindow.ADSortTab;				//JPIERE
+import org.adempiere.webui.adwindow.ADTabpanel;			//JPIERE
+import org.adempiere.webui.adwindow.ADWindow;				//JPIERE
+import org.adempiere.webui.adwindow.BreadCrumb;			//JPIERE
+import org.adempiere.webui.adwindow.BreadCrumbLink;		//JPIERE
+import org.adempiere.webui.adwindow.CompositeADTabbox;		//JPIERE
+import org.adempiere.webui.adwindow.GridTabRowRenderer;	//JPIERE
+import org.adempiere.webui.adwindow.IADTabbox;				//JPIERE
+import org.adempiere.webui.adwindow.IADTabpanel;			//JPIERE
+import org.adempiere.webui.adwindow.ProcessButtonPopup;	//JPIERE
+import org.adempiere.webui.adwindow.QuickGridView;			//JPIERE
+import org.adempiere.webui.adwindow.StatusBar;				//JPIERE
 import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
 //import org.adempiere.webui.adwindow.validator.WindowValidatorManager; //JPIERE Comment out
@@ -100,14 +100,10 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.WAttachment;
 import org.adempiere.webui.panel.WDocActionPanel;
-import org.adempiere.webui.panel.action.CSVImportAction;
-import org.adempiere.webui.panel.action.ExportAction;
-import org.adempiere.webui.panel.action.FileImportAction;
-import org.adempiere.webui.panel.action.ReportAction;
-//import org.adempiere.webui.panel.action.CSVImportAction;	 //JPIERE Comment out
-//import org.adempiere.webui.panel.action.ExportAction;	 //JPIERE Comment out
-//import org.adempiere.webui.panel.action.FileImportAction;	 //JPIERE Comment out
-//import org.adempiere.webui.panel.action.ReportAction;	 //JPIERE Comment out
+//import org.adempiere.webui.panel.action.CSVImportAction;	 	//JPIERE Comment out
+//import org.adempiere.webui.panel.action.ExportAction;	 		//JPIERE Comment out
+//import org.adempiere.webui.panel.action.FileImportAction;	 	//JPIERE Comment out
+//import org.adempiere.webui.panel.action.ReportAction;	 		//JPIERE Comment out
 import org.adempiere.webui.part.AbstractUIPart;
 import org.adempiere.webui.part.ITabOnSelectHandler;
 import org.adempiere.webui.session.SessionManager;
@@ -171,12 +167,12 @@ import org.zkoss.zul.RowRenderer;
 import org.zkoss.zul.Window.Mode;
 import org.zkoss.zul.impl.LabelImageElement;
 
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent; //JPIERE
-import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager; //JPIERE
-import jpiere.plugin.webui.panel.action.JPiereExportAction; //JPIERE
-import jpiere.plugin.webui.panel.action.JPiereFileImportAction;//JPIERE
-import jpiere.plugin.webui.panel.action.JPiereReportAction; //JPIERE
-import jpiere.plugin.webui.window.form.JPiereWQuickForm; //JPIERE
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorEvent; 		//JPIERE
+import jpiere.plugin.webui.adwindow.validator.JPiereWindowValidatorManager; 	//JPIERE
+import jpiere.plugin.webui.panel.action.JPiereExportAction; 					//JPIERE
+import jpiere.plugin.webui.panel.action.JPiereFileImportAction;				//JPIERE
+import jpiere.plugin.webui.panel.action.JPiereReportAction; 					//JPIERE
+import jpiere.plugin.webui.window.form.JPiereWQuickForm; 						//JPIERE
 
 /**
  *
@@ -861,6 +857,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		}
 		else
 		{
+			//fallback to ADTabpanel
 			JPiereADTabpanel fTabPanel = new JPiereADTabpanel();
 			initTabPanel(query, tabIndex, gTab, fTabPanel);
 		}
@@ -1452,7 +1449,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	public void onQuickForm(boolean stayInParent)
 	{
 		if (logger.isLoggable(Level.FINE))
-		logger.log(Level.FINE, "Invoke Quick Form");
+			logger.log(Level.FINE, "Invoke Quick Form");
 		// Prevent to open Quick Form if already opened.
 		if (!this.registerQuickFormTab(getADTab().getSelectedGridTab().getAD_Tab_ID()))
 		{
@@ -2684,7 +2681,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				        		}
 				        		else if (up.equals(MUserPreference.VIEWFINDRESULT_AlwaysInGridView)) {
 				        			forceGridView = true;
-			        }
+				        		}
 				        		else if (up.equals(MUserPreference.VIEWFINDRESULT_AccordingToThreshold)) {
 				        			forceGridView = adTabbox.getSelectedTabpanel().getGridTab().getRowCount() >= Env.getContextAsInt(Env.getCtx(), MUserPreference.COLUMNNAME_GridAfterFindThreshold);
 				        		}
@@ -4444,22 +4441,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 	@Override
 	public void onCustomize() {
 //		ADTabpanel tabPanel = (ADTabpanel) getADTab().getSelectedTabpanel();
-//		Columns columns = tabPanel.getGridView().getListbox().getColumns();
-//		List<Component> columnList = columns.getChildren();
-//		GridField[] fields = tabPanel.getGridView().getFields();
-//		Map<Integer, String> columnsWidth = new HashMap<Integer, String>();
-//		ArrayList<Integer> gridFieldIds = new ArrayList<Integer>();
-//		for (int i = 0; i < fields.length; i++) {
-//			// 2 is offset of num of column in grid view and actual data fields.
-//			// in grid view, add two function column, indicator column and selection (checkbox) column
-//			// @see GridView#setupColumns
-//			Column column = (Column) columnList.get(i+2);
-//			String width = column.getWidth();
-//			columnsWidth.put(fields[i].getAD_Field_ID(), width);
-//			gridFieldIds.add(fields[i].getAD_Field_ID());
-//
-//		}
-//		CustomizeGridViewDialog.showCustomize(0, adTabbox.getSelectedGridTab().getAD_Tab_ID(), columnsWidth,gridFieldIds,tabPanel.getGridView());
+//		CustomizeGridViewDialog.onCustomize(tabPanel, b -> {
+//			focusToLastFocusEditor();
+//		});
 	}
 
 	/**
