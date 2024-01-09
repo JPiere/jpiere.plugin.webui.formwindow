@@ -1101,7 +1101,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 				listModel.setPage(pgNo);
 				onSelectedRowChange(0);
 				gridTab.clearSelection();
-				Clients.resize(listbox);
+				invalidateGridView();
 			}
 		}
 		else if (event.getTarget() == selectAll)

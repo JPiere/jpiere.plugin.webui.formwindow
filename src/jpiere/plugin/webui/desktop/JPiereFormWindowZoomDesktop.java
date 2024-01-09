@@ -57,6 +57,7 @@ import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.BroadcastMessageWindow;
 import org.adempiere.webui.panel.HeaderPanel;
 import org.adempiere.webui.panel.HelpController;
+import org.adempiere.webui.panel.InfoPanel;
 import org.adempiere.webui.panel.TimeoutPanel;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
@@ -1004,23 +1005,31 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 	@Override
 	public void updateHelpContext(String ctxType, int recordId) {
+		this.updateHelpContext(ctxType, recordId, null);
+	}
 	
+	@Override
+	public void updateHelpContext(String ctxType, int recordId, InfoPanel infoPanel) {
+
         if(isDisplayEastContents)//JPIERE-0120:
         {
-        	// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
-			if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
-				return;
+    		// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
+    		if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
+    			return;
 
-			Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
-			helpController.renderCtxHelp(ctxType, recordId);
-
-			GridTab gridTab = null;
-			Component window = getActiveWindow();
-			ADWindow adwindow = ADWindow.findADWindow(window);
-			if (adwindow != null) {
-				gridTab = adwindow.getADWindowContent().getActiveGridTab();
-			}
-			updateHelpQuickInfo(gridTab);
+    		Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
+    		helpController.renderCtxHelp(ctxType, recordId);
+    		
+    		GridTab gridTab = null;
+    		Component window = getActiveWindow();
+    		ADWindow adwindow = ADWindow.findADWindow(window);
+    		if (adwindow != null) {
+                gridTab = adwindow.getADWindowContent().getActiveGridTab();
+    		}
+    		if(X_AD_CtxHelp.CTXTYPE_Info.equals(ctxType))
+    			updateHelpQuickInfo(infoPanel);
+    		else
+    			updateHelpQuickInfo(gridTab);
         }
 	}
 
@@ -1037,6 +1046,15 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
         if(isDisplayEastContents)//JPIERE-0120:
         {
         	helpController.renderToolTip(hdr, desc, help, otherContent);
+        }
+	}
+	
+	@Override
+	public void updateHelpQuickInfo(InfoPanel infoPanel) {
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+			if (isQuickInfoOpen)
+	            helpController.renderQuickInfo(infoPanel);
         }
 	}
 

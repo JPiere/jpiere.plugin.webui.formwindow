@@ -2485,7 +2485,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 
 	/**
 	 * 
-	 * @return {@link AbstractADWindowContenta}
+	 * @return {@link JPiereAbstractADWindowContenta}
 	 */
 	public JPiereAbstractADWindowContent getADWindowContent()
 	{

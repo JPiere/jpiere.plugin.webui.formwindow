@@ -14,6 +14,8 @@
 
 package jpiere.plugin.webui.adwindow.validator;
 
+import org.adempiere.webui.adwindow.ADWindow;
+
 import jpiere.plugin.webui.adwindow.JPiereADWindow;
 
 
@@ -24,19 +26,58 @@ import jpiere.plugin.webui.adwindow.JPiereADWindow;
  *
  */
 public class JPiereWindowValidatorEvent {
+	/** {@link JPiereADWindow} instance **/
 	private JPiereADWindow window;
+	/** Event name **/
 	private String name;
-
+	/** Event data **/
+	private Object data;
+	
+	/**
+	 * @param window
+	 * @param name
+	 */
 	public JPiereWindowValidatorEvent(JPiereADWindow window, String name) {
+		this(window, name, null);
+	}
+	
+	/**
+	 * @param window
+	 * @param name
+	 * @param data
+	 */
+	public JPiereWindowValidatorEvent(JPiereADWindow window, String name, Object data) {
 		this.window = window;
 		this.name = name;
+		this.data = data;
 	}
-
+	
+	/**
+	 * @return {@link JPiereADWindow}
+	 */
 	public JPiereADWindow getWindow() {
 		return this.window;
 	}
 
+	/**
+	 * @return Event name
+	 */
 	public String getName() {
 		return this.name;
+	}
+	
+	/**
+	 * @return Event data
+	 */
+	public Object getData() {
+		return data;
+	}
+
+	/**
+	 * Set event data
+	 * @param data
+	 */
+	public void setData(Object data) {
+		this.data = data;
 	}
 }
