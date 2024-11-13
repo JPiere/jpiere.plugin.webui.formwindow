@@ -42,7 +42,6 @@ import java.util.logging.Level;
 
 import org.adempiere.base.Core;
 import org.adempiere.exceptions.AdempiereException;
-import org.adempiere.exceptions.DBException;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
@@ -160,7 +159,7 @@ import org.zkoss.zul.impl.XulElement;
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
 public class JPiereADTabpanel extends Div implements Evaluatee, EventListener<Event>,
-DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
+DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 {
 	//css for slide animation
 	private static final String SLIDE_LEFT_IN_CSS = "slide-left-in";
@@ -1403,24 +1402,10 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     public void query (boolean onlyCurrentRows, int onlyCurrentDays, int maxRows)
     {
     	boolean open = gridTab.isOpen();
-    	try
-    	{
         	gridTab.query(onlyCurrentRows, onlyCurrentDays, maxRows);
         	if (listPanel.isVisible() && !open)
         		gridTab.getTableModel().fireTableDataChanged();
     	}
-    	catch (Exception e)
-    	{
-    		if (DBException.isTimeout(e))
-    		{
-    			throw e;
-    		}
-    		else
-    		{
-    			Dialog.error(windowNo, e.getMessage());
-    		}
-    	}
-    }
 
     /**
      * Reset detail data grid for new parent record that's not saved yet.
@@ -1559,7 +1544,7 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
     	}
     	else if (treePanel != null && event.getTarget() == treePanel.getTree()) {
     		Treeitem item =  treePanel.getTree().getSelectedItem();
-    		if (item.getValue() != null)
+    		if (item != null && item.getValue() != null)
     		navigateTo((DefaultTreeNode<MTreeNode>)item.getValue());
     	}
     	else if (ON_DEFER_SET_SELECTED_NODE.equals(event.getName())) {
@@ -1637,10 +1622,12 @@ DataStatusListener, JPiereIADTabpanel,IdSpace, IFieldEditorContainer
 		}
 		JPiereIADTabpanel tabPanel = JPieredetailPane.getSelectedADTabpanel();
     	if (tabPanel != null) {
-    		if (!tabPanel.isActivated()) {
+    		if (!tabPanel.isActivated() || !JPieredetailPane.isVisible()) {
+    			if (!JPieredetailPane.isVisible())
+    				JPieredetailPane.setVisible(true);
     			tabPanel.activate(true);
-    		} else {
-    			tabPanel.getGridView().invalidateGridView();
+    		} else if (tabPanel.getGridView() != null){
+    			tabPanel.getJPiereGridView().invalidateGridView();
     		}
 	    	if (!tabPanel.isGridView()) {
 	    		if (JPieredetailPane.getSelectedPanel().isToggleToFormView()) {

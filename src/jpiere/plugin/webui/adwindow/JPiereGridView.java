@@ -122,7 +122,7 @@ public class JPiereGridView extends Vlayout implements EventListener<Event>, IdS
 	/**
 	 * generated serial id
 	 */
-	private static final long serialVersionUID = -7151423393713654553L;
+	private static final long serialVersionUID = 3995829393137424527L;
 
 	/** Style for Grid and Grid Footer **/
 	private static final String HEADER_GRID_STYLE = "border: none; margin:0; padding: 0;";

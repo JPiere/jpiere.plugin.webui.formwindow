@@ -44,9 +44,9 @@ import org.adempiere.base.equinox.EquinoxExtensionLocator;
 import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.IADTabbox;
-import org.adempiere.webui.adwindow.IADTabpanel;
+import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;	//JPIERE
+import jpiere.plugin.webui.adwindow.JPiereIADTabbox;				//JPIERE
+import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;				//JPIERE
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Column;
 import org.adempiere.webui.component.Columns;
@@ -86,10 +86,6 @@ import org.zkoss.zul.Space;
 import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Vlayout;
 
-import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
-import jpiere.plugin.webui.adwindow.JPiereIADTabbox;
-import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;
-
 /**
  * Action to import data from uploaded file to GridTab
  * @author Carlos Ruiz
@@ -97,6 +93,7 @@ import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
+@SuppressWarnings("unused")
 public class JPiereFileImportAction implements EventListener<Event>
 {
 	private JPiereAbstractADWindowContent panel;

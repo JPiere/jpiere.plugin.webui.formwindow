@@ -56,7 +56,8 @@ public class JPiereLabelsPanel extends Div implements EventListener<Event> {
 	/**
 	 * generated serial id
 	 */
-	private static final long serialVersionUID = 2232899183255702050L;
+	private static final long serialVersionUID = 8776043844483214400L;
+	
 	private JPiereAbstractADWindowContent abstractADWindowContent;
 	private int AD_Table_ID;
 	private int Record_ID;	
@@ -90,7 +91,13 @@ public class JPiereLabelsPanel extends Div implements EventListener<Event> {
 		this.abstractADWindowContent = abstractADWindowContent;
 		this.AD_Table_ID = AD_Table_ID;
 		this.Record_ID = Record_ID;
-		this.Record_UU = Record_UU;
+		if (Record_ID > 0 && Record_UU == null) {
+			MTable table = MTable.get(AD_Table_ID);
+			PO po = table.getPO(Record_ID, null);
+			this.Record_UU = po.get_UUID();
+		} else {
+			this.Record_UU = Record_UU;
+		}
 		setStyle("padding:0px 5px;");
 		addEventListener(LabelsSearchController.ON_POST_SELECT_LABELITEM_EVENT, this);		
 		update();

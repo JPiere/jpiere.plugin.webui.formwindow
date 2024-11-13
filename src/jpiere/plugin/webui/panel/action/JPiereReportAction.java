@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
+import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;	//JPIERE
 import org.adempiere.webui.apps.WProcessCtl;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
@@ -81,8 +81,6 @@ import org.zkoss.zul.Space;
 import org.zkoss.zul.Tabpanel;
 import org.zkoss.zul.impl.LabelImageElement;
 
-import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
-
 /**
  * Action for Report toolbar button
  * @author Elaine
@@ -91,6 +89,7 @@ import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
+@SuppressWarnings("unused")
 public class JPiereReportAction implements EventListener<Event>
 {
 	private static final CLogger log = CLogger.getCLogger(JPiereReportAction.class);
@@ -310,8 +309,8 @@ public class JPiereReportAction implements EventListener<Event>
 		boolean currentRowOnly = chkCurrentRowOnly.isChecked();
 		int Record_ID = 0;
 		String Record_UU = null;
-		List <Integer> RecordIDs = null;
-		List <String> RecordUUs = null;
+		List <Integer> jasperRecordIDs = null;
+		List <String> jasperRecordUUs = null;
 		MQuery query = new MQuery(gridTab.getTableName());
 		MTable table = MTable.get(gridTab.getAD_Table_ID());
 		StringBuilder whereClause = new StringBuilder("");
@@ -328,15 +327,17 @@ public class JPiereReportAction implements EventListener<Event>
 		else
 		{
 			whereClause.append(gridTab.getTableModel().getSelectWhereClause());
-			if (table.isUUIDKeyTable()) {
-				RecordUUs = new ArrayList<String>();
-				for(int i = 0; i < gridTab.getRowCount(); i++) {
-					RecordUUs.add(gridTab.getKeyUUID(i));
-				}
-			} else {
-			RecordIDs = new ArrayList<Integer>();
-				for(int i = 0; i < gridTab.getRowCount(); i++) {
-				RecordIDs.add(gridTab.getKeyID(i));
+			if (pf != null && pf.getJasperProcess_ID() > 0) {
+				if (table.isUUIDKeyTable()) {
+					jasperRecordUUs = new ArrayList<String>();
+					for(int i = 0; i < gridTab.getRowCount(); i++) {
+						jasperRecordUUs.add(gridTab.getKeyUUID(i));
+					}
+				} else {
+					jasperRecordIDs = new ArrayList<Integer>();
+					for(int i = 0; i < gridTab.getRowCount(); i++) {
+						jasperRecordIDs.add(gridTab.getKeyID(i));
+					}
 				}
 			}
 		}
@@ -377,8 +378,8 @@ public class JPiereReportAction implements EventListener<Event>
 		{
 			// It's a report using the JasperReports engine
 			ProcessInfo pi = new ProcessInfo ("", pf.getJasperProcess_ID(), pf.getAD_Table_ID(), Record_ID, Record_UU);
-			pi.setRecord_IDs(RecordIDs);
-			pi.setRecord_UUs(RecordUUs);
+			pi.setRecord_IDs(jasperRecordIDs);
+			pi.setRecord_UUs(jasperRecordUUs);
 			//pi.setIsBatch(true);
 
 			if (export)

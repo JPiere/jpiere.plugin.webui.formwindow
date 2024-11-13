@@ -14,8 +14,6 @@
 
 package jpiere.plugin.webui.adwindow.validator;
 
-import org.adempiere.webui.adwindow.ADWindow;
-
 import jpiere.plugin.webui.adwindow.JPiereADWindow;
 
 
@@ -25,6 +23,7 @@ import jpiere.plugin.webui.adwindow.JPiereADWindow;
  *  @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
+@SuppressWarnings("unused")
 public class JPiereWindowValidatorEvent {
 	/** {@link JPiereADWindow} instance **/
 	private JPiereADWindow window;

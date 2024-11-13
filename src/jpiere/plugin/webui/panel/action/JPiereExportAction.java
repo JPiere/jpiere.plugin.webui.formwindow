@@ -33,15 +33,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.adempiere.base.IGridTabExporter;
 import org.adempiere.base.equinox.EquinoxExtensionLocator;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.IADTabbox;
-import org.adempiere.webui.adwindow.IADTabpanel;
+import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent; //JPIERE
+import jpiere.plugin.webui.adwindow.JPiereIADTabbox;				//JPIERE
+import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;				//JPIERE
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
 import org.adempiere.webui.component.Columns;
@@ -72,10 +74,6 @@ import org.zkoss.zul.Space;
 import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Vlayout;
 
-import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
-import jpiere.plugin.webui.adwindow.JPiereIADTabbox;
-import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;
-
 /**
  * Action to export data from {@link GridTab}
  * @author hengsin
@@ -83,6 +81,7 @@ import jpiere.plugin.webui.adwindow.JPiereIADTabpanel;
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
  */
+@SuppressWarnings("unused")
 public class JPiereExportAction implements EventListener<Event>
 {
 	private JPiereAbstractADWindowContent panel;
@@ -119,8 +118,8 @@ public class JPiereExportAction implements EventListener<Event>
 	 */
 	public void export()
 	{
-		exporterMap = new HashMap<String, IGridTabExporter>();
-		extensionMap = new HashMap<String, String>();
+		exporterMap = new TreeMap<String, IGridTabExporter>();
+		extensionMap = new TreeMap<String, String>();
 		List<IGridTabExporter> exporterList = EquinoxExtensionLocator.instance().list(IGridTabExporter.class).getExtensions();
 		MRole role = MRole.getDefault();
 		for(IGridTabExporter exporter : exporterList)
@@ -150,11 +149,8 @@ public class JPiereExportAction implements EventListener<Event>
 			cboType.setMold("select");
 
 			cboType.getItems().clear();
-			List<String> keys = new ArrayList<>(extensionMap.keySet());
-		    Collections.sort(keys);
-			for(String key : keys)
-			{
-				cboType.appendItem(key, key);
+			for (Entry<String, String> extension : extensionMap.entrySet()) {
+				cboType.appendItem(extension.getKey(), extension.getValue());
 			}
 
 			cboType.setSelectedIndex(0);
@@ -372,12 +368,12 @@ public class JPiereExportAction implements EventListener<Event>
 	 */
 	protected IGridTabExporter getExporter() {
 		ListItem li = cboType.getSelectedItem();
-		if(li == null || li.getValue() == null)
+		if(li == null || li.getLabel() == null)
 		{
 			return null;
 		}
 
-		String ext = li.getValue().toString();
+		String ext = li.getLabel().toString();
 		IGridTabExporter exporter = exporterMap.get(ext);
 		return exporter;
 	}

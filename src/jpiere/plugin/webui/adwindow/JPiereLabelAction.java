@@ -50,7 +50,7 @@ public class JPiereLabelAction {
 		this.panel = panel;	
 		int AD_Table_ID = panel.getActiveGridTab().getAD_Table_ID();
 		int Record_ID = panel.getActiveGridTab().getRecord_ID();
-		labelsPanel = new JPiereLabelsPanel(panel, AD_Table_ID, Record_ID);
+		labelsPanel = new JPiereLabelsPanel(panel, AD_Table_ID, Record_ID,null);
 	}	
 
 	/**
