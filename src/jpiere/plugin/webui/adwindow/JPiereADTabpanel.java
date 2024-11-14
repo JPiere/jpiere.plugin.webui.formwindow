@@ -263,7 +263,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	private Group currentGroup;
 
 	/** Panel for child tabs, south of {@link #formContainer} **/
-	private JPiereDetailPane JPieredetailPane;	//JPIERE
+	private JPiereDetailPane jpiereDetailPane;	//JPIERE
 
 	/** true if this ADTabpanel instance is own by detail pane **/
 	private boolean detailPaneMode;
@@ -410,7 +410,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 
 	@Override
     public void setJPiereDetailPane(JPiereDetailPane component) {
-    	JPieredetailPane = component;
+    	jpiereDetailPane = component;
 
 		Borderlayout borderLayout = (Borderlayout) formContainer;
 		South south = borderLayout.getSouth();
@@ -450,7 +450,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 
 	@Override
     public JPiereDetailPane getJPiereDetailPane() {
-    	return JPieredetailPane;
+    	return jpiereDetailPane;
     }
 
     /**
@@ -1555,12 +1555,12 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     		windowPanel.onSavePayment();
     	}
     	else if (ON_POST_INIT_EVENT.equals(event.getName())) {
-    		if (isDetailVisible() && JPieredetailPane.getSelectedADTabpanel() != null) {
-    			JPieredetailPane.getSelectedADTabpanel().activate(true);
+    		if (isDetailVisible() && jpiereDetailPane.getSelectedADTabpanel() != null) {
+    			jpiereDetailPane.getSelectedADTabpanel().activate(true);
     		}
     	}
     	else if (event.getTarget() instanceof South) {
-    		if (JPieredetailPane != null) {
+    		if (jpiereDetailPane != null) {
     			boolean openEvent = event instanceof OpenEvent;
     			if (openEvent) {
     				OpenEvent oe = (OpenEvent)event;
@@ -1617,21 +1617,21 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     			return;
     	}
 
-		if (JPieredetailPane.getParent() == null) {
-			formContainer.appendSouth(JPieredetailPane);
+		if (jpiereDetailPane.getParent() == null) {
+			formContainer.appendSouth(jpiereDetailPane);
 		}
-		JPiereIADTabpanel tabPanel = JPieredetailPane.getSelectedADTabpanel();
+		JPiereIADTabpanel tabPanel = jpiereDetailPane.getSelectedADTabpanel();
     	if (tabPanel != null) {
-    		if (!tabPanel.isActivated() || !JPieredetailPane.isVisible()) {
-    			if (!JPieredetailPane.isVisible())
-    				JPieredetailPane.setVisible(true);
+    		if (!tabPanel.isActivated() || !jpiereDetailPane.isVisible()) {
+    			if (!jpiereDetailPane.isVisible())
+    				jpiereDetailPane.setVisible(true);
     			tabPanel.activate(true);
-    		} else if (tabPanel.getGridView() != null){
+    		} else if (tabPanel.getJPiereGridView() != null){
     			tabPanel.getJPiereGridView().invalidateGridView();
     		}
 	    	if (!tabPanel.isGridView()) {
-	    		if (JPieredetailPane.getSelectedPanel().isToggleToFormView()) {
-	    			JPieredetailPane.getSelectedPanel().afterToggle();
+	    		if (jpiereDetailPane.getSelectedPanel().isToggleToFormView()) {
+	    			jpiereDetailPane.getSelectedPanel().afterToggle();
 	    		} else {
 	    			tabPanel.switchRowPresentation();
 	    		}
@@ -2126,11 +2126,11 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 		if (formContainer.getSouth() != null) {
 			formContainer.getSouth().setVisible(true);
 			if (formContainer.getSouth().isOpen()) {
-				if (JPieredetailPane != null) {
-					if (JPieredetailPane.getParent() != formContainer.getSouth())
-						formContainer.appendSouth(JPieredetailPane);
+				if (jpiereDetailPane != null) {
+					if (jpiereDetailPane.getParent() != formContainer.getSouth())
+						formContainer.appendSouth(jpiereDetailPane);
 					else
-						JPieredetailPane.setVisible(true);
+						jpiereDetailPane.setVisible(true);
 				}
 			}
 		}
@@ -2142,8 +2142,8 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	private void detachDetailPane() {
 		if (formContainer.getSouth() != null) {
 			formContainer.getSouth().setVisible(false);
-			if (JPieredetailPane != null && JPieredetailPane.getParent() != null) {
-				JPieredetailPane.setVisible(false);
+			if (jpiereDetailPane != null && jpiereDetailPane.getParent() != null) {
+				jpiereDetailPane.setVisible(false);
 			}
 		}
 	}
@@ -2199,7 +2199,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	 */
 	public void activateJPiereDetailIfVisible() {
 		if (isDetailVisible()) {
-			JPiereIADTabpanel tabPanel = JPieredetailPane.getSelectedADTabpanel();
+			JPiereIADTabpanel tabPanel = jpiereDetailPane.getSelectedADTabpanel();
 	    	if (tabPanel != null && !tabPanel.isActivated()) {
 		    	tabPanel.activate(true);
 		    	if (!tabPanel.isGridView()) {
@@ -2229,7 +2229,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 			return false;
 		}
 
-		return JPieredetailPane != null;
+		return jpiereDetailPane != null;
 	}
 
 	/**
@@ -2241,7 +2241,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 			return false;
 		}
 
-		return JPieredetailPane != null && JPieredetailPane.getTabcount() > 0;
+		return jpiereDetailPane != null && jpiereDetailPane.getTabcount() > 0;
 	}
 
 	/**

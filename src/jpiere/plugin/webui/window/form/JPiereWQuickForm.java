@@ -40,6 +40,7 @@ import org.compiere.model.DataStatusListener;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 //import org.compiere.util.Trx; JPIERE
@@ -56,7 +57,7 @@ import jpiere.plugin.webui.adwindow.JPiereAbstractADWindowContent;
 import jpiere.plugin.webui.adwindow.JPiereQuickGridView;
 
 /**
- * Quick entry form
+ * Quick entry form.
  *
  * @author Logilite Technologies
  * @since Nov 03, 2017
@@ -64,15 +65,20 @@ import jpiere.plugin.webui.adwindow.JPiereQuickGridView;
 public class JPiereWQuickForm extends Window implements EventListener <Event>, DataStatusListener
 {
 	/**
-	 *
+	 * generated serial id
 	 */
 	private static final long serialVersionUID = -5363771364595732977L;
 
+	/** Main layout of form */
 	private Borderlayout			mainLayout			= new Borderlayout();
+	/** Calling ADWindowContent instance */
 	private JPiereAbstractADWindowContent	adWinContent		= null;
+	/** Center of {@link #mainLayout}. Grid/List view for multi record entry. */
 	private JPiereQuickGridView			quickGridView		= null;
+	/** Current selected grid tab of {@link #adWinContent} */
 	private GridTab					gridTab;
 
+	/** Action buttons panel. South of {@link #mainLayout} */
 	private ConfirmPanel			confirmPanel		= new ConfirmPanel(true, true, false, false, false, false);
 
 	private Button					bDelete				= confirmPanel.createButton(ConfirmPanel.A_DELETE);
@@ -90,7 +96,14 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 	private int						windowNo;
 	
 	private boolean stayInParent;
+	/* SysConfig USE_ESC_FOR_TAB_CLOSING */
+	private boolean isUseEscForTabClosing = MSysConfig.getBooleanValue(MSysConfig.USE_ESC_FOR_TAB_CLOSING, false, Env.getAD_Client_ID(Env.getCtx()));
 
+	/**
+	 * @param winContent
+	 * @param m_onlyCurrentRows
+	 * @param m_onlyCurrentDays
+	 */
 	public JPiereWQuickForm(JPiereAbstractADWindowContent winContent, boolean m_onlyCurrentRows, int m_onlyCurrentDays)
 	{
 		super();
@@ -115,6 +128,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		addCallback(AFTER_PAGE_DETACHED, t -> adWinContent.focusToLastFocusEditor());
 	}
 
+	/**
+	 * Initialize form.
+	 */
 	protected void initForm( )
 	{
 		initZk();
@@ -122,6 +138,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		quickGridView.refresh(gridTab);
 	}
 
+	/**
+	 * Layout form.
+	 */
 	private void initZk( )
 	{
 		// Center
@@ -219,6 +238,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		event.stopPropagation();
 	} // onEvent
 
+	/**
+	 * Cancel/Close form.
+	 */
 	public void onCancel( )
 	{
 		if (gridTab.getTableModel().getRowChanged() > -1)
@@ -240,6 +262,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		}
 	} // onCancel
 
+	/**
+	 * Reset sort state
+	 */
 	public void onUnSort( )
 	{
 		adWinContent.getActiveGridTab().getTableModel().resetCacheSortState();
@@ -253,6 +278,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		adWinContent.getStatusBarQF().setStatusLine(Msg.getMsg(Env.getCtx(), "UnSort"), false);
 	} // onUnSort
 
+	/**
+	 * Open {@link CustomizeGridViewDialog} for {@link #quickGridView}.
+	 */
 	public void onCustomize( )
 	{
 		onSave();
@@ -279,6 +307,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 
 	} // onCustomize
 
+	/**
+	 * Ignore/Undo changes
+	 */
 	public void onIgnore( )
 	{
 		gridTab.dataIgnore();
@@ -292,6 +323,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		Events.echoEvent(QuickGridView.EVENT_ON_SET_FOCUS_TO_FIRST_CELL, quickGridView, null);
 	} // onIgnore
 
+	/**
+	 * Delete selected rows.
+	 */
 	public void onDelete( )
 	{
 		if (gridTab == null || !quickGridView.isNewLineSaved)
@@ -354,6 +388,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		}
 	} // onDelete
 
+	/**
+	 * Save {@link #quickGridView} changes.
+	 */
 	public void onSave( )
 	{
 		if (gridTab.getTableModel().getRowChanged() == gridTab.getCurrentRow())
@@ -371,6 +408,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		}
 	} // onSave
 
+	/**
+	 * Refresh {@link #gridTab} and {@link #quickGridView}.
+	 */
 	public void onRefresh( )
 	{
 		gridTab.dataRefreshAll();
@@ -383,11 +423,18 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 			createNewRow();
 	} // onRefresh
 
+	/**
+	 * Close form.
+	 */
 	@Override
 	public void dispose( )
 	{
 		super.dispose();
 
+		// do not allow to close tab for Events.ON_CTRL_KEY event
+		if(isUseEscForTabClosing)
+			SessionManager.getAppDesktop().setCloseTabWithShortcut(false);
+		
 		gridTab.setQuickForm(false);
 		onIgnore();
 		gridTab.removeDataStatusListener(this);
@@ -421,6 +468,9 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 		}
 	} // dispose
 
+	/**
+	 * Add new row to {@link #quickGridView}.
+	 */
 	private void createNewRow( )
 	{
 		int row = gridTab.getRowCount();
@@ -453,11 +503,10 @@ public class JPiereWQuickForm extends Window implements EventListener <Event>, D
 	} // dataStatusChanged
 
 	/**
-	 * Return to parent when closing the quick form
+	 * If stayInParent is true, {@link #adWinContent} should navigate to parent record after closing this form instance.
 	 * @param stayInParent
 	 */
 	public void setStayInParent(boolean stayInParent) {
 		this.stayInParent = stayInParent;
 	}
-
 }
