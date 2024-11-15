@@ -432,6 +432,9 @@ public class JPiereFormWindowZoomDesktop extends TabbedDesktop implements MenuLi
 
 		if (!mobile) {
         	showHeader = new ToolBarButton() {
+
+				private static final long serialVersionUID = -1442492605980400300L;
+
 				@Override
 				public void onPageDetached(Page page) {
 					super.onPageDetached(page);
