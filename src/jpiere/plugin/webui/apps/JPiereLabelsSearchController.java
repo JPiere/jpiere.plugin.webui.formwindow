@@ -29,7 +29,6 @@ package jpiere.plugin.webui.apps;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.ListHead;

@@ -53,7 +53,6 @@ import org.compiere.util.CLogger;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.event.Event;
-import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.event.KeyEvent;
 import org.zkoss.zul.Div;
@@ -61,12 +60,11 @@ import org.zkoss.zul.Tab;
 import org.zkoss.zul.Vlayout;
 
 /**
- * Content area of {@link ADWindow}.
- *
+ * Controller for {@link ADWindow} content.
+ * 
  * @author <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @author <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
  * @date Feb 25, 2007
- * @version $Revision: 0.10 $
  *
  * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  *
@@ -92,7 +90,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
     }
 
 	/**
-	 * Layout UI.
+	 * Layout UI.<br/>
 	 * Vertical layout of toolbar, breadCrumb, statusBar and {@link #contentArea}.
 	 */
 	@Override
@@ -109,7 +107,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 
         //toolbar
         Div north = new Div();
-        north.setParent(layout);
+        north.setParent(layout);        
         north.setSclass("adwindow-north");
         Div div = new Div();
         div.setStyle("height: 100%; width: 100%");
@@ -121,7 +119,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
         breadCrumb.setToolbarListener(this);
         breadCrumb.setId("breadCrumb");
         div.appendChild(breadCrumb);
-
+        
         //status bar
         div.appendChild(statusBar);
 
@@ -144,15 +142,16 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 //        }
 
         SessionManager.getSessionApplication().getKeylistener().addEventListener(Events.ON_CTRL_KEY, this);
-
+        
         layout.addEventListener(WindowContainer.ON_WINDOW_CONTAINER_SELECTION_CHANGED_EVENT, this);
-
+        
         return layout;
     }
 
 	/**
 	 * Create {@link CompositeADTabbox}
 	 */
+	@Override
     protected JPiereIADTabbox createADTab()
     {
     	JPiereCompositeADTabbox composite = new JPiereCompositeADTabbox();
@@ -168,10 +167,6 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 		return layout;
 	}
 
-	/**
-     * @param event
-     * @see EventListener#onEvent(Event)
-     */
 	@Override
     public void onEvent(Event event) {
     	if (Events.ON_CTRL_KEY.equals(event.getName())) {
@@ -206,12 +201,12 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 		@Override
 		public void onCallback(Boolean result) {
 			if (result){
-				closeTab (tabPanel);
-			}
+				closeTab (tabPanel);			
+			} 
 			this.tabPanel = null;
 		}
 	}
-
+	
 	/**
 	 * Close tab related to tabPanel
 	 * @param tabPanel Tabpanel that represent AD_Window
@@ -254,7 +249,7 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 	@Override
 	protected void switchEditStatus(boolean editStatus) {
 		layout.setWidgetOverride("isEditting", "'" + String.valueOf(editStatus) + "'");
-	}
+	}	
 
 	//JPIERE-0014 - set Tab Close handler - Start
 	private boolean isSetOnCloseHandler = false;

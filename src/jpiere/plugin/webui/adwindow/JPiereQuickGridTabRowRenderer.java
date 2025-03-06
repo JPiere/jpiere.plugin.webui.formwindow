@@ -20,12 +20,12 @@ import java.util.Map;
 
 import org.adempiere.util.GridRowCtx;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.adwindow.ADWindow;
-import org.adempiere.webui.adwindow.AbstractADWindowContent;
-import org.adempiere.webui.adwindow.DetailPane;
-import org.adempiere.webui.adwindow.GridTabRowRenderer;
-import org.adempiere.webui.adwindow.GridTableListModel;
-import org.adempiere.webui.adwindow.QuickGridView;
+import org.adempiere.webui.adwindow.ADWindow;	//JPIERE
+import org.adempiere.webui.adwindow.AbstractADWindowContent;	//JPIERE
+import org.adempiere.webui.adwindow.DetailPane;	//JPIERE
+import org.adempiere.webui.adwindow.GridTabRowRenderer;	//JPIERE
+import org.adempiere.webui.adwindow.GridTableListModel;	//JPIERE
+import org.adempiere.webui.adwindow.QuickGridView;	//JPIERE
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Combinationbox;
@@ -79,7 +79,7 @@ import org.zkoss.zul.Timebox;
 
 /**
  * Row renderer for Quick GridTab grid (Base on {@link GridTabRowRenderer})
- *
+ * 
  * @author Logilite Technologies
  * @since Nov 03, 2017
  */
@@ -109,16 +109,16 @@ public class JPiereQuickGridTabRowRenderer
 	/** Grid that own this renderer **/
 	private Grid grid = null;
 	/** QuickGridView that uses this renderer **/
-	private JPiereQuickGridView gridPanel = null;
+	private JPiereQuickGridView gridPanel = null;	//JPIERE
 	/** current focus row **/
 	private Row currentRow;
 	/** values of current row. updated in {@link #render(Row, Object[], int)}. **/
 	private Object[] currentValues;
-	/** true if currrent row is in edit mode **/
+	/** true if current row is in edit mode **/
 	private boolean editing = false;
 	public int currentRowIndex = -1;
 	/** AD window content part that own this renderer **/
-	private JPiereAbstractADWindowContent m_windowPanel;
+	private JPiereAbstractADWindowContent m_windowPanel;	//JPIERE
 	/** internal listener for button ActionEvent **/
 	private ActionListener buttonListener;
 	// Row-wise Editors Map
@@ -136,11 +136,10 @@ public class JPiereQuickGridTabRowRenderer
 	private String						sortOrder;
 
 	/**
-	 *
 	 * @param gridTab
 	 * @param windowNo
 	 */
-	public JPiereQuickGridTabRowRenderer(GridTab gridTab, int windowNo) {
+	public JPiereQuickGridTabRowRenderer(GridTab gridTab, int windowNo) {//JPIERE
 		this.gridTab = gridTab;
 		this.windowNo = windowNo;
 		this.dataBinder = new GridTabDataBinder(gridTab);
@@ -171,7 +170,7 @@ public class JPiereQuickGridTabRowRenderer
             {
 				if (buttonListener != null)
 				{
-					((WButtonEditor)editor).addActionListener(buttonListener);
+					((WButtonEditor)editor).addActionListener(buttonListener);	
 				}
 				else
 				{
@@ -191,6 +190,7 @@ public class JPiereQuickGridTabRowRenderer
 	}
 
 	/**
+	 * Get column index
 	 * @param field
 	 * @return column index for field, -1 if not found
 	 */
@@ -204,6 +204,7 @@ public class JPiereQuickGridTabRowRenderer
 	}
 
 	/**
+	 * Set paging component
 	 * @param paging
 	 */
 	public void setPaging(Paging paging) {
@@ -222,7 +223,7 @@ public class JPiereQuickGridTabRowRenderer
 		int columnCount = 0;
 		GridField[] gridPanelFields = null;
 		GridField[] gridTabFields = null;
-
+		
 		if (gridPanel != null) {
 			if (!gridPanel.isVisible()) {
 				return;
@@ -232,15 +233,15 @@ public class JPiereQuickGridTabRowRenderer
 				columnCount = gridPanelFields.length;
 				gridTabFields = gridTab.getFields();
 				isGridViewCustomized = gridTabFields.length != gridPanelFields.length;
-			}
+			}	
 		}
-
+		
 		if (grid == null)
 			grid = (Grid) row.getParent().getParent();
 
 		if (rowListener == null)
 			rowListener = new RowListener((Grid)row.getParent().getParent());
-
+		
 		if (!isGridViewCustomized) {
 			for(int i = 0; i < gridTabFields.length; i++) {
 				if (gridPanelFields[i].getAD_Field_ID() != gridTabFields[i].getAD_Field_ID()) {
@@ -266,8 +267,8 @@ public class JPiereQuickGridTabRowRenderer
 			}
 			currentValues = dataList.toArray(new Object[0]);
 		}
-
-
+		
+		
 		Grid grid = (Grid) row.getParent().getParent();
 		org.zkoss.zul.Columns columns = grid.getColumns();
 
@@ -283,16 +284,16 @@ public class JPiereQuickGridTabRowRenderer
 		selection.setChecked(gridTab.isSelected(rowIndex));
 		cell.setStyle("border: none;");
 		selection.addEventListener(Events.ON_CHECK, this);
-
+		
 		if (!selection.isChecked()) {
 			if (gridPanel.selectAll.isChecked()) {
 				gridPanel.selectAll.setChecked(false);
 			}
 		}
-
+		
 		cell.appendChild(selection);
 		row.appendChild(cell);
-
+		
 		Boolean isActive = null;
 		int colIndex = -1;
 		// Editors List of Current Rendered Row
@@ -312,7 +313,7 @@ public class JPiereQuickGridTabRowRenderer
 					}
 				}
 			}
-
+			
 			// IDEMPIERE-2148: when has tab customize, ignore check properties isDisplayedGrid
 			if ((!isGridViewCustomized && gridPanelFields[i].isDisplayedGrid()) || gridPanelFields[i].isToolbarOnlyButton()) {
 				continue;
@@ -358,12 +359,12 @@ public class JPiereQuickGridTabRowRenderer
 				{
 					readOnlyEditorsList.add(componentEditor);
 				}
-
+				
 				GridRowCtx ctx = new GridRowCtx(Env.getCtx(), gridTab, rowIndex);
 				// Enable or Disable Component
 				componentEditor.setReadWrite(gridPanelFields[i].isEditable(ctx, true, false));
 				if (!gridPanelFields[i].isDisplayed(ctx, true)){
-					// IDEMPIERE-2253
+					// IDEMPIERE-2253 
 					component.setVisible(false);
 				}
 			}
@@ -371,7 +372,7 @@ public class JPiereQuickGridTabRowRenderer
 			ZKUpdateUtil.setWidth(div, "100%");
 			div.setAttribute("columnName", gridPanelFields[i].getColumnName());
 			div.addEventListener(Events.ON_CLICK, rowListener);
-			div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);
+			div.addEventListener(Events.ON_DOUBLE_CLICK, rowListener);						
 			editing = true;
 			GridTableListModel model = (GridTableListModel) grid.getModel();
 			model.setEditing(true);
@@ -384,16 +385,16 @@ public class JPiereQuickGridTabRowRenderer
 		if (rowIndex == gridTab.getCurrentRow()) {
 			setCurrentRow(row);
 		}
-
+		
 		row.setStyle("cursor:pointer");
 		row.addEventListener(Events.ON_CLICK, rowListener);
 		row.addEventListener(Events.ON_OK, rowListener);
 		row.setTooltiptext("Row " + (rowIndex+1));
-
+		
 		if (isActive == null) {
 			Object isActiveValue = gridTab.getValue(rowIndex, "IsActive");
 			if (isActiveValue != null) {
-				if ("true".equalsIgnoreCase(isActiveValue.toString())) {
+				if ("true".equalsIgnoreCase(isActiveValue.toString())) {							
 					isActive = Boolean.TRUE;
 				} else {
 					isActive = Boolean.FALSE;
@@ -436,11 +437,11 @@ public class JPiereQuickGridTabRowRenderer
 	}
 
 	/**
-	 * Disable Read-only components for while pressing tab button focus goes to
-	 * read-only component.
-	 * Enable Read-only component before display Logic update.
-	 * Add/Remove CSS Class from read-only component
-	 *
+	 * Disable Read-only components while pressing tab button and focus can goes to
+	 * read-only component.<br/>
+	 * Set component to Read-only before display Logic update.<br/>
+	 * Add/Remove CSS Class from read-only component.
+	 * 
 	 * @param component
 	 * @param isDisable
 	 * @return true if component is read only
@@ -579,7 +580,7 @@ public class JPiereQuickGridTabRowRenderer
 
 	/**
 	 * Add/Remove CSS class from Read-only Component
-	 *
+	 * 
 	 * @param zclass
 	 * @param isDisable
 	 * @return modify zclass
@@ -679,7 +680,7 @@ public class JPiereQuickGridTabRowRenderer
 		int pgIndex = row >= 0 ? row % paging.getPageSize() : 0;
 		if (row != currentRowIndex || pgIndex != currentRowIndex) {
 			if (currentRow != null)
-				currentRow.setStyle(null);
+				LayoutUtils.removeSclass("current-row", currentRow);
 			if (grid.getRows().getChildren().size() <= 0) {
 				currentCell = null;
 				return;
@@ -687,11 +688,11 @@ public class JPiereQuickGridTabRowRenderer
 			gridTab.setCurrentRow(pgIndex + paging.getActivePage() * paging.getPageSize());
 			currentRow = ((Row) grid.getRows().getChildren().get(pgIndex));
 			currentRowIndex = gridTab.getCurrentRow();
-			currentRow.setStyle(CURRENT_ROW_STYLE);
+			LayoutUtils.addSclass("current-row", currentRow);
 		}
-
+		
 		setCurrentRow(currentRow);
-
+		
 		if (isAddRemoveListener(code))
 		{
 			// Add property change listener to new current row
@@ -703,12 +704,12 @@ public class JPiereQuickGridTabRowRenderer
 		}
 		if (currentCell != null && code != QuickGridView.FOCUS_CODE) {
 			setFocusOnCurrentCell();
-		}
+		} 
 	}
 
 	/**
 	 * Add property change listener (WEditor) to GridField
-	 *
+	 * 
 	 * @param editorsList
 	 */
 	private void addEditorPropertyChangeListener(ArrayList<WEditor> editorsList)
@@ -724,7 +725,7 @@ public class JPiereQuickGridTabRowRenderer
 
 	/**
 	 * Remove property change listener (WEditor) from GridField
-	 *
+	 * 
 	 * @param editorsList
 	 */
 	private void removeEditorPropertyChangeListener(ArrayList<WEditor> editorsList)
@@ -736,12 +737,12 @@ public class JPiereQuickGridTabRowRenderer
 			editorsList.get(i).removeValuechangeListener(dataBinder);
 		}
 	}
-
+	
 	/**
 	 * If isAddListener is true add Property Change Listener, otherwise Remove Property Change Listener
-	 *
+	 * 
 	 * @param isAddListener
-	 * @param col
+	 * @param col 
 	 */
 	public void addRemovePropertyChangeListener(boolean isAddListener, int col)
 	{
@@ -759,7 +760,7 @@ public class JPiereQuickGridTabRowRenderer
 			}
 		}
 	} // addRemovePropertyChangeListener
-
+	
 	/**
 	 * @param code cell navigation code
 	 * @return true to add property change listener, false otherwise
@@ -771,7 +772,7 @@ public class JPiereQuickGridTabRowRenderer
 			return true;
 		return false;
 	} // isAddRemoveListener
-
+	
 	/**
 	 * Set current row
 	 * @param row absolute row index
@@ -780,7 +781,7 @@ public class JPiereQuickGridTabRowRenderer
 	{
 		int pgIndex = row >= 0 ? row % paging.getPageSize() : 0;
 		currentRow = ((Row) grid.getRows().getChildren().get(pgIndex));
-		currentRow.setStyle(JPiereQuickGridTabRowRenderer.CURRENT_ROW_STYLE);
+		LayoutUtils.addSclass("current-row", currentRow);
 		setCurrentRow(currentRow);
 	}
 
@@ -940,7 +941,7 @@ public class JPiereQuickGridTabRowRenderer
 	public void editCurrentRow() {
 		if (currentRow != null && currentRow.getParent() != null && currentRow.isVisible() && grid != null
 				&& grid.isVisible() && grid.getParent() != null && grid.getParent().isVisible()) {
-
+		
 			editing = true;
 
 			GridTableListModel model = (GridTableListModel) grid.getModel();
@@ -991,7 +992,7 @@ public class JPiereQuickGridTabRowRenderer
 	 * Set {@link QuickGridView} that own this renderer.
 	 * @param gridPanel
 	 */
-	public void setGridPanel(JPiereQuickGridView gridPanel) {
+	public void setGridPanel(JPiereQuickGridView gridPanel) {//JPIERE
 		this.gridPanel = gridPanel;
 	}
 
@@ -1037,12 +1038,12 @@ public class JPiereQuickGridTabRowRenderer
 	 * {@link #buttonListener} need this to call {@link AbstractADWindowContent#actionPerformed(ActionEvent)}.
 	 * @param windowPanel
 	 */
-	public void setADWindowPanel(JPiereAbstractADWindowContent windowPanel) {
+	public void setADWindowPanel(JPiereAbstractADWindowContent windowPanel) {//JPIERE
 		if (this.m_windowPanel == windowPanel)
 			return;
-
+		
 		this.m_windowPanel = windowPanel;
-
+		
 		buttonListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				WButtonEditor editor = (WButtonEditor) event.getSource();

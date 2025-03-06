@@ -62,7 +62,7 @@ public class JPiereLabelsSearch extends Div implements EventListener<Event> {
 	private static final String LAST_ONCHANGING_ATTR = "last.onchanging";
 	/** Bandbox to capture search text from user and display result in popup **/
 	private Bandbox bandbox;
-	/** Controller to perform search on AD_Label* records **/	
+	/** Controller to perform search on AD_Label* records **/
 	private JPiereLabelsSearchController controller;
 
 	/**
@@ -103,7 +103,7 @@ public class JPiereLabelsSearch extends Div implements EventListener<Event> {
 
 	@Override
 	public void onEvent(Event event) throws Exception {
-		if (Events.ON_CHANGING.equals(event.getName())) {			
+		if (Events.ON_CHANGING.equals(event.getName())) {
 			//post ON_SEARCH_EVENT for ON_CHANGING event from bandbox
 			InputEvent inputEvent = (InputEvent) event;
 			String value = inputEvent.getValue();		

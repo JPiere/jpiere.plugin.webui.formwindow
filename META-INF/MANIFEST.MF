@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: jpiere.plugin.webui.formwindow
 Bundle-SymbolicName: jpiere.plugin.webui.formwindow;singleton:=true
-Bundle-Version: 11.0.0.qualifier
+Bundle-Version: 12.0.0.qualifier
 Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  org.adempiere.ui;bundle-version="2.1.0",
  org.adempiere.ui.zk;bundle-version="2.1.0",
@@ -15,7 +15,7 @@ Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
  zul;bundle-version="8.0.1",
  zel;bundle-version="8.0.1",
  zhtml;bundle-version="8.0.1",
- org.eclipse.osgi.services
+ org.osgi.service.event
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: OSS ERP Solutions

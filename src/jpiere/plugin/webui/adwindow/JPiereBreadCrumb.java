@@ -53,7 +53,8 @@ import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Window;
 
 /**
- * Bread crumb component for AD Window
+ * Bread crumb component for AD Window.<br/>
+ * Represent the hierarchical navigation path of a tab
  * @author hengsin
  */
 public class JPiereBreadCrumb extends Div implements EventListener<Event> {
@@ -62,7 +63,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	 * Event echo after ON_MOUSE_OVER event.
 	 */
 	private static final String ON_MOUSE_OVER_ECHO_EVENT = "onMouseOverEcho";
-
+	
 	/**
 	 * This is echo after some delay after ON_MOUSE_OUT event (to close linkPopup).
 	 * Also use as attribute to allow a rapid ON_MOUSE_OVER event to cancel the delay ON_MOUSE_OUT_ECHO_EVENT, thus keeping linkPopup open.
@@ -70,31 +71,31 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	private static final String ON_MOUSE_OUT_ECHO_EVENT = "onMouseOutEcho";
 
 	/**
-	 * generated serial id
+	 * generated serial id 
 	 */
 	private static final long serialVersionUID = 929253935475618911L;
-
+	
 	private static final String BTNPREFIX = "Btn";
-
+	
 	/** west layout for paths to a tab (for e.g "Business Partner > Location") **/
 	private Hlayout layout;
 
 	/** record navigation buttons **/
 	private ToolBarButton btnFirst, btnPrevious, btnNext, btnLast, btnRecordInfo;
-
+	
 	/** Label:TabIndex. Link to other tabs at same level (i.e other child tabs of the same parent tab). **/
 	private LinkedHashMap<String, String> links;
 
 	@SuppressWarnings("unused")
 	private int windowNo;
-
+	
 	/** BtnName:ToolBarButton. Map of all toolbar buttons. **/
 	private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
 
-	/** Last DataStatusEvent from {@link JPiereAbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
+	/** Last DataStatusEvent from {@link AbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
 	private DataStatusEvent m_dse;
 
-	/** Last data status text from {@link JPiereAbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
+	/** Last data status text from {@link AbstractADWindowContent#dataStatusChanged(DataStatusEvent)} **/
 	private String m_text;
 
 	/** register ToolbarListener **/
@@ -112,7 +113,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	private JPiereAbstractADWindowContent windowContent;
 
 	/**
-	 * @param windowContent
+	 * @param windowContent 
 	 * @param windowNo
 	 */
 	public JPiereBreadCrumb(JPiereAbstractADWindowContent windowContent, int windowNo) {
@@ -125,13 +126,13 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 
 		this.setVisible(false);
 		this.setSclass("adwindow-breadcrumb");
-
+				
 		toolbarContainer = new Hlayout();
 		toolbarContainer.setSclass("adwindow-breadcrumb-toolbar");
 		this.appendChild(toolbarContainer);
-
+		
 		ToolBar toolbar = new ToolBar();
-		toolbarContainer.appendChild(toolbar);
+		toolbarContainer.appendChild(toolbar);		
 		btnFirst = createButton("First", "First", "First");
 		btnFirst.setTooltiptext(btnFirst.getTooltiptext()+"    Alt+Home");
 		toolbar.appendChild(btnFirst);
@@ -152,23 +153,24 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
         btnLast.setTooltiptext(btnLast.getTooltiptext()+"    Alt+End");
         toolbar.appendChild(btnLast);
 
-		setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "breadcrumb");
-
+		setClientAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "breadcrumb");
+		
 		this.addEventListener(ON_MOUSE_OUT_ECHO_EVENT, this);
 	}
 
 	/**
+	 * Set toolbar listener
 	 * @param listener
 	 */
 	public void setToolbarListener(ToolbarListener listener) {
 		this.toolbarListener = listener;
 	}
-
+	
 	/**
-	 * Add path to tab
+	 * Add path for tab
 	 * @param label path label
 	 * @param id path id
-	 * @param clickable true to add clickable {@link BreadCrumbLink} false to add text label
+	 * @param clickable true to add clickable {@link BreadCrumbLink}, false to add text label
 	 */
 	public void addPath(String label, String id, boolean clickable) {
 		if (clickable) {
@@ -196,7 +198,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 			layout.appendChild(pathLabel);
 		}
 	}
-
+	
 	/**
 	 * Get parent BreadCrumbLinks
 	 * @return list of parent links
@@ -209,9 +211,9 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 		}
 		return parents;
 	}
-
+	
 	/**
-	 * add links to other tabs at the same level
+	 * Add links to other tabs at the same level
 	 * @param links Label:TabIndex map
 	 */
 	public void addLinks(LinkedHashMap<String, String> links) {
@@ -235,7 +237,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 					}
 					return;
 				}
-
+				
 				if (event.getName().equals(Events.ON_CLICK)) {
 					if (linkPopup != null && linkPopup.getPage() != null)
 						linkPopup.detach();
@@ -258,7 +260,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 				} else if (event.getName().equals(Events.ON_MOUSE_OUT)) {
 					if (linkPopup != null && linkPopup.getPage() == null) {
 						linkPopup = null;
-					}
+					} 
 				} else if (event.getName().equals(ON_MOUSE_OVER_ECHO_EVENT)) {
 					if (linkPopup != null && linkPopup.getPage() == null) {
 						showLinksMenu(pathLabel);
@@ -274,7 +276,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 					item.addEventListener(Events.ON_CLICK, JPiereBreadCrumb.this);
 					linkPopup.appendChild(item);
 				}
-
+				
 				StringBuilder script = new StringBuilder("setTimeout(function(){let w=zk('#")
 					.append(JPiereBreadCrumb.this.getUuid()).append("').$();")
 					.append("let e=new zk.Event(w, '")
@@ -285,7 +287,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 				linkPopup.addEventListener(Events.ON_MOUSE_OUT, new EventListener<Event>() {
 					@Override
 					public void onEvent(Event event) throws Exception {
-						if (linkPopup != null) {
+						if (linkPopup != null) {							
 							linkPopup.setAttribute(ON_MOUSE_OUT_ECHO_EVENT, Boolean.TRUE);
 							Clients.response(response);
 						}
@@ -297,8 +299,8 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 					public void onEvent(Event event) throws Exception {
 						if (linkPopup != null && linkPopup.isVisible()) {
 							linkPopup.removeAttribute(ON_MOUSE_OUT_ECHO_EVENT);
-						}
-					}
+						}						
+					}					
 				});
 				linkPopup.setPage(pathLabel.getPage());
 				linkPopup.open(pathLabel, "after_start");
@@ -311,7 +313,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 		if (ThemeManager.isUseFontIconForImage()) {
 			pathLabel.setSclass("adwindow-breadcrumb-menu");
 		} else {
-			String imageUrl = Executions.getCurrent().encodeURL(ThemeManager.getThemeResource("images/downarrow.png"));
+			String imageUrl = Executions.getCurrent().encodeURL(ThemeManager.getThemeResource("images/downarrow.png"));		
 			ZkCssHelper.appendStyle(pathLabel, "background: transparent url('" + imageUrl + "') no-repeat right center");
 		}
 	}
@@ -385,7 +387,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	}
 
 	/**
-	 * remove all path and links
+	 * Remove all path and links
 	 */
 	public void reset() {
 		layout.getChildren().clear();
@@ -393,7 +395,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	}
 
 	/**
-	 * enable/disable first record and previous record toolbar button
+	 * Enable/disable first record and previous record toolbar button 
 	 * @param enabled
 	 */
     public void enableFirstNavigation(boolean enabled)
@@ -403,7 +405,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
     }
 
     /**
-     * enable or disable the next record and last record toolbar button
+     * Enable or disable the next record and last record toolbar button
      * @param enabled
      */
     public void enableLastNavigation(boolean enabled)
@@ -427,7 +429,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
         Executions.createComponents(ThemeManager.getPreference(), this, null);
         String size = Env.getContext(Env.getCtx(), ITheme.ZK_TOOLBAR_BUTTON_SIZE);
     	String suffix = "24.png";
-    	if (!Util.isEmpty(size))
+    	if (!Util.isEmpty(size)) 
     	{
     		suffix = size + ".png";
     	}
@@ -437,7 +439,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
     		btn.setImage(ThemeManager.getThemeResource("images/"+image + suffix));
         btn.setTooltiptext(Msg.getMsg(Env.getCtx(),tooltip));
         btn.setSclass("breadcrumb-toolbar-button");
-
+        
         buttons.put(name, btn);
         this.appendChild(btn);
         //make toolbar button last to receive focus
@@ -447,7 +449,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 
         return btn;
     }
-
+	
 	/**
 	 * Set record info text
      * @param text
@@ -458,10 +460,10 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
     }
 
     /**
-     * Data status from {@link JPiereAbstractADWindowContent#dataStatusChanged(DataStatusEvent)}
+     * Data status from {@link AbstractADWindowContent#dataStatusChanged(DataStatusEvent)}
      * @param text record info text (for e.g 1/1)
      * @param dse
-     * @param gridTab
+     * @param gridTab 
      */
     public void setStatusDB (String text, DataStatusEvent dse, GridTab gridTab)
     {
@@ -484,13 +486,13 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
         }
         m_gridTab = gridTab;
     }
-
+        
 	@Override
 	public void onPageDetached(Page page) {
 		super.onPageDetached(page);
 		if (linkPopup != null)
 			linkPopup.detach();
-
+		
 		try {
 			SessionManager.getSessionApplication().getKeylistener().removeEventListener(Events.ON_CTRL_KEY, this);
 		} catch (Exception e){}
@@ -505,6 +507,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 	}
 
 	/**
+	 * Are there one or more parent link
 	 * @return true if there are one or more parent link
 	 */
 	public boolean hasParentLink() {
@@ -515,7 +518,7 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 		}
 		return false;
 	}
-
+	
 	@Override
 	public void onPageAttached(Page newpage, Page oldpage) {
 		super.onPageAttached(newpage, oldpage);
@@ -523,35 +526,39 @@ public class JPiereBreadCrumb extends Div implements EventListener<Event> {
 			SessionManager.getSessionApplication().getKeylistener().addEventListener(Events.ON_CTRL_KEY, this);
 		}
 	}
-
+	
 	/**
+	 * Is previous button enable
 	 * @return true if previous button is enable
 	 */
 	public boolean isPreviousEnabled() {
 		return !btnPrevious.isDisabled();
 	}
-
+	
 	/**
+	 * Is next button enable
 	 * @return true if next button is enable
 	 */
 	public boolean isNextEnabled() {
 		return !btnNext.isDisabled();
 	}
-
+	
 	/**
+	 * Get next button component
 	 * @return next ToolBarButton
 	 */
 	public ToolBarButton getNextButton() {
 		return btnNext;
 	}
-
+	
 	/**
+	 * Get previous button component
 	 * @return previous ToolBarButton
 	 */
 	public ToolBarButton getPreviousButton() {
 		return btnPrevious;
 	}
-
+	
 	/**
 	 * @return true if path/link is empty
 	 */

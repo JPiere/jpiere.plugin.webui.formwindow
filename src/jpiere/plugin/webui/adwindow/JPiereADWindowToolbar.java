@@ -95,7 +95,6 @@ import org.zkoss.zul.impl.LabelImageElement;
  * Toolbar of AD_Window
  * @author  <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @date    Feb 25, 2007
- * @version $Revision: 0.10 $
  *
  * @author Cristina Ghita, www.arhipac.ro
  * 				<li>FR [ 2076330 ] Add new methods in CWindowToolbar class
@@ -107,24 +106,24 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	/**
 	 * generated serial id
 	 */
-	private static final long serialVersionUID = -5151981978053022864L;
+	private static final long serialVersionUID = -2174135931334134570L;
 
 	/**
 	 * Attribute for {@link #overflowPopup} to store the last close timestamp in ms.
 	 * Use to prevent too rapid open and close of overflow popup.
 	 */
 	private static final String POPUP_CLOSE_TIMESTAMP_ATTR = "popup.close";
-
+	
 	/** Prefix for Button Name **/
 	public static final String BTNPREFIX = "Btn";
-
+	
 	@Deprecated(forRemoval = true, since = "11")
 	public static final String MNITMPREFIX = "Mnitm";
 
     private static final CLogger log = CLogger.getCLogger(JPiereADWindowToolbar.class);
 
 	/** translated message for new query label (default for en is "** New Query **") */
-	private String				m_sNew;
+	private String	m_sNew;	
 	/** combobox to select user query **/
     private Combobox fQueryName;
 	private MUserQuery[] userQueries;
@@ -147,9 +146,9 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     private ToolBarButton btnZoomAcross, btnActiveWorkflows, btnRequests, btnProductInfo;
 
     private ToolBarButton btnChat;
-
+    
     private ToolBarButton btnPostIt;
-
+    
     private ToolBarButton btnLabel;
 
     private ToolBarButton btnCustomize;
@@ -159,7 +158,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     private ToolBarButton btnCSVImport;
 
     private ToolBarButton btnProcess;
-
+    
     private ToolBarButton btnQuickForm;
     /** button to open overflow popup for toolbar buttons with IsShowMore=Y (for non-mobile client) **/
     private ToolBarButton btnShowMore;
@@ -188,18 +187,17 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     /** List of toolbar button with IsAdvanced=Y **/
     private List<String> advancedList;
 
-	// Elaine 2008/12/04
 	/** Show Personal Lock								*/
 	public boolean isPersonalLock = MRole.getDefault().isPersonalLock();
 	private boolean isAllowProductInfo = MRole.getDefault().canAccess_Info_Product();
 
 	private int windowNo = 0;
-
+	
 	/**
 	 * Maintain hierarchical Quick form by its parent-child tab while open leaf
 	 * tab once and dispose and doing same action
 	 */
-	private int							quickFormTabHrchyLevel		= 0;
+	private int	quickFormTabHrchyLevel		= 0;
 	/** show more button for mobile client **/
 	private A mobileOverflowButton;
 	/** 
@@ -254,7 +252,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         fQueryName.setId(BTNPREFIX + "SearchQuery");
         fQueryName.addEventListener(Events.ON_SELECT, this);
         LayoutUtils.addSclass("toolbar-searchbox", fQueryName);
-
+				
         btnIgnore = createButton("Ignore", "Ignore", "Ignore");
         btnIgnore.setTooltiptext(btnIgnore.getTooltiptext()+ "    Alt+Z");
         btnHelp = createButton("Help", "Help","Help");
@@ -284,8 +282,8 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         btnDetailRecord = createButton("DetailRecord", "Detail", "DetailRecord");
         btnDetailRecord.setTooltiptext(btnDetailRecord.getTooltiptext()+ "   Alt+Down");
         if (MRole.getDefault().isCanReport()) {
-        	btnReport = createButton("Report", "Report", "Report");
-        	btnReport.setTooltiptext(btnReport.getTooltiptext()+ "    Alt+R");
+            btnReport = createButton("Report", "Report", "Report");
+            btnReport.setTooltiptext(btnReport.getTooltiptext()+ "    Alt+R");
         }
         btnArchive = createButton("Archive", "Archive", "Archive");
         btnPrint = createButton("Print", "Print", "Print");
@@ -329,7 +327,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         }
         btnFileImport = createButton("FileImport", "FileImport", "FileImport");
         btnCSVImport = createButton("CSVImport", "CSVImport", "CSVImport");
-
+        
         btnShowMore = createButton("ShowMore", "ShowMore", "ShowMore");
         btnShowMore.setDisabled(true);
         btnShowMore.setVisible(false);
@@ -388,27 +386,27 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         				ToolbarCustomButton toolbarCustomBtn = new ToolbarCustomButton(button, btn, actionId, windowNo);
         				toolbarCustomButtons.add(toolbarCustomBtn);
 
-        				if (ClientInfo.isMobile() && button.isShowMore())
+        				if (ClientInfo.isMobile() && button.isShowMore()) 
         					mobileShowMoreButtons.add(btn);
         				else if (!button.isShowMore()) {
-        				this.appendChild(btn);
-        				action.decorate(btn);
+            				this.appendChild(btn);
+            				action.decorate(btn);        					
         				}
         			}
         		}
         		if (buttons.get(button.getComponentName()) != null) {
-        			if (ClientInfo.isMobile() && button.isShowMore())
+        			if (ClientInfo.isMobile() && button.isShowMore()) 
     					mobileShowMoreButtons.add(buttons.get(button.getComponentName()));
     				else if (button.isShowMore())
         				overflows.add(buttons.get(button.getComponentName()));
         			else {
-        				this.appendChild(buttons.get(button.getComponentName()));
-        				if (button.isAddSeparator()) {
-        					this.appendChild(new Separator("vertical"));
-        				}
+            			this.appendChild(buttons.get(button.getComponentName()));
+            			if (button.isAddSeparator()) {
+            				this.appendChild(new Separator("vertical"));
+            			}
         			}
         		} else if (button.isSearchQueryComponent())
-    		        this.appendChild(fQueryName);
+    		        this.appendChild(fQueryName); 
         	}
         }
         if (!ClientInfo.isMobile() && overflows.size() > 0) {
@@ -417,7 +415,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 
     	configureKeyMap();
 
-    	ZKUpdateUtil.setWidth(this, "100%");
+        ZKUpdateUtil.setWidth(this, "100%");
     }
 
 	/**
@@ -432,9 +430,9 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     	ToolBarButton btn = new ToolBarButton("");
         btn.setName(BTNPREFIX+name);
         btn.setId(btn.getName());
-        if (image != null)
+        if (image != null) 
         {
-        	if (ThemeManager.isUseFontIconForImage())
+        	if (ThemeManager.isUseFontIconForImage()) 
         	{
         		String iconSclass = "z-icon-" + image;
         		btn.setIconSclass(iconSclass);
@@ -442,14 +440,14 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         	}
         	else
         	{
-        		Executions.createComponents(ThemeManager.getPreference(), this, null);
+	        	Executions.createComponents(ThemeManager.getPreference(), this, null);
 	        	String size = Env.getContext(Env.getCtx(), ITheme.ZK_TOOLBAR_BUTTON_SIZE);
-        		String suffix = "24.png";
-        		if (!Util.isEmpty(size))
-        		{
-        			suffix = size + ".png";
-        		}
-        		btn.setImage(ThemeManager.getThemeResource("images/"+image + suffix));
+	        	String suffix = "24.png";
+	        	if (!Util.isEmpty(size)) 
+	        	{
+	        		suffix = size + ".png";
+	        	}
+	        	btn.setImage(ThemeManager.getThemeResource("images/"+image + suffix));
         	}
         }
         String tooltipText = Msg.getMsg(Env.getCtx(),tooltip,false);
@@ -457,7 +455,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         	tooltipText = Msg.getMsg(Env.getCtx(),tooltip,true);
         btn.setTooltiptext(tooltipText);
         LayoutUtils.addSclass("toolbar-button", btn);
-
+        
         buttons.put(name, btn);
         //make toolbar button last to receive focus
         btn.setTabindex(0);
@@ -466,7 +464,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 
         return btn;
     }
-
+    
     /**
      * Get ToolBarButton by name
      * @param name
@@ -476,7 +474,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
     	return buttons.get(name);
     }
-
+    
     /**
      * Get ToolBarButton by name
      * @param name
@@ -520,6 +518,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
      */
     private void configureKeyMap()
     {
+    	//Alt + Key
 		altKeyMap.put(VK_H, btnHelp);
 		altKeyMap.put(VK_N, btnNew);
 		altKeyMap.put(VK_D, btnDelete);
@@ -533,7 +532,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		altKeyMap.put(VK_F, btnFind);
 		altKeyMap.put(VK_Z, btnIgnore);
 		if (btnReport != null)
-			altKeyMap.put(VK_R, btnReport);
+			altKeyMap.put(VK_R, btnReport);		
 		altKeyMap.put(VK_P, btnPrint);
 		altKeyMap.put(VK_O, btnProcess);
 		altKeyMap.put(VK_L, btnCustomize);
@@ -586,15 +585,15 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
             }
         } else if (eventName.equals(Events.ON_CTRL_KEY))
         {
-        	KeyEvent keyEvent = (KeyEvent) event;
+			KeyEvent keyEvent = (KeyEvent) event;
 
 			// If Quick form is opened then prevent toolbar shortcut key events.
 			if (!(keyEvent.getKeyCode() == KeyEvent.F2) && windowContent != null && windowContent.getOpenQuickFormTabs().size() > 0)
 				return;
 
 		if (LayoutUtils.isReallyVisible(this))
-	        	this.onCtrlKeyEvent(keyEvent);
-        } else if (Events.ON_SELECT.equals(eventName))
+			this.onCtrlKeyEvent(keyEvent);
+        } else if (Events.ON_SELECT.equals(eventName)) 
         {
         	int index = fQueryName.getSelectedIndex();
         	if (index < 0) return;
@@ -607,7 +606,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         	else
 				setSelectedUserQuery(userQueries[index-1]);
 
-			doOnClick(event);
+        	doOnClick(event);
         }
         else if(IDesktop.ON_CLOSE_WINDOW_SHORTCUT_EVENT.equals(eventName)) {
         	IDesktop desktop = SessionManager.getAppDesktop();
@@ -615,11 +614,11 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
         		desktop.closeWindow(windowNo);
         	else
         		desktop.setCloseTabWithShortcut(true);
-    	}
+        }
     }
 
     /**
-     * Handle ON_Click event for button.
+     * Handle ON_Click event for button.<br/>
      * Call register {@link ToolbarListener}.
      * @param event
      */
@@ -630,7 +629,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		if (event.getTarget() == fQueryName) {
 			methodName = "onSearchQuery";
 		} else {
-		ToolBarButton cComponent = (ToolBarButton) event.getTarget();
+			ToolBarButton cComponent = (ToolBarButton) event.getTarget();
 			compName = cComponent.getName();
 			methodName = "on" + compName.substring(3);
 		}
@@ -706,6 +705,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     }
 
     /**
+     * Is save button enable
      * @return true if Save button is enable
      */
     public boolean isSaveEnable() {
@@ -718,18 +718,20 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
      */
     public void enableDelete(boolean enabled)
     {
-        this.btnDelete.setDisabled(!enabled);
+        this.btnDelete.setDisabled(!enabled);        
     }
-
+    
     /**
+     * Is delete button enable
      * @return true if Delete button is enable
      */
     public boolean isDeleteEnable()
     {
     	return !btnDelete.isDisabled();
     }
-
+    
     /**
+     * Is create new record button enable
      * @return true if New button is enable
      */
 	public boolean isNewEnabled() {
@@ -798,7 +800,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     public void enableReport(boolean enabled)
     {
 		if (btnReport != null)
-    		this.btnReport.setDisabled(!enabled);
+			this.btnReport.setDisabled(!enabled);
     }
 
     /**
@@ -827,7 +829,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
     	btnCustomize.setDisabled(true);//JPIERE-0014
     }
-
+    
     /**
      * Enable/disable Archive button
      * @param enabled
@@ -836,7 +838,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
     	btnArchive.setDisabled(!enabled);
     }
-
+    
     /**
      * Enable/disable Zoom Across button
      * @param enabled
@@ -845,7 +847,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
     	btnZoomAcross.setDisabled(!enabled);
     }
-
+    
     /**
      * Enable/disable Active Workflows button
      * @param enabled
@@ -854,7 +856,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
     	btnActiveWorkflows.setDisabled(!enabled);
     }
-
+    
     /**
      * Enable/disable Requests button
      * @param enabled
@@ -863,7 +865,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
     	btnRequests.setDisabled(!enabled);
     }
-
+    
     /**
      * Enable/disable Quick Form button
      * @param enabled
@@ -871,7 +873,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	public void enableQuickForm(boolean enabled)
 	{
 		btnQuickForm.setDisabled(!enabled);
-    }
+	}
 
 	/**
      * Turn on/off Lock button (Pressed=On, Not Pressed=Off)
@@ -890,15 +892,15 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
       	else
       	{
       		String size = Env.getContext(Env.getCtx(), ITheme.ZK_TOOLBAR_BUTTON_SIZE);
-  			String suffix = "24.png";
-  			if (!Util.isEmpty(size))
-  			{
-  				suffix = size + ".png";
-  			}
-  			String imgURL = "images/"+ (this.btnLock.isPressed() ? "LockX" : "Lock") + suffix;
-    		imgURL = ThemeManager.getThemeResource(imgURL);
-			this.btnLock.setImage(imgURL);
-    	}
+      		String suffix = "24.png";
+      		if (!Util.isEmpty(size))
+      		{
+      			suffix = size + ".png";
+      		}
+      		String imgURL = "images/"+ (this.btnLock.isPressed() ? "LockX" : "Lock") + suffix;
+        	imgURL = ThemeManager.getThemeResource(imgURL);
+    		this.btnLock.setImage(imgURL);
+      	}
     }
 
     /**
@@ -909,7 +911,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     {
         this.btnPostIt.setDisabled(!enabled);
     }
-
+    
     /**
      * Enable/disable Label record button
      * @param enabled
@@ -920,6 +922,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     }
 
     /**
+     * Get source event
      * @return ON_Click event that's being handle
      */
     public Event getEvent()
@@ -969,7 +972,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 			}
 			else
 			{
-			btn = ctrlKeyMap.get(keyEvent.getKeyCode());
+				btn = ctrlKeyMap.get(keyEvent.getKeyCode());
 			}
 		}
 		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
@@ -1070,6 +1073,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	private boolean ToolBarMenuRestictionLoaded = false;
 	
 	/**
+	 * Is current login user has access to buttonName
 	 * @param buttonName
 	 * @return true if current login user has access to buttonName
 	 */
@@ -1091,21 +1095,21 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		
 		return true;
 	}
-	
+
 	/**
 	 * Initialise the accessibility state of toolbar buttons 
 	 */
 	public void updateToolbarAccess() {
 		if (ToolBarMenuRestictionLoaded)
 			return;
-
+		
 		JPiereADWindow adwindow = JPiereADWindow.findADWindow(this);
 
 		dynamicDisplay();
 		// If no workflow set for the table => disable btnWorkflow
 		if (!btnActiveWorkflows.isDisabled()) {
 			GridTab gridTab = adwindow.getJPiereADWindowContent().getActiveGridTab();
-			if (gridTab != null){
+			if (gridTab != null) {
 				btnActiveWorkflows.setDisabled(!hasWorkflow(gridTab));
 			}
 		}
@@ -1126,7 +1130,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	/**
      * Enable/disable Process button
 	 * @param b boolean
-     */
+	 */
 	public void enableProcessButton(boolean b) {
 		if (btnProcess != null) {
 			btnProcess.setDisabled(!b);
@@ -1134,7 +1138,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	}
 
 	/**
-	 * Dynamic update of each toolbar button state (Check restrictions).
+	 * Dynamic update of each toolbar button state (Check restrictions).<br/>
 	 * For custom button, call {@link ToolbarCustomButton#dynamicDisplay()}, process pressedLogic and readOnlyLogic.
 	 */
 	public void dynamicDisplay() {
@@ -1150,7 +1154,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		if (gridTab != null) {
 			int AD_Tab_ID = gridTab.getAD_Tab_ID();
 			List<String> restrictionList = adwindow.getTabToolbarRestrictList(AD_Tab_ID);
-
+			
 			for (Component p = this.getFirstChild(); p != null; p = p.getNextSibling()) {
 				if (p instanceof ToolBarButton) {
 					if (!customButtons.contains(p) && !p.isVisible())
@@ -1159,7 +1163,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 					p.setVisible(true);
 				}
 			}
-
+			
 			for (String restrictName : restrictionList)
 			{
 				for (Component p = this.getFirstChild(); p != null; p = p.getNextSibling()) {
@@ -1171,9 +1175,9 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 					} else if (p instanceof Combobox) {
 						if (restrictName.equals(((Combobox) p).getId())) {
 							p.setVisible(false);
-								break;
-							}
+							break;
 						}
+					}
 				}
 
 			}
@@ -1197,7 +1201,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		pressedLogic();
 		readOnlyLogic();
 	}
-
+	
 	/**
 	 * Call {@link ToolbarCustomButton#pressedLogic()}
 	 */
@@ -1237,44 +1241,44 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 			addEventListener(IDesktop.ON_CLOSE_WINDOW_SHORTCUT_EVENT, this);
 		}
 	}
-
+	
 	/**
 	 * Init for mobile client only.
 	 */
-	private void mobileInit() {
+	private void mobileInit() {	
 		LayoutUtils.addSclass("mobile", this);
 		addEventListener("onOverflowButton", evt -> onOverflowButton(evt));
-		this.setWidgetOverride("toolbarScrollable", "function (wgt) {\n" +
+		this.setWidgetOverride("toolbarScrollable", "function (wgt) {\n" + 
 				"	let total = jq(wgt.$n()).width();\n" + 
 				"	let w = wgt.firstChild;\n" + 
 				"	let a = " + !mobileShowMoreButtons.isEmpty() + ";\n" + 
-				"\n" +
-				"	// make sure all images are loaded.\n" +
-				"	if (zUtl.isImageLoading()) {\n" +
+				"\n" + 
+				"	// make sure all images are loaded.\n" + 
+				"	if (zUtl.isImageLoading()) {\n" + 
 				"		let f = arguments.callee;\n" + 
-				"		setTimeout(function () {\n" +
-				"			return f(wgt);\n" +
-				"		}, 20);\n" +
-				"		return;\n" +
-				"	}\n" +
-				"	for (; w; w = w.nextSibling) {\n" +
+				"		setTimeout(function () {\n" + 
+				"			return f(wgt);\n" + 
+				"		}, 20);\n" + 
+				"		return;\n" + 
+				"	}\n" + 
+				"	for (; w; w = w.nextSibling) {\n" + 
 				"		let ow = jq(w.$n()).outerWidth(true);\n" +
-				"		if (typeof ow != 'undefined') {total -= ow;}\n" +
-				"		if (total < 0 && w.className == 'zul.wgt.Toolbarbutton') {\n" +
-				"			break;\n" +
-				"		}\n" +
-				"	}\n" +
-				"	if (w && total < 0) {\n" +
+				"		if (typeof ow != 'undefined') {total -= ow;}\n" + 
+				"		if (total < 0 && w.className == 'zul.wgt.Toolbarbutton') {\n" + 
+				"			break;\n" + 
+				"		}\n" + 
+				"	}\n" + 
+				"	if (w && total < 0) {\n" + 
 				"       let event = new zk.Event(wgt, 'onOverflowButton', w.uuid, {toServer: true}); \n" +
 				"       zAu.send(event); \n" +
 				"	}\n" +
-				"	else if (a) {\n" +
+				"	else if (a) {\n" + 
 				"       let event = new zk.Event(wgt, 'onOverflowButton', null, {toServer: true}); \n" +
 				"       zAu.send(event); \n" +
 				"	}\n" +
 				"}");
 		addEventListener(Events.ON_AFTER_SIZE, (AfterSizeEvent evt) -> onAfterSize(evt));
-
+		
 		addCallback(AFTER_PAGE_ATTACHED, t -> afterPageAttached());
 	}
 
@@ -1344,7 +1348,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	}
 
 	/**
-	 * Populate overflow popup.
+	 * Populate overflow popup.<br/>
 	 * Use for both desktop and mobile client.
 	 */
 	private void populateOverflowPopup() {
@@ -1368,13 +1372,13 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 				String msg = Msg.getMsg(Env.getCtx(), msgValue);
 				btn.setLabel(msg);
 				btn.setHflex("1");
-				}
+			}
 		} else {
 			for(ToolBarButton btn : overflows) {
 				overflowPopup.appendChild(btn);
 			}
-				}
-
+		}
+		
 		if (!vertical) {
 			int cnt = 0;
 			for(Component c : getChildren()) {
@@ -1394,20 +1398,20 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	}
 
 	/**
-	 * Enable show more feature for desktop client.
+	 * Enable show more feature for desktop client.<br/>
 	 * Overflow for mobile client is initialise differently in {@link #mobileInit()}.
 	 */
 	private void enableShowMore() {
 		this.appendChild(btnShowMore);
         btnShowMore.setDisabled(false);
-        btnShowMore.setVisible(true);
+        btnShowMore.setVisible(true);                
 		newOverflowPopup();
 		appendChild(overflowPopup);
 		populateOverflowPopup();
 	}
 
 	/**
-	 * Show overflow popup after {@link #btnShowMore}.
+	 * Show overflow popup after {@link #btnShowMore}.<br/>
 	 * For desktop client only.
 	 */
 	private void onShowMore() {
@@ -1419,7 +1423,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		}
 		overflowPopup.open(btnShowMore, "after_end");
 	}
-
+	
 	/**
 	 * Create show more button for mobile client
 	 */
@@ -1443,7 +1447,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	}
 
 	/**
-	 * Create overflow popup. 
+	 * Create overflow popup. <br/>
 	 * For both desktop and mobile client.
 	 */
 	private void newOverflowPopup() {
@@ -1460,9 +1464,9 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 			}
 		});
 	}
-
+	
 	/**
-	 * Post after size event handler for mobile client.
+	 * Post after size event handler for mobile client.<br/>
 	 * Calculate which toolbar buttons should overflow to show more popup.
 	 */
 	public void onPostAfterSize() {
@@ -1472,7 +1476,7 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 			Clients.evalJavaScript(script);
 		}
 	}
-
+	
 	/**
 	 * Set button to pressed/not pressed state
 	 * @param buttonName
@@ -1484,28 +1488,30 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
     }
 
 	/**
+	 * Get parent tab level for quick form
 	 * @return parent tab level for quick form
 	 */
 	public int getQuickFormTabHrchyLevel()
 	{
 		return quickFormTabHrchyLevel;
-    	}
+	}
 
 	/**
+	 * Set parent tab level for quick form
 	 * @param quickFormHrchyTabLevel
 	 */
 	public void setQuickFormTabHrchyLevel(int quickFormHrchyTabLevel)
 	{
 		this.quickFormTabHrchyLevel = quickFormHrchyTabLevel;
-    }
-
+	}
+    
 	/**
 	 * Reload user queries and set selected item to AD_UserQuery_ID
 	 * @param AD_Tab_ID
 	 * @param AD_UserQuery_ID
 	 */
     public void refreshUserQuery(int AD_Tab_ID, int AD_UserQuery_ID) {
-        if (AEnv.getOrSetExecutionAttribute(getClass().getName()+".refreshUserQuery")) {
+    	if (AEnv.getOrSetExecutionAttribute(getClass().getName()+".refreshUserQuery")) {
     		return;
     	}
     	
@@ -1522,11 +1528,11 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 	       	}
         }
         fQueryName.appendItem(m_sNew, 0);
-        if (AD_UserQuery_ID <= 0 || fQueryName.getItemCount() <= 1
+        if (AD_UserQuery_ID <= 0 || fQueryName.getItemCount() <= 1 
         		|| fQueryName.getSelectedItem() == null)
         	fQueryName.setSelectedIndex(0);
     }
-
+    
     /**
      * Set selected user query
      * @param AD_UserQuery_ID
@@ -1536,10 +1542,10 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 			if (AD_UserQuery_ID == userQuery.getAD_UserQuery_ID()) {
 				selectedUserQuery = userQuery;
 				break;
-        	}
-    	}
+			}
+		}
 	}
-
+	
 	/**
 	 * Set selected user query
 	 * @param selectedUserQuery
@@ -1567,9 +1573,9 @@ public class JPiereADWindowToolbar extends ToolBar implements EventListener<Even
 		if(userQueries != null) {
 	        for (int i = 0; i < userQueries.length; i++) {
 	        	if(userQueries[i].isDefault()) {
-		       		fQueryName.setSelectedIndex(i);
+		       		fQueryName.setSelectedIndex(i);		       		
 		       		setSelectedUserQuery(userQueries[i]);
-		       		return true;
+		       		return true;		       		
 	        	}
 	        }
 		}

@@ -103,7 +103,7 @@ public class JPiereReportAction implements EventListener<Event>
 	private Checkbox chkCurrentRowOnly = new Checkbox();
 	private Checkbox chkExport = new Checkbox();
 	private Checkbox chkAllColumns = new Checkbox();
-
+	
 	private List<KeyNamePair>	printFormatList = new ArrayList<KeyNamePair>();
 
 	/**
@@ -111,14 +111,14 @@ public class JPiereReportAction implements EventListener<Event>
 	 */
 	public JPiereReportAction(JPiereAbstractADWindowContent panel)
 	{
-		this.panel = panel;
+		this.panel = panel;		
 		getPrintFormats(panel.getActiveGridTab().getAD_Table_ID(), panel.getActiveGridTab().getAD_Window_ID());
 	}
-
+	
 	/**
 	 * Show report (print format) selection popup
 	 */
-	public void show()
+	public void show() 
 	{
 		int AD_Table_ID=panel.getActiveGridTab().getAD_Table_ID();
 		final boolean isCanExport=MRole.getDefault().isCanExport(AD_Table_ID);
@@ -131,16 +131,16 @@ public class JPiereReportAction implements EventListener<Event>
 			winReport.setStyle("position:absolute");
 			winReport.addEventListener("onValidate", this);
 			winReport.addCallback(Window.AFTER_PAGE_DETACHED, t -> panel.focusToLastFocusEditor());
-
+			
 			cboPrintFormat.setMold("select");
 			cboPrintFormat.getItems().clear();
 			for (KeyNamePair printFormat : printFormatList)
 				cboPrintFormat.appendItem(printFormat.getName(), printFormat.getKey());
 			if (cboPrintFormat.getItemCount() > 0)
 				cboPrintFormat.setSelectedIndex(0);
-
+			
 			cboExportType.setMold("select");
-			cboExportType.getItems().clear();
+			cboExportType.getItems().clear();			
 			cboExportType.appendItem("ps" + " - " + Msg.getMsg(Env.getCtx(), "FilePS"), "ps");
 			cboExportType.appendItem("xml" + " - " + Msg.getMsg(Env.getCtx(), "FileXML"), "xml");
 			cboExportType.appendItem("pdf" + " - " + Msg.getMsg(Env.getCtx(), "FilePDF"), "pdf");
@@ -152,16 +152,16 @@ public class JPiereReportAction implements EventListener<Event>
 			ListItem li = cboExportType.appendItem("xls" + " - " + Msg.getMsg(Env.getCtx(), "FileXLS"), "xls");
 			cboExportType.setSelectedItem(li);
 			cboExportType.setVisible(false);
-
+			
 			chkCurrentRowOnly.setLabel(Msg.getMsg(Env.getCtx(), "CurrentRowOnly"));
 			chkCurrentRowOnly.setSelected(false);
-
+			
 			if( isCanExport )
 			{
 				chkExport.setLabel(Msg.getMsg(Env.getCtx(), "Export"));
 				chkExport.setSelected(false);
 		    }
-
+			
 			chkAllColumns.setLabel(Msg.getMsg(Env.getCtx(), "AllColumns"));
 			chkAllColumns.setSelected(false);
 			li = cboPrintFormat.getSelectedItem();
@@ -178,11 +178,11 @@ public class JPiereReportAction implements EventListener<Event>
 			winReport.appendChild(vb);
 			winReport.setSclass("toolbar-popup-window");
 			vb.setSclass("toolbar-popup-window-cnt");
-
+			
 			Grid grid = GridFactory.newGridLayout();
 			ZkCssHelper.appendStyle(grid, "flex-grow: 1;");
 			vb.appendChild(grid);
-
+	        
 	        Columns columns = new Columns();
 	        Column column = new Column();
 	        column.setWidth("25%");
@@ -191,17 +191,17 @@ public class JPiereReportAction implements EventListener<Event>
 	        column.setWidth("75%");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
-
+	        
 	        Rows rows = new Rows();
 			grid.appendChild(rows);
-
+			
 			Row row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.translate(Env.getCtx(), "AD_PrintFormat_ID")));
 			row.appendChild(cboPrintFormat);
 			cboPrintFormat.setWidth("100%");
 			cboPrintFormat.addEventListener(Events.ON_SELECT, this);
-
+			
 			row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Space());
@@ -217,13 +217,13 @@ public class JPiereReportAction implements EventListener<Event>
 				panel.appendChild(cboExportType);
 				ZKUpdateUtil.setHflex(cboExportType, "1");
 				ZKUpdateUtil.setHflex(panel, "1");
-
+				
 				row = new Row();
 				rows.appendChild(row);
 				row.appendChild(new Space());
 				row.appendChild(panel);
 			}
-
+			
 			row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Space());
@@ -242,7 +242,7 @@ public class JPiereReportAction implements EventListener<Event>
 		LayoutUtils.openPopupWindow(toolbarItem, winReport, "after_start");
 		winReport.setFocus(true);
 	}
-
+	
 	@Override
 	public void onEvent(Event event) throws Exception {
 		if(event.getTarget().getId().equals(ConfirmPanel.A_CANCEL))
@@ -272,7 +272,7 @@ public class JPiereReportAction implements EventListener<Event>
 			}
 		}
 	}
-
+	
 	private void validate()
 	{
 		ListItem li = cboPrintFormat.getSelectedItem();
@@ -281,10 +281,10 @@ public class JPiereReportAction implements EventListener<Event>
 			Dialog.error(0, "PrintFormatMandatory");
 			return;
 		}
-
+		
 		int AD_PrintFormat_ID = Integer.valueOf(li.getValue().toString());
-
-		boolean export = chkExport.isChecked();
+		
+		boolean export = chkExport.isChecked();		
 		if (export)
 		{
 			li = cboExportType.getSelectedItem();
@@ -293,7 +293,7 @@ public class JPiereReportAction implements EventListener<Event>
 				Dialog.error(0, "ExportFileTypeMandatory");
 				return;
 			}
-		}
+		}		
 
 		GridTab gridTab = panel.getActiveGridTab();
 
@@ -304,7 +304,7 @@ public class JPiereReportAction implements EventListener<Event>
 			pf = MPrintFormat.createFromGridLayout(Env.getCtx(), gridTab, allColumns);
 		else
 			pf = MPrintFormat.get (Env.getCtx(), AD_PrintFormat_ID, true);
-
+		
 		//	Query
 		boolean currentRowOnly = chkCurrentRowOnly.isChecked();
 		int Record_ID = 0;
@@ -373,25 +373,26 @@ public class JPiereReportAction implements EventListener<Event>
 
 		PrintInfo info = new PrintInfo(pf.getName(), pf.getAD_Table_ID(), Record_ID, Record_UU);
 		info.setDescription(query.getInfo());
-
+		
 		if(pf != null && pf.getJasperProcess_ID() > 0)
-		{
+		{			
 			// It's a report using the JasperReports engine
 			ProcessInfo pi = new ProcessInfo ("", pf.getJasperProcess_ID(), pf.getAD_Table_ID(), Record_ID, Record_UU);
 			pi.setRecord_IDs(jasperRecordIDs);
 			pi.setRecord_UUs(jasperRecordUUs);
 			//pi.setIsBatch(true);
-
+			pi.setTransientObject(pf);
+			
 			if (export)
 			{
 				li = cboExportType.getSelectedItem();
 				String ext = li.getValue().toString();
-				pi.setExportFileExtension(ext);
+				pi.setExportFileExtension(ext);				
 				pi.setExport(true);
-
+				
 				winReport.onClose();
 				ServerProcessCtl.process(pi, null);
-
+				
 				try
 				{
 					File exportFile = pi.getExportFile();
@@ -414,23 +415,23 @@ public class JPiereReportAction implements EventListener<Event>
 			// It's a default report using the standard printing engine
 			ReportEngine re = new ReportEngine (Env.getCtx(), pf, query, info, null, gridTab.getWindowNo());
 			re.setWhereExtended(gridTab.getWhereExtended());
-
+			
 			if (export)
 				export(re);
 			else
-				print(re);
+				print(re);	
 		}
 	}
-
+	
 	private void print(ReportEngine re)
 	{
-		winReport.onClose();
+		winReport.onClose();		
 		ReportCtl.preview(re);
 		Tabpanel tabPanel = (Tabpanel) panel.getComponent().getParent();
 		tabPanel.getLinkedTab().setSelected(true);
 	}
-
-	private void export(ReportEngine re)
+	
+	private void export(ReportEngine re) 
 	{
 		try
 		{
@@ -440,12 +441,12 @@ public class JPiereReportAction implements EventListener<Event>
 				Dialog.error(0, "FileInvalidExtension");
 				return;
 			}
-
+			
 			String ext = li.getValue().toString();
-
+			
 			byte[] data = null;
 			File inputFile = null;
-
+									
 			if (ext.equals("pdf"))
 			{
 				data = re.createPDFData();
@@ -458,42 +459,42 @@ public class JPiereReportAction implements EventListener<Event>
 			}
 			else if (ext.equals("xml"))
 			{
-				StringWriter sw = new StringWriter();
+				StringWriter sw = new StringWriter();							
 				re.createXML(sw);
 				data = sw.getBuffer().toString().getBytes();
 			}
 			else if (ext.equals("csv"))
 			{
-				StringWriter sw = new StringWriter();
+				StringWriter sw = new StringWriter();							
 				re.createCSV(sw, ',', re.getPrintFormat().getLanguage());
 				data = sw.getBuffer().toString().getBytes();
 			}
 			else if (ext.equals("ssv"))
 			{
-				StringWriter sw = new StringWriter();
+				StringWriter sw = new StringWriter();							
 				re.createCSV(sw, ';', re.getPrintFormat().getLanguage());
 				data = sw.getBuffer().toString().getBytes();
 			}
 			else if (ext.equals("txt"))
 			{
-				StringWriter sw = new StringWriter();
+				StringWriter sw = new StringWriter();							
 				re.createCSV(sw, '\t', re.getPrintFormat().getLanguage());
-				data = sw.getBuffer().toString().getBytes();
+				data = sw.getBuffer().toString().getBytes();							
 			}
 			else if (ext.equals("html") || ext.equals("htm"))
 			{
-				StringWriter sw = new StringWriter();
+				StringWriter sw = new StringWriter();							
 				re.createHTML(sw, false, re.getPrintFormat().getLanguage());
-				data = sw.getBuffer().toString().getBytes();
+				data = sw.getBuffer().toString().getBytes();	
 			}
 			else if (ext.equals("xls"))
 			{
-				inputFile = File.createTempFile("Export", ".xls");
+				inputFile = File.createTempFile("Export", ".xls");							
 				re.createXLS(inputFile, re.getPrintFormat().getLanguage());
 			}
 			else if (ext.equals("xlsx"))
 			{
-				inputFile = File.createTempFile("Export", ".xlsx");
+				inputFile = File.createTempFile("Export", ".xlsx");							
 				re.createXLSX(inputFile, re.getPrintFormat().getLanguage());
 			}
 			else
@@ -515,12 +516,12 @@ public class JPiereReportAction implements EventListener<Event>
 			log.log(Level.SEVERE, "Failed to export content.", e);
 		}
 	}
-
+	
 	private void getPrintFormats(int AD_Table_ID, int AD_Window_ID)
 	{
 		printFormatList.clear();
-
-		printFormatList = MPrintFormat.getAccessiblePrintFormats(AD_Table_ID, AD_Window_ID, null, false);
+		
+		printFormatList = MPrintFormat.getAccessiblePrintFormats(AD_Table_ID, AD_Window_ID, null, false);		
 
 		int pfAD_Window_ID = MPrintFormat.getZoomWindowID(-1);
 		if (MRole.getDefault().isTableAccess(MPrintFormat.Table_ID, false) && Boolean.TRUE.equals(MRole.getDefault().getWindowAccess(pfAD_Window_ID)))
