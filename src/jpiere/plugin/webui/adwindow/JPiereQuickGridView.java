@@ -28,7 +28,7 @@ import org.adempiere.model.MTabCustomization;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
-import org.adempiere.webui.apps.form.IQuickForm;
+//import org.adempiere.webui.apps.form.IQuickForm; //JPIERE
 import org.adempiere.webui.adwindow.ADWindowToolbar;
 import org.adempiere.webui.adwindow.GridTabRowRenderer;
 import org.adempiere.webui.adwindow.GridTableListModel;
@@ -1625,7 +1625,7 @@ public class JPiereQuickGridView extends Vbox
 	public void onPageDetached(Page page)
 	{
 		super.onPageDetached(page);
-		keyListener.setCtrlKeys(keyListener.getCtrlKeys().replaceAll(CNTRL_KEYS, ""));
+		keyListener.setCtrlKeys(keyListener.getCtrlKeys().replace(CNTRL_KEYS, ""));
 		keyListener.removeEventListener(Events.ON_CTRL_KEY, this);
 	}
 

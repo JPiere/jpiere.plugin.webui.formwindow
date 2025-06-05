@@ -90,8 +90,6 @@ import org.zkoss.zul.Vlayout;
  * Action to import data from uploaded file to GridTab
  * @author Carlos Ruiz
  *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 @SuppressWarnings("unused")
 public class JPiereFileImportAction implements EventListener<Event>
@@ -112,7 +110,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 	private InputStream m_file_istream = null;
 	/* SysConfig USE_ESC_FOR_TAB_CLOSING */
 	private boolean isUseEscForTabClosing = MSysConfig.getBooleanValue(MSysConfig.USE_ESC_FOR_TAB_CLOSING, false, Env.getAD_Client_ID(Env.getCtx()));
-
+	
 	/**
 	 * @param panel
 	 */
@@ -135,7 +133,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 		{
 			ListItem listitem = fCharset.getItemAtIndex(i);
 			Charset compare = (Charset)listitem.getValue();
-
+			
 			if (charset == compare)
 			{
 				fCharset.setSelectedIndex(i);
@@ -148,7 +146,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 		MLookupInfo lookupInfo = MLookupFactory.getLookup_List(Env.getLanguage(Env.getCtx()), REFERENCE_IMPORT_MODE);
 		MLookup lookup = new MLookup(lookupInfo, 0);
 		fImportMode = new WTableDirEditor("ImportMode",true,false,true,lookup);
-
+		
 		importerMap = new HashMap<String, IGridTabImporter>();
 		extensionMap = new HashMap<String, String>();
 		List<IGridTabImporter> importerList = EquinoxExtensionLocator.instance().list(IGridTabImporter.class).getExtensions();
@@ -190,10 +188,10 @@ public class JPiereFileImportAction implements EventListener<Event>
 			Vlayout vlayout = new Vlayout();
 			vlayout.setSclass("dialog-content");
 			vb.appendChild(vlayout);
-
+			
 			Grid grid = GridFactory.newGridLayout();
 			vlayout.appendChild(grid);
-
+	        
 	        Columns columns = new Columns();
 	        Column column = new Column();
 	        ZKUpdateUtil.setHflex(column, "min");
@@ -202,16 +200,16 @@ public class JPiereFileImportAction implements EventListener<Event>
 	        ZKUpdateUtil.setHflex(column, "1");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
-
+	        
 			Rows rows = new Rows();
 			grid.appendChild(rows);
-
+			
 			Row row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "FilesOfType", true)));
 			row.appendChild(cboType);
 			ZKUpdateUtil.setHflex(cboType, "1");
-
+			
 			row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "Charset", true) + ": "));
@@ -225,7 +223,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "import.mode", true)));
 			row.appendChild(fImportMode.getComponent());
-
+			
 			row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Space());
@@ -241,7 +239,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			confirmPanel.addActionListener(this);
 			winImportFile.addEventListener(Events.ON_CANCEL, e -> onCancel());
 		}
-
+		
 		panel.getComponent().getParent().appendChild(winImportFile);
 		panel.showBusyMask(winImportFile);
 		LayoutUtils.openOverlappedWindow(panel.getComponent(), winImportFile, "middle_center");
@@ -251,7 +249,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 
 	@Override
 	public void onEvent(Event event) throws Exception {
-		if (event instanceof UploadEvent)
+		if (event instanceof UploadEvent) 
 		{
 			UploadEvent ue = (UploadEvent) event;
 			processUploadMedia(ue.getMedia());
@@ -302,10 +300,10 @@ public class JPiereFileImportAction implements EventListener<Event>
 				m_file_istream = new ReaderInputStream(media.getReaderData(), charset.name());
 			}
 		}
-
+		
 		bFile.setLabel(media.getName());
 	}
-
+	
 	/**
 	 * Import uploaded file
 	 */
@@ -359,7 +357,7 @@ public class JPiereFileImportAction implements EventListener<Event>
 			if (listitem == null)
 				return;
 			charset = (Charset)listitem.getValue();
-
+			
 			String iMode = (String) fImportMode.getValue();
 			File outFile = importer.fileImport(panel.getActiveGridTab(), childs, m_file_istream, charset,iMode);
 			winImportFile.onClose();

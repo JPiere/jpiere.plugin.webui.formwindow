@@ -65,9 +65,6 @@ import org.zkoss.zul.Vlayout;
  * @author <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @author <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
  * @date Feb 25, 2007
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 public class JPiereADWindowContent extends JPiereAbstractADWindowContent
 {
@@ -132,6 +129,11 @@ public class JPiereADWindowContent extends JPiereAbstractADWindowContent
         ZKUpdateUtil.setHflex(contentArea, "1");
         contentArea.setStyle("overflow: auto;");
         adTabbox.createPart(contentArea);
+        
+        if (parent instanceof Tabpanel) {
+        	TabOnCloseHanlder handler = new TabOnCloseHanlder();
+        	((Tabpanel)parent).setOnCloseHandler(handler);
+        }
 
         //JPIERE-0014:Form window can not set TabOnCloseHanlder this timing.
         //Because, Tabpanel do not create yet. see TabbledDesktop#openForm().

@@ -85,9 +85,6 @@ import org.zkoss.zul.impl.LabelImageElement;
  * Action for Report toolbar button
  * @author Elaine
  * @date September 6, 2012
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 @SuppressWarnings("unused")
 public class JPiereReportAction implements EventListener<Event>

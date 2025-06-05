@@ -105,9 +105,6 @@ import org.zkoss.zul.Toolbar;
  * Implemented as a panel with {@link Tabbox}.
  * 
  * @author hengsin
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 public class JPiereDetailPane extends Panel implements EventListener<Event>, IdSpace {
 
@@ -710,7 +707,7 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 	 * @param status
 	 * @param error
 	 */
-	public void setStatusMessage(String status, boolean error) {
+	public void setStatusMessage(String status, boolean error) {		
 		JPiereIADTabpanel tabPanel = getSelectedADTabpanel();
 		if (tabPanel == null) return;
 		Hbox messageContainer = messageContainers.get(tabPanel.getAttribute("AD_Tab_ID"));

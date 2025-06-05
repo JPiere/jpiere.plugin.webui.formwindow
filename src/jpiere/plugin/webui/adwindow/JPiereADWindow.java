@@ -55,9 +55,6 @@ import org.zkoss.zk.ui.Component;
  * Controller for AD_Window UI
  * @author  <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @date    Feb 25, 2007
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 public class JPiereADWindow extends AbstractUIPart
 {

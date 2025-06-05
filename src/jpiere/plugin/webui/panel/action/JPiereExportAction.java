@@ -90,7 +90,7 @@ public class JPiereExportAction implements EventListener<Event>
 	private Map<String, IGridTabExporter> exporterMap = null;
 	/** Exporter Label:Exporter File Extension */
 	private Map<String, String> extensionMap = null;
-
+	
 	/** Export file dialog */
 	private Window winExportFile = null;
 	private ConfirmPanel confirmPanel = new ConfirmPanel(true);
@@ -163,10 +163,10 @@ public class JPiereExportAction implements EventListener<Event>
 			Vlayout vlayout = new Vlayout();
 			vlayout.setSclass("dialog-content");
 			vb.appendChild(vlayout);
-
+			
 			Grid grid = GridFactory.newGridLayout();
 			vlayout.appendChild(grid);
-
+	        
 	        Columns columns = new Columns();
 	        Column column = new Column();
 	        ZKUpdateUtil.setHflex(column, "min");
@@ -175,16 +175,16 @@ public class JPiereExportAction implements EventListener<Event>
 	        ZKUpdateUtil.setHflex(column, "1");
 	        columns.appendChild(column);
 	        grid.appendChild(columns);
-
+	        
 			Rows rows = new Rows();
 			grid.appendChild(rows);
-
+			
 			Row row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Label(Msg.getMsg(Env.getCtx(), "FilesOfType")));
 			row.appendChild(cboType);
 			ZKUpdateUtil.setHflex(cboType, "1");
-
+			
 			row = new Row();
 			rows.appendChild(row);
 			row.appendChild(new Space());
@@ -195,7 +195,7 @@ public class JPiereExportAction implements EventListener<Event>
 
 			childTabSelectionRow = new Row();
 			rows.appendChild(childTabSelectionRow);
-
+			
 			LayoutUtils.addSclass("dialog-footer", confirmPanel);
 			vb.appendChild(confirmPanel);
 			confirmPanel.addActionListener(this);
@@ -210,20 +210,20 @@ public class JPiereExportAction implements EventListener<Event>
 		winExportFile.focus();
 
 	}
-
+	
 	/**
 	 * Show child tabs for user selection
 	 */
 	protected void displayExportTabSelection() {
 		initTabInfo ();
-
+		
 		int tabLevel = panel.getActiveGridTab().getTabLevel();
 		
 		exporter = getExporter ();
 		if (exporter == null){
-			Events.echoEvent("onExporterException", winExportFile, null);
+			Events.echoEvent("onExporterException", winExportFile, null);	
 		}
-
+		
 		// clear list checkbox selection to recreate with new reporter
 		childTabSelectionRow.getChildren().clear();
 		if (exporter.isExportChildTabsForCurrentRowOnly() && !chkCurrentRow.isChecked())
@@ -233,7 +233,7 @@ public class JPiereExportAction implements EventListener<Event>
 		childTabSelectionRow.appendChild(new Space());
 		childTabSelectionRow.appendChild(vlayout);
 		vlayout.appendChild(new Label(Msg.getMsg(Env.getCtx(), "SelectTabToExport")));
-
+		
 		chkSelectChildTabs = new ArrayList<Checkbox> ();
 		boolean isHasSelectionTab = false;
 		boolean selectAllChildTabs = false;
@@ -263,7 +263,7 @@ public class JPiereExportAction implements EventListener<Event>
 			chkSelectionTab.addEventListener(Events.ON_CHECK, this);
 			isHasSelectionTab = true;
 		}
-
+		
 		// in case no child tab can export. clear selection area
 		if (isHasSelectionTab == false){
 			childTabSelectionRow.getChildren().clear();
@@ -277,16 +277,16 @@ public class JPiereExportAction implements EventListener<Event>
 		else if(event.getTarget().getId().equals(ConfirmPanel.A_OK))
 			exportFile();
 		else if (event.getName().equals(DialogEvents.ON_WINDOW_CLOSE)) {
-			panel.hideBusyMask();
+			panel.hideBusyMask();	
 			panel.focusToLastFocusEditor();
-		}else if (event.getTarget().equals(cboType) && event.getName().equals(Events.ON_SELECT)) {
+		} else if (event.getTarget().equals(cboType) && event.getName().equals(Events.ON_SELECT)) {
 			displayExportTabSelection();
 		} else if (event.getTarget() == chkCurrentRow) {
 			exporter = getExporter();
 			if (exporter != null && exporter.isExportChildTabsForCurrentRowOnly()) {
 				displayExportTabSelection();
 			}
-		}else if (event.getTarget() instanceof Checkbox) {
+		} else if (event.getTarget() instanceof Checkbox) {
 			// A child is not exportable without its parent
 			Checkbox cbSel = (Checkbox) event.getTarget();
 			GridTab gtSel = (GridTab)cbSel.getAttribute("tabBinding");
@@ -306,7 +306,7 @@ public class JPiereExportAction implements EventListener<Event>
 					}
 				}
 			}
-		}else if (event.getName().equals("onExporterException")){
+		} else if (event.getName().equals("onExporterException")){
 			Dialog.error(0, "FileInvalidExtension");
 			winExportFile.onClose();
 		}
@@ -355,11 +355,11 @@ public class JPiereExportAction implements EventListener<Event>
 			tables.add(tableName);
 			childTabs.add(adTabPanel.getGridTab());
 		}
-
+		
 		selectedChildTabIndex = 0;
 		if( adTab.getSelectedDetailADTabpanel()!=null )
 			selectedChildTabIndex = adTab.getSelectedDetailADTabpanel().getGridTab().getTabNo();
-
+		
 	}
 
 	/**
@@ -376,8 +376,8 @@ public class JPiereExportAction implements EventListener<Event>
 		String ext = li.getLabel().toString();
 		IGridTabExporter exporter = exporterMap.get(ext);
 		return exporter;
-	}
-
+	} 
+	
 	/**
 	 * Invoke exporter and prompt user to download exported data file
 	 */
@@ -391,7 +391,7 @@ public class JPiereExportAction implements EventListener<Event>
 					selectedChildTabs.add((GridTab)chkSeletionTab.getAttribute("tabBinding"));
 				}
 			}
-
+			
 			exporter.export(panel.getActiveGridTab(), selectedChildTabs, currentRowOnly, file, selectedChildTabIndex);
 
 			winExportFile.onClose();

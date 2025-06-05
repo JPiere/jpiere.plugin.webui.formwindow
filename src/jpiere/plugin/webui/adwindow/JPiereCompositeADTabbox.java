@@ -82,9 +82,6 @@ import org.zkoss.zul.Vlayout;
  * @author  <a href="mailto:agramdass@gmail.com">Ashley G Ramdass</a>
  * @author <a href="mailto:hengsin@gmail.com">Low Heng Sin</a>
  * @date    Feb 25, 2007
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 {
@@ -110,7 +107,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
     private List<ADTabListModel.ADTabLabel> tabLabelList = new ArrayList<ADTabListModel.ADTabLabel>();
     
 	/** List of all tab panel **/
-    private List<JPiereIADTabpanel> tabPanelList = new ArrayList<JPiereIADTabpanel>();
+    private List<JPiereIADTabpanel> tabPanelList = new ArrayList<JPiereIADTabpanel>();//JPIERE
 
     /** main layout component **/
     private Vlayout layout;
@@ -441,10 +438,10 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 
     @Override
 	protected void doAddTab(GridTab gTab, JPiereIADTabpanel tabPanel) {
-    	ADTabListModel.ADTabLabel tabLabel = new ADTabListModel.ADTabLabel(gTab.getName(), gTab.getTabLevel(),gTab.getDescription(),
-        		gTab.getWindowNo(),gTab.getAD_Tab_ID());
+    	ADTabListModel.ADTabLabel tabLabel = new ADTabListModel.ADTabLabel(gTab.getName(), gTab.getTabLevel(), gTab.getDescription(),
+        		gTab.getWindowNo(), gTab.getAD_Tab_ID());
         tabLabelList.add(tabLabel);
-        tabPanelList.add(tabPanel);
+        tabPanelList.add(tabPanel);//JPIERE
         
         tabPanel.setTabNo(tabPanelList.size()-1);
         
@@ -1080,7 +1077,7 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 	 * @param tabPanel
 	 */
 	private void onActivateDetail(JPiereIADTabpanel tabPanel) {
-		tabPanel.createUI();
+		tabPanel.createUI();			
 		if (headerTab.getGridTab().isNew()) {
 			tabPanel.resetDetailForNewParentRecord();
 		} else {
@@ -1089,8 +1086,8 @@ public class JPiereCompositeADTabbox extends JPiereAbstractADTabbox
 			if (!tabPanel.getGridTab().isSortTab()) {
 				currentRow = tabPanel.getGridTab().getCurrentRow();
 			}
-			tabPanel.query(false, 0, 0);
-			if (currentRow >= 0 && currentRow != tabPanel.getGridTab().getCurrentRow()
+			tabPanel.query(false, 0, tabPanel.getGridTab().getMaxQueryRecords());
+			if (currentRow >= 0 && currentRow != tabPanel.getGridTab().getCurrentRow() 
 				&& currentRow < tabPanel.getGridTab().getRowCount()) {
 				tabPanel.getGridTab().setCurrentRow(currentRow, false);
 			}			

@@ -79,7 +79,7 @@ public class JPiereLabelsPanel extends Div implements EventListener<Event> {
 			this.Record_UU = po.get_UUID();
 		}
 	}	
-	
+
 	/**
 	 * Standard constructor
 	 * @param abstractADWindowContent 
@@ -134,6 +134,9 @@ public class JPiereLabelsPanel extends Div implements EventListener<Event> {
 		}
 	}
 	
+	/**
+	 * Re-render with latest data from AD_LabelAssignment
+	 */
 	private void update() {
 		// Clear children
 		List<Component> children = new ArrayList<Component>(getChildren());
@@ -161,6 +164,9 @@ public class JPiereLabelsPanel extends Div implements EventListener<Event> {
 		abstractADWindowContent.getToolbar().setPressed("Label",abstractADWindowContent.getActiveGridTab().hasLabel());
 	}
 	
+	/**
+	 * Pill shape label component
+	 */
 	private class LabelPill extends Groupbox {
 		private static final long serialVersionUID = -2248242199670448950L;
 		

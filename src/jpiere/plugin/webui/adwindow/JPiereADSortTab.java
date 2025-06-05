@@ -99,8 +99,6 @@ import org.zkoss.zul.event.ListDataEvent;
  *  Zk Port
  *  @author Low Heng Sin
  *  @author Juan David Arboleda : Refactoring Yes and No List to work with multiple choice.
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
 public class JPiereADSortTab extends Panel implements JPiereIADTabpanel
 {

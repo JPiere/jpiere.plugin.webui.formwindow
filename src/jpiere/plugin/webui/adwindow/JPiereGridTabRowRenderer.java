@@ -99,10 +99,6 @@ import org.zkoss.zul.impl.XulElement;
  * @author Teo Sarca, teo.sarca@gmail.com
  * 		<li>BF [ 2996608 ] GridPanel is not displaying time
  * 			https://sourceforge.net/p/adempiere/zk-web-client/420/
- *
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
- *
  */
 public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRendererExt, RendererCtrl, EventListener<Event> {
 
@@ -503,7 +499,7 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 				Cell div = null;
 				while (div == null && child != null) {
 					Component parent = child.getParent();
-					if (parent instanceof Cell && parent.getParent().getParent() instanceof Row)
+					if (parent instanceof Cell && parent.getParent().getParent() instanceof Row)//JPIERE
 						div = (Cell)parent;
 					else
 						child = parent;
@@ -648,40 +644,38 @@ public class JPiereGridTabRowRenderer implements RowRenderer<Object[]>, RowRende
 		Boolean isActive = null;
 		@SuppressWarnings("unused")
 		int colIndex = -1;
-		Vbox vbox = null;
+		Vbox vbox = null;//JPIERE
 		int auxheadSize = gridPanel.getAuxheadSize();//JPIERE-0014:Form Window
-
-
-		int sameLineColumnCounter = 0;
+		int sameLineColumnCounter = 0;//JPIERE
 		for (int i = 0; i < columnCount; i++) {
 			if (editors.get(gridPanelFields[i]) == null) {
-				WEditor editor = WebEditorFactory.getEditor(gridPanelFields[i], true);
-				if (editor != null) {
-					editors.put(gridPanelFields[i], editor);
-					if (editor instanceof WButtonEditor) {
-						((WButtonEditor)editor).addActionListener(buttonListener);
-					}
-
-					//readonly for display text
-					WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true, readOnlyEditorConfiguration);
-					if (readOnlyEditor != null) {
-						readOnlyEditors.put(gridPanelFields[i], readOnlyEditor);
-					}
-								    			
-    				if (editor.getComponent() instanceof AbstractComponent) {
-    					String entityTypeInf = Env.IsShowTechnicalInfOnHelp(Env.getCtx())?"this.fieldEntityType());":"'');";
-						editor.getComponent().setWidgetOverride("fieldHeader", HelpController.escapeJavascriptContent(gridPanelFields[i].getHeader()));
-	    				editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
-	    				editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
-	    				editor.getComponent().setWidgetOverride("fieldEntityType", HelpController.escapeJavascriptContent(gridPanelFields[i].getEntityType()));
-	    				editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp(),"+entityTypeInf);
-    					((AbstractComponent)editor.getComponent()).addCallback(ComponentCtrl.AFTER_PAGE_DETACHED, (t) -> {((AbstractComponent)t).setWidgetListener("onFocus", null);});
-    				}
-
-	    			//	Default Focus
-	    			if (defaultFocusField == null && gridPanelFields[i].isDefaultFocus())
-	    				defaultFocusField = editor;
+			  WEditor editor = WebEditorFactory.getEditor(gridPanelFields[i], true);
+			  if (editor != null) {
+				editors.put(gridPanelFields[i], editor);
+				if (editor instanceof WButtonEditor) {
+					((WButtonEditor)editor).addActionListener(buttonListener);
 				}
+				
+				//readonly for display text
+				WEditor readOnlyEditor = WebEditorFactory.getEditor(gridPanelFields[i], true, readOnlyEditorConfiguration);
+				if (readOnlyEditor != null) {
+					readOnlyEditors.put(gridPanelFields[i], readOnlyEditor);
+				}
+								    			
+    			if (editor.getComponent() instanceof AbstractComponent) {
+    				String entityTypeInf = Env.IsShowTechnicalInfOnHelp(Env.getCtx())?"this.fieldEntityType());":"'');";
+    				editor.getComponent().setWidgetOverride("fieldHeader", HelpController.escapeJavascriptContent(gridPanelFields[i].getHeader()));
+        			editor.getComponent().setWidgetOverride("fieldDescription", HelpController.escapeJavascriptContent(gridPanelFields[i].getDescription()));
+        			editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(gridPanelFields[i].getHelp()));
+        			editor.getComponent().setWidgetOverride("fieldEntityType", HelpController.escapeJavascriptContent(gridPanelFields[i].getEntityType()));
+        			editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp(),"+entityTypeInf);
+    				((AbstractComponent)editor.getComponent()).addCallback(ComponentCtrl.AFTER_PAGE_DETACHED, (t) -> {((AbstractComponent)t).setWidgetListener("onFocus", null);});
+    			}
+    			
+    			//	Default Focus
+    			if (defaultFocusField == null && gridPanelFields[i].isDefaultFocus())
+    				defaultFocusField = editor;
+			  }
 			}
 			
 			if ("IsActive".equals(gridPanelFields[i].getColumnName())) {

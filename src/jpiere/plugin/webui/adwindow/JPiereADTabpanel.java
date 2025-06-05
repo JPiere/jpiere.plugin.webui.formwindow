@@ -155,8 +155,6 @@ import org.zkoss.zul.impl.XulElement;
  * @date Feb 25, 2007
  *
  * @author Low Heng Sin
- *
- * @author Hideaki Hagiwara（h.hagiwara@oss-erp.co.jp）
  */
 public class JPiereADTabpanel extends Div implements Evaluatee, EventListener<Event>,
 DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
@@ -194,6 +192,8 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	private static final String ON_DEFER_SET_SELECTED_NODE_ATTR = "onDeferSetSelectedNode.Event.Posted";
 	
 	private static final CLogger logger;
+	public static final String ON_SWIPE_RIGHT = "onSwipeRight";
+	public static final String ON_SWIPE_LEFT = "onSwipeLeft";
 
     static
     {
@@ -230,7 +230,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     /** list view for center of {@link #formContainer} **/
     private JPiereGridView		  listPanel;	//JPIERE
 
-    /** content rows for group **/
+    /** content rows for group (Group Name:List of Rows) **/
     private Map<String, List<Row>> fieldGroupContents;
 
     /** header row for group **/
@@ -348,7 +348,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         //swipe listener for mobile
         if (ClientInfo.isMobile())
         {
-	        form.addEventListener("onSwipeRight", e -> {
+	        form.addEventListener(ON_SWIPE_RIGHT, e -> {
 	        	if (windowPanel != null && windowPanel.getBreadCrumb() != null && windowPanel.getBreadCrumb().isPreviousEnabled())
 	        	{
 	        		windowPanel.saveAndNavigate(b -> {
@@ -359,7 +359,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	        		});	        		
 	        	}
 	        });
-	        form.addEventListener("onSwipeLeft", e -> {
+	        form.addEventListener(ON_SWIPE_LEFT, e -> {
 	        	if (windowPanel != null && windowPanel.getBreadCrumb() != null && windowPanel.getBreadCrumb().isNextEnabled())
 	        	{
 	        		windowPanel.saveAndNavigate(b -> {
@@ -379,9 +379,10 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 
     /**
      * Setup client side form swipe listener for mobile.<br/>
-     * Send onSwipeRight and onSwipeLeft event to server.
+     * Send onSwipeRight and onSwipeLeft event to target component.
+	 * @param form Target component for onSwipeRight and onSwipeLeft event
      */
-	private void setupFormSwipeListener() {
+	public void setupFormSwipeListener(HtmlBasedComponent form) {
 		String uuid = form.getUuid();
 		StringBuilder script = new StringBuilder("(function(){let w=zk.Widget.$('")
 				.append(uuid)
@@ -560,7 +561,17 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     {
     	createUI(false);
     }
-    
+
+	private boolean isLabelAboveInput() {
+		if (isMobile())
+			if (ClientInfo.maxWidth(ClientInfo.EXTRA_SMALL_WIDTH - 1))
+				return MSysConfig.getBooleanValue(MSysConfig.ZK_FIELD_MOBILE_SMALL_WIDTH_LABEL_ABOVE_INPUT, true, Env.getAD_Client_ID(Env.getCtx()));
+			else
+				return MSysConfig.getBooleanValue(MSysConfig.ZK_FIELD_MOBILE_LABEL_ABOVE_INPUT, false, Env.getAD_Client_ID(Env.getCtx()));
+		else
+			return MSysConfig.getBooleanValue(MSysConfig.ZK_FIELD_LABEL_ABOVE_INPUT, false, Env.getAD_Client_ID(Env.getCtx()));
+	}
+
     /**
      * Create UI for AD_Fields
      * @param update true if it is update instead of create new
@@ -583,24 +594,26 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     	
     	tabGroupForms = new ArrayList<Grid>();
     	fieldGroupTabHeaders = new HashMap<String, List<Tab>>();
-    	
+
+		// number of form columns
     	int numCols=gridTab.getNumColumns();
     	if (numCols <= 0) { 
     		numCols=6;
     	}
 
 		//adapt layout for phone and tablet
-		int diff = 0;
+		int diffWithConfigureColumns = 0;
 		if (isMobile())
 		{
 			if (ClientInfo.maxWidth(ClientInfo.EXTRA_SMALL_WIDTH-1)) {
-	    		if (numCols > 3) {
-	    			diff = numCols - 3;
-	    			numCols=3;
+				int limit = isLabelAboveInput() ? 1 : 3;
+	    		if (numCols > limit) {
+	    			diffWithConfigureColumns = numCols - limit;
+	    			numCols=limit;
 	    		}
 	    	} else if (ClientInfo.maxWidth(ClientInfo.MEDIUM_WIDTH-1)) {
 	    		if (numCols > 6) {
-	    			diff = numCols - 6;
+	    			diffWithConfigureColumns = numCols - 6;
 	    			numCols=6;
 	    		}
 	    	}			
@@ -613,14 +626,15 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     	// set size in percentage per column leaving a MARGIN on right
     	Columns columns = new Columns();    	
     	form.appendChild(columns);
-    	double equalWidth = 95.00d / numCols;
+		// margin on right not needed for label above input layout
+    	double equalWidth = (isLabelAboveInput() ? 100.00d : 95.00d) / numCols;
     	DecimalFormat decimalFormat = new DecimalFormat("0.00");
     	decimalFormat.setRoundingMode(RoundingMode.DOWN);
     	String columnWidth = decimalFormat.format(equalWidth);
 
-    	for (int h=0;h<numCols+1;h++){
+    	for (int h=0;h<(isLabelAboveInput() ? numCols : numCols+1);h++){
     		Column col = new Column();
-    		if (h == numCols) {
+    		if (h == numCols && !isLabelAboveInput()) {
     			ZKUpdateUtil.setWidth(col, "5%");
     		} else {
     			ZKUpdateUtil.setWidth(col, columnWidth + "%");
@@ -633,9 +647,14 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     		rowList = null;
     		currentGroup = null;
     	}
+
+		if (isLabelAboveInput())
+			LayoutUtils.addSclass("form-label-above-input", form);
+
     	Rows rows = form.newRows();
         GridField fields[] = gridTab.getFields();
         Row row = new Row();
+		// current x pointer
         int actualxpos = 0;
 
         String currentFieldGroup = null;
@@ -667,16 +686,20 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
                 		continue;
         		}
         	}
-        	
+
         	// field group
         	String fieldGroup = field.getFieldGroup();
         	if (!Util.isEmpty(fieldGroup) && !fieldGroup.equals(currentFieldGroup)
         		&& !X_AD_FieldGroup.FIELDGROUPTYPE_DoNothing.equals(field.getFieldGroupType())) // group changed
         	{
         		currentFieldGroup = fieldGroup;
-        		
-        		if (numCols - actualxpos + 1 > 0)
+
+				// fill remaining columns before moving to next row
+        		if (!isLabelAboveInput() && numCols - actualxpos + 1 > 0)
         			row.appendCellChild(createSpacer(), numCols - actualxpos + 1);
+				else if (isLabelAboveInput() && (numCols - (actualxpos + 1) > 0))
+					row.appendCellChild(createSpacer(), numCols - (actualxpos + 1));
+				// tab or non tab field group
         		if (currentTabGroupRows != null) {
         			currentTabGroupRows.appendChild(row);
         		} else {
@@ -695,6 +718,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 
         		if (X_AD_FieldGroup.FIELDGROUPTYPE_Label.equals(field.getFieldGroupType()))
         		{
+					// non collapsible group
         			row = new Row();
         			Label groupLabel = new Label(fieldGroup);
         			row.appendCellChild(groupLabel, numCols);
@@ -713,7 +737,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         			// Create New Tab for FieldGroup
             		List<Tab> headerTabs = new ArrayList<Tab>();
             		fieldGroupTabHeaders.put(fieldGroup, headerTabs);
-            		
+
         			Tabs tabs = tabbox.getTabs();
     				if (tabs == null) {
     					tabs = new Tabs();
@@ -723,14 +747,14 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     				Tab tab = new Tab(fieldGroup);
     				tabs.appendChild(tab);
     				headerTabs.add(tab);
-    				
+
     				Grid tabForm = new Grid();
     				tabGroupForms.add(tabForm);
     				ZKUpdateUtil.setHflex(tabForm, "1");
     			    ZKUpdateUtil.setHeight(tabForm, null);
     			    tabForm.setVflex(false);
     			    tabForm.setSclass("grid-layout adwindow-form");
-    			    
+
     		    	Columns tabColumns = new Columns();
     		    	tabForm.appendChild(tabColumns);
     		    	double tabEqualWidth = 95.5d / numCols;
@@ -746,11 +770,11 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     		    		}
     		    		tabColumns.appendChild(col);
     		    	}
-    		    	
+
     		    	tabForm.appendChild(tabColumns);
-    		    	
+
     			    Rows tabRows = tabForm.newRows();
-    				
+
     				Tabpanels tabpanels = tabbox.getTabpanels();
     				if (tabpanels == null) {
     					tabpanels = new Tabpanels();
@@ -767,11 +791,12 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         		}
         		else
         		{
+					// collapsible group
         			Group rowg = new Group(fieldGroup);
         			Cell cell = (Cell) rowg.getFirstChild();
         			cell.setSclass("z-group-inner");
         			cell.setColspan(numCols+1);
-        			
+
     				allCollapsibleGroups.add(rowg);
         			if (X_AD_FieldGroup.FIELDGROUPTYPE_Tab.equals(field.getFieldGroupType()) || field.getIsCollapsedByDefault())
         			{
@@ -787,23 +812,29 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         		actualxpos = 0;
         	}
 
+			boolean paintLabel = ! (field.getDisplayType() == DisplayType.Button || field.getDisplayType() == DisplayType.YesNo || field.isFieldOnly());
         	// get the column span for field
 			int columnSpan = field.getColumnSpan();
+			// get x position define at AD_Field
         	int xpos = field.getXPosition();
-        	if (xpos + columnSpan > numCols && diff > 0)
+        	if (xpos + columnSpan > numCols && diffWithConfigureColumns > 0)
         	{
-        		xpos = xpos - diff;
+        		xpos = xpos - diffWithConfigureColumns;
         		if (xpos <= 0)
         			xpos = 1;
-        		if (xpos == 1 && (field.getDisplayType() == DisplayType.YesNo || field.getDisplayType() == DisplayType.Button || field.isFieldOnly()))
+				if (xpos > 1 && numCols == 3 && isLabelAboveInput())
+					xpos = 1;
+        		else if (xpos == 1 && !paintLabel && !isLabelAboveInput())
         			xpos = 2;
         	}
-        	
-			//normal field
+
+			// condition to start new row
         	if (xpos <= actualxpos) {
-        		// Fill right part of the row with spacers until number of columns
-        		if (numCols - actualxpos + 1 > 0)
+        		// Fill remaining columns with spacers before moving to next row
+        		if (!isLabelAboveInput() && (numCols - actualxpos + 1 > 0))
         			row.appendCellChild(createSpacer(), numCols - actualxpos + 1);
+				else if (isLabelAboveInput() && (numCols - (actualxpos + 1) > 0))
+					row.appendCellChild(createSpacer(), numCols - (actualxpos + 1));
         		// Tab Group vs Grid Group
         		if (currentTabGroupRows != null) {
         			currentTabGroupRows.appendChild(row);
@@ -813,29 +844,29 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         		}
                 if (rowList != null)
         			rowList.add(row);
+				// start new row
         		row=new Row();
         		actualxpos = 0;
         	}
-    		// Fill left part of the field
-        	if (xpos-1 - actualxpos > 0)
+    		// Fill left side of field with space (if needed)
+        	if (!isLabelAboveInput() && (xpos-1 - actualxpos > 0))
         		row.appendCellChild(createSpacer(), xpos-1 - actualxpos);
-        	boolean paintLabel = ! (field.getDisplayType() == DisplayType.Button || field.getDisplayType() == DisplayType.YesNo || field.isFieldOnly()); 
 
-        	// Adjust column spam to the remain columns size
+        	// Ensure column span doesn't exceed remaining number of columns
 			int remainCols = numCols - actualxpos;
     		if (columnSpan > remainCols)
     			columnSpan = remainCols-1 > 0 ? remainCols-1 : 1;
 
+			// move current x pointer
         	if (field.isHeading())
         		actualxpos = xpos;
         	else
-        		actualxpos = xpos + columnSpan-1 + (paintLabel ? 1 : 0);
+        		actualxpos = xpos + columnSpan-1 + (paintLabel && !isLabelAboveInput() ? 1 : 0);
 
         	if (! field.isHeading()) {
-
         		WEditor editor = update ? findEditor(field) : WebEditorFactory.getEditor(gridTab, field, false);
 
-        		if (editor != null) // Not heading
+        		if (editor != null) // Not heading only
         		{
         			if (!update)
         			{
@@ -845,7 +876,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         				editor.getComponent().setWidgetOverride("fieldHelp", HelpController.escapeJavascriptContent(field.getHelp()));
         				editor.getComponent().setWidgetOverride("fieldEntityType", HelpController.escapeJavascriptContent(field.getEntityType()));
         				editor.getComponent().setWidgetListener("onFocus", "zWatch.fire('onFieldTooltip', this, null, this.fieldHeader(), this.fieldDescription(), this.fieldHelp(),"+entityTypeInf);
-        			
+
         				editor.setGridTab(this.getGridTab());
         				field.addPropertyChangeListener(editor);
         				editors.add(editor);
@@ -858,10 +889,30 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         				div.appendChild(label);
         				if (label.getDecorator() != null)
         					div.appendChild(label.getDecorator());
-        				row.appendCellChild(div,1);
+						if (isLabelAboveInput()) {
+							Div editorDiv = new Div();
+							editorDiv.appendChild(div);
+							editorDiv.appendChild(editor.getComponent());
+							row.appendCellChild(editorDiv, columnSpan);
+							row.getLastCell().setSclass("form-label-above-input");
+							// with label on top, space between field move from right align label to right side of input
+							if (numCols > 1)
+								row.appendCellChild(createSpacer(), 1);
+						} else {
+							row.appendCellChild(div, 1);
+						}
         			}
 
-        			row.appendCellChild(editor.getComponent(),  columnSpan );
+					if (!paintLabel) {
+						// no label, input only
+						row.appendCellChild(editor.getComponent(), columnSpan);
+						if (isLabelAboveInput()) {
+							row.appendCellChild(createSpacer(), 1);
+							row.setValign("bottom");
+						}
+					} else if (!isLabelAboveInput()) {
+						row.appendCellChild(editor.getComponent(), columnSpan);
+					}
         			//to support float/absolute editor
         			row.getLastCell().setStyle("position: relative; overflow: visible;");
 
@@ -877,7 +928,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	        				editor.addValueChangeListener(dataBinder);
 	        			}
         			}
-        			
+
         			//	Default Focus
         			if (defaultFocusField == null && field.isDefaultFocus())
         				defaultFocusField = editor;
@@ -886,15 +937,15 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         			{
 	        			//stretch component to fill grid cell
 	        			editor.fillHorizontal();
-	        			
+
 	        			Component fellow = editor.getComponent().getFellowIfAny(field.getColumnName());
 	        			if (fellow == null) {
 	        				editor.getComponent().setId(field.getColumnName());
 	        			}
-	
+
 	        			//setup editor context menu
 	        			WEditorPopupMenu popupMenu = editor.getPopupMenu();
-	        			if (popupMenu == null) 
+	        			if (popupMenu == null)
 	        			{
 	        				popupMenu = new WEditorPopupMenu(false, false, false, false, false, false, null);
 	        			}
@@ -918,19 +969,19 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 		        					{
 		        						label.addEventListener(Events.ON_CLICK, new ZoomListener((IZoomableEditor) editor));
 		        					}
-		
-		        					popupMenu.addContextElement(label);		        					
-	        					}	        					
-	        				} 
+
+		        					popupMenu.addContextElement(label);
+	        					}
+	        				}
 	        				popupMenu.addSuggestion(field);
 	        				if(!ClientInfo.isMobile())
 	        				{
-	        					if (editor.getComponent() instanceof XulElement) 
+	        					if (editor.getComponent() instanceof XulElement)
 	        					{
 	        						popupMenu.addContextElement((XulElement) editor.getComponent());
 	        					}
 	        				}
-	        			}      
+	        			}
         			}
         		}
         	}
@@ -959,9 +1010,12 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         		row.appendCellChild(div);
         	}
         }
-        
-		if (numCols - actualxpos + 1 > 0)
+
+		// fill remaining columns
+		if (!isLabelAboveInput() && numCols - actualxpos + 1 > 0)
 			row.appendCellChild(createSpacer(), numCols - actualxpos + 1);
+		else if (isLabelAboveInput() && (numCols - (actualxpos + 1) > 0))
+			row.appendCellChild(createSpacer(), numCols - (actualxpos + 1));
 		// Tab Group vs Grid Group
 		if (currentTabGroupRows != null) {
 			currentTabGroupRows.appendChild(row);
@@ -976,7 +1030,6 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
         	loadToolbarButtons();
         		
         //create tree
-
         if (!update && gridTab.isTreeTab() && treePanel != null) {
         	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), getWindowNo(), "AD_Tree_ID", true);
         	int AD_Tree_ID_Default = MTree.getDefaultAD_Tree_ID (Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
@@ -1145,6 +1198,8 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
             	for (Component cellComponent : row.getChildren())
             	{
             		Component component = cellComponent.getFirstChild();
+					if (isLabelAboveInput() && component instanceof Div div && component.getFirstChild() != null)
+						component = div.getFirstChild().getNextSibling();
             		if (editorComps.contains(component))
             		{
             			editorRow = true;
@@ -1186,6 +1241,8 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
                 	for (Component cellComponent : row.getChildren())
                 	{
                 		Component component = cellComponent.getFirstChild();
+						if (isLabelAboveInput() && component instanceof Div div)
+							component = div.getFirstChild();
                 		if (editorComps.contains(component))
                 		{
                 			editorRow = true;
@@ -2275,7 +2332,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 		if (parent != null) {
 			listPanel.onADTabPanelParentChanged();
 			if (ClientInfo.isMobile())
-				setupFormSwipeListener();
+				setupFormSwipeListener(form);
 		}
 	}
 
