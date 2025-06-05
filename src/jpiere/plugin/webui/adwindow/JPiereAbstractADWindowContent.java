@@ -1326,9 +1326,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			if (infoName != null && infoDisplay != null)
 				break;
 		}
-		if (infoDisplay == null) {
-			infoDisplay = "";
-		}
+    	if (infoName == null)
+    		infoName = adTabbox.getSelectedGridTab().getName();
+    	if (infoDisplay == null)
+    		infoDisplay = "";
 		String description = infoName + ": " + infoDisplay;
 
     	WChat chat = new WChat(curWindowNo, adTabbox.getSelectedGridTab().getCM_ChatID(), adTabbox.getSelectedGridTab().getAD_Table_ID(),
@@ -1373,6 +1374,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     		if (infoName != null && infoDisplay != null)
     			break;
     	}
+    	if (infoName == null)
+    		infoName = adTabbox.getSelectedGridTab().getName();
+    	if (infoDisplay == null)
+    		infoDisplay = "";
     	String header = infoName + ": " + infoDisplay;
 
     	WPostIt postit = new WPostIt(header, adTabbox.getSelectedGridTab().getAD_PostIt_ID(), adTabbox.getSelectedGridTab().getAD_Table_ID(), recordId, recordUU, null);
@@ -1442,6 +1447,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      * @return true if there's last focus editor
      */
 	public boolean focusToLastFocusEditor() {
+		if (ClientInfo.isMobile())
+			return false;
+
 		return focusToLastFocusEditor(false);
 	}
 	
@@ -1631,7 +1639,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     		Integer[] data = (Integer[]) event.getData();
     		adTabbox.setDetailPaneSelectedTab(data[0], data[1]);
     	}
-    	else if (event.getName().equals(ON_FOCUS_DEFER_EVENT)) {
+    	else if (event.getName().equals(ON_FOCUS_DEFER_EVENT) && !ClientInfo.isMobile()) {
     		HtmlBasedComponent comp = (HtmlBasedComponent) event.getData();
     		if (comp instanceof JPiereADTabpanel)
     			((JPiereADTabpanel)comp).focusToFirstEditor(false);
@@ -2352,13 +2360,12 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
             			}
             		}
             		if (!isTabExcluded) {
-            			//sleep needed for onClose to show confirmation dialog
-            			try {
-    						Thread.sleep(200);
-    					} catch (InterruptedException e2) {
-    					}
-            			if (!showingOnExitDialog)
-            				Executions.schedule(getComponent().getDesktop(), e1 -> asyncAutoSave(), new Event("onAutoSave"));
+            			//schedule for onClose to show confirmation dialog
+            			Executions.schedule(getComponent().getDesktop(), 
+            					e1 -> {
+            						if (!showingOnExitDialog)
+                        				Executions.schedule(getComponent().getDesktop(), e2 -> asyncAutoSave(), new Event("onAsyncAutoSave"));
+            					},  new Event("onAutoSaveChangesSchedule"));
             		}
         		}
         	}
