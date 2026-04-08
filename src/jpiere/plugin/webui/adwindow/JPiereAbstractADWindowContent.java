@@ -31,7 +31,6 @@
 
 package jpiere.plugin.webui.adwindow;
 
-import static org.compiere.model.MSysConfig.*;
 import static org.compiere.model.SystemIDs.*;
 
 import java.sql.PreparedStatement;
@@ -56,7 +55,7 @@ import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.ClientInfo;
-//import org.adempiere.webui.Extensions; JPIERE
+import org.adempiere.webui.Extensions;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.WArchive;
 import org.adempiere.webui.WRequest;
@@ -155,6 +154,7 @@ import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
+import org.idempiere.db.util.SQLFragment;
 import org.zkoss.zk.au.out.AuScript;
 import org.zkoss.zk.ui.AbstractComponent;
 import org.zkoss.zk.ui.Component;
@@ -464,7 +464,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
     		{
     			detailQuery = query;
     			query = new MQuery();
-    			query.addRestriction("1=2");
+    			query.addRestriction(new SQLFragment("1=2"));
     			query.setRecordCount(0);
     		}
     	}
@@ -553,8 +553,12 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			{
 				gridWindow.initTab(tabIndex);
 				//init parent tab by parent ids
-				StringBuilder sql = new StringBuilder("SELECT ").append(gTab.getLinkColumnName()).append(" FROM ").append(gTab.getTableName()).append(" WHERE ").append(query.getWhereClause());
-				List<List<Object>> parentIds = DB.getSQLArrayObjectsEx(null, sql.toString());
+				SQLFragment filter = query.getSQLFilter();
+				StringBuilder sql = new StringBuilder("SELECT ").append(gTab.getLinkColumnName())
+						.append(" FROM ").append(gTab.getTableName())
+						.append(" WHERE ")
+						.append(filter.sqlClause());
+				List<List<Object>> parentIds = DB.getSQLArrayObjectsEx(null, sql.toString(), filter.parameters().toArray());
 				if (parentIds!=null && parentIds.size() > 0)
 				{
 					//Tab Index:MQuery
@@ -928,23 +932,33 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         }
 
         //
-		StringBuffer where = new StringBuffer(Env.parseContext(ctx, curWindowNo, mTab.getWhereExtended(), false));
+        List<Object> params = new ArrayList<Object>();
+        SQLFragment extendedFilter = mTab.getExtendedFilter();
+        String preParseWhere = extendedFilter != null ? extendedFilter.sqlClause() : "";
+        StringBuffer where = new StringBuffer(extendedFilter != null ? Env.parseContextForSql(ctx, curWindowNo, extendedFilter.sqlClause(), false, params) : "");
+        if (extendedFilter != null && extendedFilter.parameters().size() > 0)
+        {
+        	params = Env.mergeParameters(preParseWhere, where.toString(), extendedFilter.parameters().toArray(), params.toArray());
+        }
         // Query automatically if high volume and no query
         boolean require = mTab.isHighVolume();
         if (!require && !m_onlyCurrentRows) // No Trx Window
-        {
+        {        	
             if (query != null)
             {
-                String wh2 = query.getWhereClause();
+            	SQLFragment filter = query.getSQLFilter();
+            	params.addAll(filter.parameters());
+                String wh2 = filter.sqlClause();
                 if (wh2.length() > 0)
                 {
                     if (where.length() > 0)
-                        where.append(" AND ");
-                    where.append(wh2);
+                        where.append(" AND (").append(wh2).append(") ");
+                    else
+                    	where.append(wh2);
                 }
             }
             //
-            int no = getRecordCount(mTab, where);
+            int no = getRecordCount(mTab, where, params);
             // show find dialog if count timeout/exception
             require = no == -1 ? true : mTab.isQueryRequire(no);
         }
@@ -956,10 +970,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
         	m_findCreateNew = false;
             GridField[] findFields = mTab.getFields();
             
-            //JPIERE
-            FindWindow findWindow = new FindWindow(curWindowNo, mTab.getTabNo(),
-            		mTab.getName(), mTab.getAD_Table_ID(), mTab.getTableName(),
-            		where.toString(), findFields, 10, mTab.getAD_Tab_ID()); // no query below 10 //JPIERE
+            //JPIERE no query below 10
+            FindWindow findWindow = Extensions.getFindWindow(curWindowNo, 0, title, mTab.getAD_Table_ID(), mTab.getTableName(), new SQLFragment(where.toString(), params), findFields, 10, mTab.getAD_Tab_ID(),null);//JPIERE
             
            	tabFindWindowHashMap.put(mTab, findWindow);
             setupEmbeddedFindwindow(findWindow);
@@ -1009,9 +1021,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
      * Get record count
      * @param mTab
      * @param where
+     * @param params 
      * @return record count
      */
-	private int getRecordCount(GridTab mTab, StringBuffer where) {
+	private int getRecordCount(GridTab mTab, StringBuffer where, List<Object> params) {
 		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM ")
 		        .append(mTab.getTableName());
 		if (where.length() > 0)
@@ -1024,6 +1037,9 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 		try (PreparedStatement stmt = DB.prepareStatement(finalSQL, null)) {
 			if (timeout > 0)
 				stmt.setQueryTimeout(timeout);
+			if (params != null && !params.isEmpty()) {
+				DB.setParameters(stmt, params);
+			}
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next())
 				no = rs.getInt(1);
@@ -1955,11 +1971,11 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 							PO po = tab.getTableModel().getPO(row);
 							titleLogic = Env.parseVariable(titleLogic, po, null, false);
 						} else {
-							titleLogic = Env.parseContext(Env.getCtx(), curWindowNo, titleLogic, false, true);
+							titleLogic = Env.parseContext(Env.getCtx(), curWindowNo, titleLogic, false, true, false, false);
 						}
 					}
 				} else {
-					titleLogic = Env.parseContext(Env.getCtx(), curWindowNo, titleLogic, false, true);
+					titleLogic = Env.parseContext(Env.getCtx(), curWindowNo, titleLogic, false, true, false, false);
 				}
         		sb.append(titleLogic);
         		header = sb.toString().trim();
@@ -2725,7 +2741,8 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				        	onNew();
 				        } else {
 				        	adTabbox.getSelectedGridTab().dataRefresh(false); // Elaine 2008/07/25
-
+		        			adTabbox.getSelectedTabpanel().onAfterFind();
+				        	
 				        	isMaxRecords(true, null);//JPIERE-0181 & 0466
 				        }
 				        toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), getCurrentFindWindow().getAD_UserQuery_ID());
@@ -2759,7 +2776,7 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				adTabbox.getSelectedGridTab().getName(),
 	            adTabbox.getSelectedGridTab().getAD_Table_ID(), 
 	            adTabbox.getSelectedGridTab().getTableName(),
-	            adTabbox.getSelectedGridTab().getWhereExtended(), 
+	            adTabbox.getSelectedGridTab().getExtendedFilter(), 
 	            findFields, 
 	            1, 
 	            adTabbox.getSelectedGridTab().getAD_Tab_ID());
@@ -3523,10 +3540,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 			{
 				if (link.endsWith("_ID"))
 					query.addRestriction(link, MQuery.EQUAL,
-						Integer.valueOf(Env.getContextAsInt(ctx, curWindowNo, link)));
+						Integer.valueOf(Env.getContextAsInt(ctx, curWindowNo, adTabbox.getSelectedGridTab().getTabNo(), link)));
 				else
 					query.addRestriction(link, MQuery.EQUAL,
-						Env.getContext(ctx, curWindowNo, link));
+						Env.getContext(ctx, curWindowNo, adTabbox.getSelectedGridTab().getTabNo(), link));
 			}
 			new WZoomAcross(toolbar.getToolbarItem("ZoomAcross"), adTabbox.getSelectedGridTab()
 					.getTableName(), adTabbox.getSelectedGridTab().getAD_Window_ID(), query);
@@ -4661,10 +4678,10 @@ public abstract class JPiereAbstractADWindowContent extends AbstractUIPart imple
 				}
 			}
 
-			//JPIERE
-			findWindow = new FindWindow (adTabbox.getSelectedGridTab().getWindowNo(), adTabbox.getSelectedGridTab().getTabNo(), adTabbox.getSelectedGridTab().getName(),
+			//JPIERE            
+			findWindow = Extensions.getFindWindow(adTabbox.getSelectedGridTab().getWindowNo(), adTabbox.getSelectedGridTab().getTabNo(), adTabbox.getSelectedGridTab().getName(),
 					adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getTableName(),
-					adTabbox.getSelectedGridTab().getWhereExtended(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID());//JPIERE
+					adTabbox.getSelectedGridTab().getExtendedFilter(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID(), null);//JPIERE
 			
 			setupEmbeddedFindwindow(findWindow);
 			if (!findWindow.initialize()) {

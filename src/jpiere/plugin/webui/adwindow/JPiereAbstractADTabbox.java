@@ -205,6 +205,9 @@ public abstract class JPiereAbstractADTabbox extends AbstractUIPart implements J
 				GridField[] fields = adtab.getGridTab().getFields();
 				for (GridField gf : fields)
 				{
+					// ignore IsSOTrx as it is set at window level
+					if ("IsSOTrx".equals(gf.getColumnName()))
+						continue;
 					Env.setContext(Env.getCtx(), gf.getWindowNo(),  gf.getColumnName(), "");
 				}
 			}

@@ -596,7 +596,7 @@ public class JPiereQuickGridTabRowRenderer
 		else
 		{
 			if (zclass.contains(CSS_READ_ONLY_COMPONENT))
-				zclass.replaceAll(CSS_READ_ONLY_COMPONENT, "");
+				zclass.replace(CSS_READ_ONLY_COMPONENT, "");
 		}
 		return zclass;
 	}

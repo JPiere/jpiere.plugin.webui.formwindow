@@ -573,6 +573,27 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 		recordToolbar.addEventListener(ON_RECORD_NAVIGATE_EVENT, eventListener);
 		tp.setRecordToolbar(recordToolbar);
 		tp.setADTabpanel(tabPanel);
+		if (tabPanel instanceof JPiereADTabpanel adTabpanel) {
+			tp.addEventListener(ADTabpanel.ON_SWIPE_RIGHT, e -> {
+				RecordToolbar rtb = tp.getRecordToolbar();
+				if (rtb != null && rtb.isVisible()) {
+					if (!rtb.btnPrevious.isDisabled()) {
+						LayoutUtils.addSclass(JPiereADTabpanel.SLIDE_RIGHT_OUT_CSS, adTabpanel.form);
+						Events.sendEvent(Events.ON_CLICK, rtb.btnPrevious, null);
+					}
+				}
+			});
+			tp.addEventListener(ADTabpanel.ON_SWIPE_LEFT, e -> {
+				RecordToolbar rtb = tp.getRecordToolbar();
+				if (rtb != null && rtb.isVisible()) {
+					if (!rtb.btnNext.isDisabled()) {
+						LayoutUtils.addSclass(JPiereADTabpanel.SLIDE_LEFT_OUT_CSS, adTabpanel.form);
+						Events.sendEvent(Events.ON_CLICK, rtb.btnNext, null);
+					}
+				}
+			});
+			adTabpanel.setupFormSwipeListener(tp);
+		}
 
 		if (tabPanel.getJPiereGridView() != null) {
 			tabPanel.addEventListener(ADTabpanel.ON_DYNAMIC_DISPLAY_EVENT, this);
@@ -963,6 +984,11 @@ public class JPiereDetailPane extends Panel implements EventListener<Event>, IdS
 				} else if (BTN_TOGGLE_ID.equals(btn.getId())) {
 					btn.setDisabled(adtab.getGridTab().isSortTab());
 				}
+				else if (tabpanel.toolbarCustomButtons.containsKey(btn))
+				{
+					tabpanel.toolbarCustomButtons.get(btn).updateToolbarCustomBtn(adtab, changed, readOnly);
+				}
+
         		if (windowRestrictList.contains(btn.getId())) {
         			btn.setVisible(false);
         		} else if (tabRestrictList.contains(btn.getId())) {

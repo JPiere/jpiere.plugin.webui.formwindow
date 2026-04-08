@@ -162,11 +162,11 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	//css for slide animation
 	private static final String SLIDE_LEFT_IN_CSS = "slide-left-in";
 
-	private static final String SLIDE_LEFT_OUT_CSS = "slide-left-out";
+	protected static final String SLIDE_LEFT_OUT_CSS = "slide-left-out";
 
 	private static final String SLIDE_RIGHT_IN_CSS = "slide-right-in";
 
-	private static final String SLIDE_RIGHT_OUT_CSS = "slide-right-out";
+	protected static final String SLIDE_RIGHT_OUT_CSS = "slide-right-out";
 
 	/**
 	 * generated serial id
@@ -195,14 +195,14 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
 	public static final String ON_SWIPE_RIGHT = "onSwipeRight";
 	public static final String ON_SWIPE_LEFT = "onSwipeLeft";
 
-    static
+	static
     {
         logger = CLogger.getCLogger(JPiereADTabpanel.class);	//JPIERE
     }
 
     private GridTab           gridTab;
 
-    private GridWindow        gridWindow;
+	private GridWindow        gridWindow;
 
 	/** AD Window content part that own this ADTabpanel instance **/
     private JPiereAbstractADWindowContent      windowPanel;		//JPIERE
@@ -210,7 +210,7 @@ DataStatusListener, JPiereIADTabpanel, IdSpace, IFieldEditorContainer
     private int               windowNo;
 
     /** form view for center of {@link #formContainer} **/
-    private Grid              form;
+    protected Grid              form;
 
     /** field editors **/
     private ArrayList<WEditor> editors = new ArrayList<WEditor>();
