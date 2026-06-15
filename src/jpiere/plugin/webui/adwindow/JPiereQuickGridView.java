@@ -74,7 +74,7 @@ import org.zkoss.zul.Div;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Paging;
 import org.zkoss.zul.Row;
-import org.zkoss.zul.Vbox;
+import org.adempiere.webui.component.FlexVlayout;
 import org.zkoss.zul.event.ZulEvents;
 import org.zkoss.zul.impl.CustomGridDataLoader;
 
@@ -86,7 +86,7 @@ import jpiere.plugin.webui.window.form.JPiereWQuickForm;
  * @author Logilite Technologies
  * @since Nov 03, 2017
  */
-public class JPiereQuickGridView extends Vbox
+public class JPiereQuickGridView extends FlexVlayout
 		implements EventListener<Event>, IdSpace, IFieldEditorContainer, StateChangeListener {
 	/**
 	 * generated serial id
